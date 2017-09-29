@@ -33,9 +33,12 @@ void CameraManager::updateViewMatrices()
 		{
 			XMFLOAT3 cameraPosition = m_cameras[i]->getPosition();
 
+			XMFLOAT3 forwardFloat3 = m_cameras[i]->getForward();
+			XMFLOAT3 upFloat3 = m_cameras[i]->getUp();
+
 			XMVECTOR eye = XMLoadFloat3(&cameraPosition);
-			XMVECTOR forward = m_cameras[i]->getForward();
-			XMVECTOR up = m_cameras[i]->getUp();
+			XMVECTOR forward = XMLoadFloat3(&forwardFloat3);
+			XMVECTOR up = XMLoadFloat3(&upFloat3);
 
 			XMMATRIX viewMatrix = XMMatrixLookToLH(eye, forward, up);
 			XMStoreFloat4x4(&m_viewMatrices[i], viewMatrix);

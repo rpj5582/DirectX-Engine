@@ -20,6 +20,11 @@ Entity::Entity(Mesh* mesh, Material* material)
 
 Entity::~Entity()
 {
+	for (unsigned int i = 0; i < m_components.size(); i++)
+	{
+		delete m_components[i];
+	}
+	m_components.clear();
 }
 
 Mesh* Entity::getMesh() const
@@ -72,19 +77,31 @@ const DirectX::XMMATRIX Entity::getWorldMatrixInverseTranspose() const
 	return XMLoadFloat4x4(&m_worldMatrixInverseTranspose);
 }
 
-const XMVECTOR Entity::getRight() const
+const XMFLOAT3 Entity::getRight() const
 {
-	return XMVector3Transform(XMVectorSet(1.0f, 0.0f, 0.0f, 0.0f), getRotationMatrix());
+	XMVECTOR v = XMVector3Transform(XMVectorSet(1.0f, 0.0f, 0.0f, 0.0f), getRotationMatrix());
+
+	XMFLOAT3 right;
+	XMStoreFloat3(&right, v);
+	return right;
 }
 
-const XMVECTOR Entity::getUp() const
+const XMFLOAT3 Entity::getUp() const
 {
-	return XMVector3Transform(XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f), getRotationMatrix());
+	XMVECTOR v = XMVector3Transform(XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f), getRotationMatrix());
+
+	XMFLOAT3 up;
+	XMStoreFloat3(&up, v);
+	return up;
 }
 
-const XMVECTOR Entity::getForward() const
+const XMFLOAT3 Entity::getForward() const
 {
-	return XMVector3Transform(XMVectorSet(0.0f, 0.0f, 1.0f, 0.0f), getRotationMatrix());
+	XMVECTOR v = XMVector3Transform(XMVectorSet(0.0f, 0.0f, 1.0f, 0.0f), getRotationMatrix());
+
+	XMFLOAT3 forward;
+	XMStoreFloat3(&forward, v);
+	return forward;
 }
 
 void Entity::calcTranslationMatrix()
@@ -162,10 +179,18 @@ void Entity::moveZ(float delta)
 
 void Entity::moveLocal(DirectX::XMFLOAT3 delta)
 {
+	XMFLOAT3 rightFloat3 = getRight();
+	XMFLOAT3 upFloat3 = getUp();
+	XMFLOAT3 forwardFloat3 = getForward();
+
+	XMVECTOR right = XMLoadFloat3(&rightFloat3);
+	XMVECTOR up = XMLoadFloat3(&upFloat3);
+	XMVECTOR forward = XMLoadFloat3(&forwardFloat3);
 	XMVECTOR position = XMLoadFloat3(&m_position);
-	position = XMVectorAdd(position, XMVectorScale(getRight(), delta.x));
-	position = XMVectorAdd(position, XMVectorScale(getUp(), delta.y));
-	position = XMVectorAdd(position, XMVectorScale(getForward(), delta.z));
+
+	position = XMVectorAdd(position, XMVectorScale(right, delta.x));
+	position = XMVectorAdd(position, XMVectorScale(up, delta.y));
+	position = XMVectorAdd(position, XMVectorScale(forward, delta.z));
 	XMStoreFloat3(&m_position, position);
 
 	calcTranslationMatrix();
@@ -173,8 +198,11 @@ void Entity::moveLocal(DirectX::XMFLOAT3 delta)
 
 void Entity::moveLocalX(float delta)
 {
+	XMFLOAT3 rightFloat3 = getRight();
+
+	XMVECTOR right = XMLoadFloat3(&rightFloat3);
 	XMVECTOR position = XMLoadFloat3(&m_position);
-	position = XMVectorAdd(position, XMVectorScale(getRight(), delta));
+	position = XMVectorAdd(position, XMVectorScale(right, delta));
 	XMStoreFloat3(&m_position, position);
 
 	calcTranslationMatrix();
@@ -182,8 +210,11 @@ void Entity::moveLocalX(float delta)
 
 void Entity::moveLocalY(float delta)
 {
+	XMFLOAT3 upFloat3 = getUp();
+
+	XMVECTOR up = XMLoadFloat3(&upFloat3);
 	XMVECTOR position = XMLoadFloat3(&m_position);
-	position = XMVectorAdd(position, XMVectorScale(getUp(), delta));
+	position = XMVectorAdd(position, XMVectorScale(up, delta));
 	XMStoreFloat3(&m_position, position);
 
 	calcTranslationMatrix();
@@ -191,8 +222,11 @@ void Entity::moveLocalY(float delta)
 
 void Entity::moveLocalZ(float delta)
 {
+	XMFLOAT3 forwardFloat3 = getForward();
+
+	XMVECTOR forward = XMLoadFloat3(&forwardFloat3);
 	XMVECTOR position = XMLoadFloat3(&m_position);
-	position = XMVectorAdd(position, XMVectorScale(getForward(), delta));
+	position = XMVectorAdd(position, XMVectorScale(forward, delta));
 	XMStoreFloat3(&m_position, position);
 
 	calcTranslationMatrix();
@@ -200,8 +234,9 @@ void Entity::moveLocalZ(float delta)
 
 void Entity::rotateLocal(DirectX::XMFLOAT3 rot)
 {
+	XMFLOAT3 rotDegrees = XMFLOAT3(XMConvertToRadians(rot.x), XMConvertToRadians(rot.y), XMConvertToRadians(rot.z));
 	XMVECTOR rotation = XMLoadFloat3(&m_rotation);
-	XMVECTOR rotVector = XMLoadFloat3(&rot);
+	XMVECTOR rotVector = XMLoadFloat3(&rotDegrees);
 	rotation = XMVectorAdd(rotation, rotVector);
 	XMStoreFloat3(&m_rotation, rotation);
 
@@ -211,7 +246,7 @@ void Entity::rotateLocal(DirectX::XMFLOAT3 rot)
 void Entity::rotateLocalX(float angle)
 {
 	XMVECTOR rotation = XMLoadFloat3(&m_rotation);
-	XMVECTOR angleVector = XMVectorSet(angle, 0.0f, 0.0f, 0.0f);
+	XMVECTOR angleVector = XMVectorSet(XMConvertToRadians(angle), 0.0f, 0.0f, 0.0f);
 	rotation = XMVectorAdd(rotation, angleVector);
 	XMStoreFloat3(&m_rotation, rotation);
 
@@ -221,7 +256,7 @@ void Entity::rotateLocalX(float angle)
 void Entity::rotateLocalY(float angle)
 {
 	XMVECTOR rotation = XMLoadFloat3(&m_rotation);
-	XMVECTOR angleVector = XMVectorSet(0.0f, angle, 0.0f, 0.0f);
+	XMVECTOR angleVector = XMVectorSet(0.0f, XMConvertToRadians(angle), 0.0f, 0.0f);
 	rotation = XMVectorAdd(rotation, angleVector);
 	XMStoreFloat3(&m_rotation, rotation);
 
@@ -231,7 +266,7 @@ void Entity::rotateLocalY(float angle)
 void Entity::rotateLocalZ(float angle)
 {
 	XMVECTOR rotation = XMLoadFloat3(&m_rotation);
-	XMVECTOR angleVector = XMVectorSet(0.0f, 0.0f, angle, 0.0f);
+	XMVECTOR angleVector = XMVectorSet(0.0f, 0.0f, XMConvertToRadians(angle), 0.0f);
 	rotation = XMVectorAdd(rotation, angleVector);
 	XMStoreFloat3(&m_rotation, rotation);
 

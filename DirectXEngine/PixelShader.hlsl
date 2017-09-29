@@ -62,16 +62,16 @@ float4 calculateLight(Light light, VertexToPixel input)
 	// as well as spot light attenuation based on the type of light
 	switch (light.type)
 	{
-	case 1: // Directional light
-		directionToLight = normalize((float3) - light.direction);
-		break;
-
-	case 2: // Point light
+	case 0: // Point light
 		distanceToLight = length((float3)light.position - input.worldPosition);
 		directionToLight = ((float3)light.position - input.worldPosition) / distanceToLight;
 		break;
 
-	case 3: // Spot light
+	case 1: // Directional light
+		directionToLight = normalize((float3) - light.direction);
+		break;
+
+	case 2: // Spot light
 		distanceToLight = length((float3)light.position - input.worldPosition);
 		directionToLight = ((float3)light.position - input.worldPosition) / distanceToLight;
 		spotlightAttenuation = pow(max(0.0f, dot(-directionToLight, light.direction) / cos(light.spotAngle)), light.spotFalloff);

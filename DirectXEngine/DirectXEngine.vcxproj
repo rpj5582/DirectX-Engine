@@ -116,6 +116,8 @@
     <ClCompile Include="DXCore.cpp" />
     <ClCompile Include="Entity.cpp" />
     <ClCompile Include="Game.cpp" />
+    <ClCompile Include="Component.cpp" />
+    <ClCompile Include="LightComponent.cpp" />
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="Material.cpp" />
     <ClCompile Include="Mesh.cpp" />
@@ -124,10 +126,11 @@
   <ItemGroup>
     <ClInclude Include="AssetManager.h" />
     <ClInclude Include="CameraManager.h" />
+    <ClInclude Include="Component.h" />
     <ClInclude Include="DXCore.h" />
     <ClInclude Include="Entity.h" />
     <ClInclude Include="Game.h" />
-    <ClInclude Include="Lights.h" />
+    <ClInclude Include="LightComponent.h" />
     <ClInclude Include="Material.h" />
     <ClInclude Include="Mesh.h" />
     <ClInclude Include="SimpleShader.h" />

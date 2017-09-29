@@ -21,6 +21,7 @@ Game::Game(HINSTANCE hInstance)
 		true)			   // Show extra stats (fps) in title bar?
 {
 	m_entities = std::vector<Entity*>();
+	m_lights = std::vector<LightComponent*>();
 
 	m_cameraManager = nullptr;
 	m_assetManager = nullptr;
@@ -44,6 +45,8 @@ Game::~Game()
 
 	delete m_cameraManager;
 
+	m_lights.clear();
+
 	for (unsigned int i = 0; i < m_entities.size(); i++)
 	{
 		delete m_entities[i];
@@ -62,9 +65,7 @@ void Game::Init()
 	m_cameraManager = new CameraManager();
 	m_cameraManager->updateProjectionMatrix(width, height);
 
-	m_lightCount = 3;
-
-	m_lights[0].diffuseColor = XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f);
+	/*m_lights[0].diffuseColor = XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f);
 	m_lights[0].direction = XMFLOAT3(1.0f, -1.0f, 0.0f);
 	m_lights[0].brightness = 1.0f;
 	m_lights[0].position = XMFLOAT3();
@@ -92,7 +93,7 @@ void Game::Init()
 	m_lights[2].radius = 5.0f;
 	m_lights[2].spotAngle = XMConvertToRadians(15.0f);
 	m_lights[2].spotFalloff = 2.0f;
-	m_lights[2].lightType = LightType::SPOT_LIGHT;
+	m_lights[2].lightType = LightType::SPOT_LIGHT;*/
 
 	LoadShaders();
 	CreateEntities();
@@ -131,6 +132,41 @@ void Game::CreateEntities()
 	camera->move(XMFLOAT3(0.0f, 0.0f, -10.0f));
 
 	m_cameraManager->assignCamera(0, camera); // Assigns this entity to the first camera slot
+
+	Entity* directionalLightEnt = new Entity(nullptr, defaultMaterial);
+	directionalLightEnt->rotateLocal(XMFLOAT3(45.0f, 90.0f, 0.0f));
+	m_entities.push_back(directionalLightEnt);
+
+	LightComponent* directionalLight = directionalLightEnt->addComponent<LightComponent>();
+	directionalLight->setLightType(LightType::DIRECTIONAL_LIGHT);
+	m_lights.push_back(directionalLight);
+
+	Entity* spotLightEnt = new Entity(nullptr, defaultMaterial);
+	spotLightEnt->moveLocalZ(10.0f);
+	spotLightEnt->rotateLocalY(180.0f);
+	m_entities.push_back(spotLightEnt);
+
+	LightComponent* spotLight = spotLightEnt->addComponent<LightComponent>();
+	spotLight->setLightType(LightType::SPOT_LIGHT);
+	m_lights.push_back(spotLight);
+
+	LightSettings spotLightSettings = spotLight->getLightSettings();
+	spotLightSettings.color = XMFLOAT4(1.0f, 1.0f, 0.0f, 1.0f);
+	spotLightSettings.radius = 6.0f;
+	spotLightSettings.spotAngle = XMConvertToRadians(2.5f);
+	spotLightSettings.spotFalloff = 128.0f;
+	spotLight->setLightSettings(spotLightSettings);
+
+	Entity* pointLightEnt = new Entity(nullptr, defaultMaterial);
+	m_entities.push_back(pointLightEnt);
+
+	LightComponent* pointLight = pointLightEnt->addComponent<LightComponent>();
+	pointLight->setLightType(LightType::POINT_LIGHT);
+	m_lights.push_back(pointLight);
+
+	LightSettings pointLightSettings = pointLight->getLightSettings();
+	pointLightSettings.color = XMFLOAT4(0.0f, 1.0f, 1.0f, 1.0f);
+	pointLight->setLightSettings(pointLightSettings);
 
 	Mesh* cube = m_assetManager->addMesh("cube", "Models/cube.obj");
 	Entity* cubeEnt = new Entity(cube, defaultMaterial);
@@ -251,6 +287,45 @@ void Game::Draw(float deltaTime, float totalTime)
 	XMFLOAT4X4 projectionMatrix4x4;
 	XMStoreFloat4x4(&projectionMatrix4x4, projectionMatrix);
 
+	// Preprocess each light entity to get it's position and direction
+	struct GPU_LIGHT_DATA
+	{
+		XMFLOAT4 diffuseColor;
+		XMFLOAT3 direction;
+		float brightness;
+		XMFLOAT3 position;
+		float specularity;
+		float radius;
+		float spotAngle;
+		float spotFalloff;
+		unsigned int type;
+	};
+	std::vector<GPU_LIGHT_DATA> lightData = std::vector<GPU_LIGHT_DATA>(m_lights.size());
+
+	for (unsigned int i = 0; i < m_lights.size(); i++)
+	{
+		const LightSettings lightSettings = m_lights[i]->getLightSettings();
+
+		// Get position, direction, and type of each light
+		XMFLOAT3 lightPosition = m_lights[i]->getEntity()->getPosition();
+		XMFLOAT3 lightDirection = m_lights[i]->getEntity()->getForward();
+		UINT lightType = (UINT)m_lights[i]->getLightType();
+
+		// Creates the final memory-aligned struct that is sent to the GPU
+		lightData[i] =
+		{
+			lightSettings.color,
+			lightDirection,
+			lightSettings.brightness,
+			lightPosition,
+			lightSettings.specularity,
+			lightSettings.radius,
+			lightSettings.spotAngle,
+			lightSettings.spotFalloff,
+			lightType
+		};
+	}
+
 	UINT stride = sizeof(Vertex);
 	UINT offset = 0;
 	for (unsigned int i = 0; i < m_entities.size(); i++)
@@ -276,8 +351,9 @@ void Game::Draw(float deltaTime, float totalTime)
 		vertexShader->SetFloat3("cameraPosition", m_cameraManager->getCameraEntity(0)->getPosition());
 		vertexShader->CopyBufferData("camera");
 
-		pixelShader->SetData("lightCount", &m_lightCount, sizeof(UINT));
-		pixelShader->SetData("lights", &m_lights, sizeof(Light) * MAX_LIGHTS);
+		int lightCount = lightData.size();
+		pixelShader->SetData("lightCount", &lightCount, sizeof(UINT));
+		pixelShader->SetData("lights", &lightData[0], sizeof(GPU_LIGHT_DATA) * MAX_LIGHTS);
 		pixelShader->CopyBufferData("lighting");
 
 		const Mesh* mesh = m_entities[i]->getMesh();
@@ -349,7 +425,7 @@ void Game::OnMouseMove(WPARAM buttonState, int x, int y)
 		float mouseDeltaX = x - (float)m_prevMousePos.x;
 		float mouseDeltaY = y - (float)m_prevMousePos.y;
 
-		m_cameraManager->getCameraEntity(0)->rotateLocal(XMFLOAT3(mouseDeltaY / 1000.0f, mouseDeltaX / 1000.0f, 0.0f));
+		m_cameraManager->getCameraEntity(0)->rotateLocal(XMFLOAT3(mouseDeltaY / 10.0f, mouseDeltaX / 10.0f, 0.0f));
 	}
 
 	// Save the previous mouse position, so we have it for the future
