@@ -2,9 +2,6 @@
 
 Mesh::Mesh(ID3D11Device* device, Vertex* vertices, int vertexCount, UINT* indices, int indexCount)
 {
-	m_vertexBuffer = nullptr;
-	m_indexBuffer = nullptr;
-
 	assert(vertexCount > 0);
 	assert(indexCount > 0);
 

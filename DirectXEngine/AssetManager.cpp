@@ -1,24 +1,46 @@
 #include "AssetManager.h"
 
+#include "WICTextureLoader.h"
 #include <fstream>
 #include <vector>
 #include <string>
 
 using namespace DirectX;
 
+AssetManager* AssetManager::m_instance = nullptr;
+
 AssetManager::AssetManager(ID3D11Device* device, ID3D11DeviceContext* context)
 {
+	if (m_instance == nullptr)
+		m_instance = this;
+	else
+		return;
+
 	m_device = device;
 	m_context = context;
 
-	m_meshes = std::unordered_map<const char*, Mesh*>();
-	m_materials = std::unordered_map<const char*, Material*>();
-	m_vertexShaders = std::unordered_map<const char*, SimpleVertexShader*>();
-	m_pixelShaders = std::unordered_map<const char*, SimplePixelShader*>();
+	m_meshes = std::unordered_map<std::string, Mesh*>();
+	m_materials = std::unordered_map<std::string, Material*>();
+	m_vertexShaders = std::unordered_map<std::string, SimpleVertexShader*>();
+	m_pixelShaders = std::unordered_map<std::string, SimplePixelShader*>();
+	m_textures = std::unordered_map<std::string, ID3D11ShaderResourceView*>();
+	m_samplers = std::unordered_map<std::string, ID3D11SamplerState*>();
 }
 
 AssetManager::~AssetManager()
 {
+	for (auto it = m_samplers.begin(); it != m_samplers.end(); it++)
+	{
+		it->second->Release();
+	}
+	m_samplers.clear();
+
+	for (auto it = m_textures.begin(); it != m_textures.end(); it++)
+	{
+		it->second->Release();
+	}
+	m_textures.clear();
+
 	for (auto it = m_meshes.begin(); it != m_meshes.end(); it++)
 	{
 		delete it->second;
@@ -44,17 +66,113 @@ AssetManager::~AssetManager()
 	m_pixelShaders.clear();
 }
 
-Mesh* AssetManager::addMesh(const char* id, const char* filename)
+bool AssetManager::init()
 {
+	if (!loadShader("default", VertexShader, L"VertexShader.cso")) return false;
+	if (!loadShader("default", PixelShader, L"PixelShader.cso")) return false;
 
-	std::string fileName = "Assets/" + std::string(filename);
+	// Creates the default textures
+	if (!createSolidColorTexture("defaultDiffuse", 0x808080)) return false;
+	if (!createSolidColorTexture("defaultSpecular", 0xffffff)) return false;
+	if (!createSolidColorTexture("defaultNormal", 0xff8080)) return false;
+
+	// Creates the default sampler
+	D3D11_SAMPLER_DESC samplerDesc = {};
+	samplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_MODE::D3D11_TEXTURE_ADDRESS_WRAP;
+	samplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_MODE::D3D11_TEXTURE_ADDRESS_WRAP;
+	samplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_MODE::D3D11_TEXTURE_ADDRESS_WRAP;
+	samplerDesc.Filter = D3D11_FILTER::D3D11_FILTER_MIN_MAG_MIP_LINEAR;
+	samplerDesc.MaxLOD = D3D11_FLOAT32_MAX;
+
+	ID3D11SamplerState* defaultSampler = createSampler("default", samplerDesc);
+	if (!defaultSampler) return false;
+
+	// Creates the default material
+	Material* defaultMaterial = createMaterial("default");
+	if (!defaultMaterial) return false;
+	
+	return true;
+}
+
+Mesh* AssetManager::getMesh(std::string id)
+{
+	if (m_instance->m_meshes.find(id) == m_instance->m_meshes.end())
+	{
+		Output::Error("Could not find mesh with ID " + id + ".");
+		return nullptr;
+	}
+
+	return m_instance->m_meshes.at(id);
+}
+
+Material* AssetManager::getMaterial(std::string id)
+{
+	if (m_instance->m_materials.find(id) == m_instance->m_materials.end())
+	{
+		Output::Error("Could not find material with ID " + id + ".");
+		return nullptr;
+	}
+
+	return m_instance->m_materials.at(id);
+}
+
+ID3D11ShaderResourceView* AssetManager::getTexture(std::string id)
+{
+	if (m_instance->m_textures.find(id) == m_instance->m_textures.end())
+	{
+		Output::Error("Could not find texture with ID " + id + ".");
+		return nullptr;
+	}
+
+	return m_instance->m_textures.at(id);
+}
+
+ID3D11SamplerState* AssetManager::getSampler(std::string id)
+{
+	if (m_instance->m_samplers.find(id) == m_instance->m_samplers.end())
+	{
+		Output::Error("Could not find sampler with ID " + id + ".");
+		return nullptr;
+	}
+
+	return m_instance->m_samplers.at(id);
+}
+
+SimpleVertexShader* AssetManager::getVertexShader(std::string id)
+{
+	if (m_instance->m_vertexShaders.find(id) == m_instance->m_vertexShaders.end())
+	{
+		Output::Error("Could not find vertex shader with ID " + id + ".");
+		return nullptr;
+	}
+
+	return m_instance->m_vertexShaders.at(id);
+}
+
+SimplePixelShader* AssetManager::getPixelShader(std::string id)
+{
+	if (m_instance->m_pixelShaders.find(id) == m_instance->m_pixelShaders.end())
+	{
+		Output::Error("Could not find pixel shader with ID " + id + ".");
+		return nullptr;
+	}
+
+	return m_instance->m_pixelShaders.at(id);
+}
+
+Mesh* AssetManager::loadMesh(std::string id, std::string filepath)
+{
+	std::string filePathStr = "Assets/Models/" + filepath;
 	// File input object
-	std::ifstream obj(fileName);
+	std::ifstream obj(filePathStr, std::ios::in);
 
 	// Check for successful open
 	if (!obj.is_open())
 	{
-		printf("Failed to load file %s when creating mesh %s.", filename, id);
+		char errorMessage[512];
+		strerror_s(errorMessage, 512, errno);
+		std::string errString = std::string(errorMessage);
+		Output::Error("Failed to load file from " + filePathStr + " when creating mesh with ID " + id + ": " + errString);
 		return nullptr;
 	}
 
@@ -206,84 +324,270 @@ Mesh* AssetManager::addMesh(const char* id, const char* filename)
 	// Close the file and create the actual buffers
 	obj.close();
 
-	return addMesh(id, &vertices[0], vertices.size(), &indices[0], indices.size());
+	return loadMesh(id, &vertices[0], vertices.size(), &indices[0], indices.size());
 }
 
-Mesh* AssetManager::addMesh(const char* id, Vertex* vertices, int vertexCount, UINT* indices, int indexCount)
+Mesh* AssetManager::loadMesh(std::string id, Vertex* vertices, int vertexCount, UINT* indices, int indexCount)
 {
-	if (m_meshes.find(id) != m_meshes.end())
+	auto meshIterator = m_instance->m_meshes.find(id);
+	if (meshIterator != m_instance->m_meshes.end())
 	{
-		printf("Failed to add mesh %s: Mesh with ID %s already exists", id, id);
-		return nullptr;
+		Output::Warning("Mesh with ID " + id + " already exists, consider getting the mesh instead of attempting to load it again.");
+		return meshIterator->second;
 	}
 
-	Mesh* m = new Mesh(m_device, vertices, vertexCount, indices, indexCount);
-	m_meshes[id] = m;
+	Mesh* m = new Mesh(m_instance->m_device, vertices, vertexCount, indices, indexCount);
+	m_instance->m_meshes[id] = m;
 
 	return m;
 }
 
-Material* AssetManager::addMaterial(const char* id, const char* vertexShaderID, const char* pixelShaderID)
+Material* AssetManager::createMaterial(std::string id)
 {
-	if (m_materials.find(id) != m_materials.end())
+	return createMaterial(id, "defaultDiffuse");
+}
+
+Material* AssetManager::createMaterial(std::string id, std::string diffuseTextureID)
+{
+	return createMaterial(id, diffuseTextureID, "defaultSpecular");
+}
+
+Material* AssetManager::createMaterial(std::string id, std::string diffuseTextureID, std::string specularTextureID)
+{
+	return createMaterial(id, diffuseTextureID, specularTextureID, "defaultNormal");
+}
+
+Material* AssetManager::createMaterial(std::string id, std::string diffuseTextureID, std::string specularTextureID, std::string normalTextureID)
+{
+	return createMaterial(id, diffuseTextureID, specularTextureID, normalTextureID, "default");
+}
+
+Material* AssetManager::createMaterial(std::string id, std::string diffuseTextureID, std::string specularTextureID, std::string normalTextureID, std::string samplerID)
+{
+	return createMaterial(id, diffuseTextureID, specularTextureID, normalTextureID, samplerID, "default", "default");
+}
+
+Material* AssetManager::createMaterial(std::string id, std::string diffuseTextureID, std::string specularTextureID, std::string normalTextureID, std::string samplerID, std::string vertexShaderID, std::string pixelShaderID)
+{
+	auto materialIterator = m_instance->m_materials.find(id);
+	if (materialIterator != m_instance->m_materials.end())
 	{
-		printf("Failed to add material %s: Material with ID %s already exists", id, id);
+		Output::Warning("Material with ID " + id + " already exists, consider getting the material instead of attempting to load it again.");
+		return materialIterator->second;
+	}
+
+	if (m_instance->m_vertexShaders.find(vertexShaderID) == m_instance->m_vertexShaders.end())
+	{
+		Output::Error("Invalid vertex shader ID " + vertexShaderID + " when creating material with ID " + id + ".");
 		return nullptr;
 	}
 
-	if (m_vertexShaders.find(vertexShaderID) == m_vertexShaders.end())
+	if (m_instance->m_pixelShaders.find(pixelShaderID) == m_instance->m_pixelShaders.end())
 	{
-		printf("Invalid vertex shader ID %s", vertexShaderID);
+		Output::Error("Invalid pixel shader ID " + pixelShaderID + " when creating material with ID " + id + ".");
 		return nullptr;
 	}
 
-	if (m_pixelShaders.find(pixelShaderID) == m_pixelShaders.end())
+	if (m_instance->m_textures.find(diffuseTextureID) == m_instance->m_textures.end())
 	{
-		printf("Invalid pixel shader ID %s", pixelShaderID);
+		Output::Error("Invalid diffuse texture ID " + diffuseTextureID + " when creating material with ID " + id + ".");
 		return nullptr;
 	}
 
-	Material* m = new Material(m_device, m_context, m_vertexShaders[vertexShaderID], m_pixelShaders[pixelShaderID]);
-	m_materials[id] = m;
+	if (m_instance->m_textures.find(specularTextureID) == m_instance->m_textures.end())
+	{
+		Output::Error("Invalid specular texture ID " + specularTextureID + " when creating material with ID " + id + ".");
+		return nullptr;
+	}
+
+	if (m_instance->m_textures.find(normalTextureID) == m_instance->m_textures.end())
+	{
+		Output::Error("Invalid normal texture ID " + normalTextureID + " when creating material with ID " + id + ".");
+		return nullptr;
+	}
+
+	if (m_instance->m_samplers.find(samplerID) == m_instance->m_samplers.end())
+	{
+		Output::Error("Invalid sampler ID " + samplerID + " when creating material with ID " + id + ".");
+		return nullptr;
+	}
+
+	Material* m = new Material(m_instance->m_device, m_instance->m_context, m_instance->m_vertexShaders[vertexShaderID], m_instance->m_pixelShaders[pixelShaderID],
+		m_instance->m_textures[diffuseTextureID], m_instance->m_textures[specularTextureID], m_instance->m_textures[normalTextureID], m_instance->m_samplers[samplerID]);
+	m_instance->m_materials[id] = m;
 
 	return m;
 }
 
-void AssetManager::loadShader(const char* id, ShaderType type, LPCWSTR filename)
+bool AssetManager::loadShader(std::string id, ShaderType type, LPCWSTR filepath)
 {
 	switch (type)
 	{
-	case VertexShader:
-	{
-		if (m_vertexShaders.find(id) != m_vertexShaders.end())
+		case VertexShader:
 		{
-			printf("Failed to load vertex shader %s: Vertex shader with ID %s already exists", id, id);
-			return;
+			auto vertexInterator = m_instance->m_vertexShaders.find(id);
+			if (vertexInterator != m_instance->m_vertexShaders.end())
+			{
+				Output::Warning("Vertex shader with ID " + id + " already exists, consider getting the vertex shader instead of attempting to load it again.");
+				return vertexInterator->second;
+			}
+
+			SimpleVertexShader* vs = new SimpleVertexShader(m_instance->m_device, m_instance->m_context);
+			std::wstring filePathStr = L"Assets/Shaders/" + std::wstring(filepath);
+			if (!vs->LoadShaderFile(filePathStr.c_str()))
+			{
+				Output::Error("Failed to load vertex shader with ID " + id + " at file location " + std::string(filePathStr.begin(), filePathStr.end()));
+				delete vs;
+				return false;
+			}
+
+			m_instance->m_vertexShaders[id] = vs;
+			break;
 		}
 
-		SimpleVertexShader* vs = new SimpleVertexShader(m_device, m_context);
-		vs->LoadShaderFile(filename);
-		m_vertexShaders[id] = vs;
-		break;
-	}
-
-	case PixelShader:
-	{
-		if (m_pixelShaders.find(id) != m_pixelShaders.end())
+		case PixelShader:
 		{
-			printf("Failed to load pixel shader %s: Pixel shader with ID %s already exists", id, id);
-			return;
-		}
+			auto pixelIterator = m_instance->m_pixelShaders.find(id);
+			if (pixelIterator != m_instance->m_pixelShaders.end())
+			{
+				Output::Warning("Pixel shader with ID " + id + " already exists, consider getting the pixel shader instead of attempting to load it again.");
+				return pixelIterator->second;
+			}
 
-		SimplePixelShader* ps = new SimplePixelShader(m_device, m_context);
-		ps->LoadShaderFile((LPCWSTR)filename);
-		m_pixelShaders[id] = ps;
-		break;
+			std::wstring filePathStr = L"Assets/Shaders/" + std::wstring(filepath);
+			SimplePixelShader* ps = new SimplePixelShader(m_instance->m_device, m_instance->m_context);
+			if (!ps->LoadShaderFile(filePathStr.c_str()))
+			{
+				Output::Error("Failed to load pixel shader with ID " + id + " at file location " + std::string(filePathStr.begin(), filePathStr.end()));
+				delete ps;
+				return false;
+			}
+			m_instance->m_pixelShaders[id] = ps;
+			break;
+		}
+		default:
+		{
+			Output::Error("Invalid shader type " + std::to_string(type) + ".");
+			return false;
+		}
 	}
-	default:
+
+	return true;
+}
+
+ID3D11ShaderResourceView* AssetManager::loadTexture(std::string id, std::string filepath)
+{
+	// Return a pointer to the texture if it has already been loaded
+	auto textureIterator = m_instance->m_textures.find(id);
+	if (textureIterator != m_instance->m_textures.end())
 	{
-		printf("Invalid shader type %d", type);
-		break;
+		Output::Warning("Texture with ID " + id + " already exists, consider getting the texture instead of attempting to load it again.");
+		return textureIterator->second;
 	}
+	
+	ID3D11ShaderResourceView* textureSRV;
+	HRESULT hr = S_OK;
+	std::wstring filePathStr = L"Assets/Textures/" + std::wstring(filepath.begin(), filepath.end());
+	hr = CreateWICTextureFromFile(m_instance->m_device, m_instance->m_context, filePathStr.c_str(), nullptr, &textureSRV);
+	if (FAILED(hr) || !textureSRV)
+	{
+		char* errorMsg;
+		if (FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM, NULL, hr, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPTSTR)&errorMsg, 0, NULL) != 0)
+		{
+			std::string errorString = std::string(errorMsg);
+			errorString.pop_back();
+			errorString.pop_back();
+			Output::Error("Failed to load texture with ID " + id + " at Assets/Textures/" + filepath + ": " + errorString);
+		}
+		else
+			Output::Error("Failed to load texture with ID " + id + " at Assets/Textures/" + filepath + ": Unable to find error description.");
+		
+		return nullptr;
 	}
+
+	m_instance->m_textures[id] = textureSRV;
+	return textureSRV;
+}
+
+ID3D11ShaderResourceView* AssetManager::createSolidColorTexture(std::string id, unsigned int hexColor)
+{
+	unsigned int color = hexColor;
+
+	// Creates the texture resource
+	D3D11_TEXTURE2D_DESC desc = {};
+	desc.Width = desc.Height = desc.MipLevels = desc.ArraySize = 1;
+	desc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+	desc.SampleDesc.Count = 1;
+	desc.Usage = D3D11_USAGE_IMMUTABLE;
+	desc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+
+	D3D11_SUBRESOURCE_DATA pixelData = {};
+	pixelData.pSysMem = &color;
+	pixelData.SysMemPitch = sizeof(unsigned int);
+	pixelData.SysMemSlicePitch = 0;
+
+	ID3D11Texture2D* texture;
+	HRESULT hr = S_OK;
+	m_instance->m_device->CreateTexture2D(&desc, &pixelData, &texture);
+	if (FAILED(hr))
+	{
+		Output::Error("Failed to create texture resource for ID " + id + ".");
+		return nullptr;
+	}
+
+	// Creates the texture shader resource view
+	D3D11_TEX2D_SRV srvDescTexture2D;
+	srvDescTexture2D.MipLevels = -1;
+	srvDescTexture2D.MostDetailedMip = 0;
+
+	D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
+	srvDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+	srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+	srvDesc.Texture2D = srvDescTexture2D;
+
+	ID3D11ShaderResourceView* textureSRV;
+	hr = m_instance->m_device->CreateShaderResourceView(texture, &srvDesc, &textureSRV);
+	if (FAILED(hr))
+	{
+		Output::Error("Failed to create texture shader resource view for ID " + id + ".");
+		texture->Release();
+		return nullptr;
+	}
+
+	m_instance->m_textures[id] = textureSRV;
+	texture->Release();
+
+	return textureSRV;
+}
+
+ID3D11SamplerState* AssetManager::createSampler(std::string id, const D3D11_SAMPLER_DESC& samplerDesc)
+{
+	auto samplerIterator = m_instance->m_samplers.find(id);
+	if (samplerIterator != m_instance->m_samplers.end())
+	{
+		Output::Warning("Sampler with ID " + id + " already exists, consider getting the sampler instead of attempting to create it again.");
+		return samplerIterator->second;
+	}
+
+	ID3D11SamplerState* sampler;
+
+	HRESULT hr = S_OK;
+	hr = m_instance->m_device->CreateSamplerState(&samplerDesc, &sampler);
+	if (FAILED(hr))
+	{
+		char* errorMsg;
+		if (FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM, NULL, hr, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPTSTR)&errorMsg, 0, NULL) != 0)
+		{
+			std::string errorString = std::string(errorMsg);
+			errorString.pop_back();
+			errorString.pop_back();
+			Output::Error("Failed to create sampler with ID " + id + ": " + errorString);
+		}
+		else
+			Output::Error("Failed to create sampler with ID " + id + ": Unable to find error description.");
+		return nullptr;
+	}
+
+	m_instance->m_samplers[id] = sampler;
+	return sampler;
 }

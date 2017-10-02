@@ -5,6 +5,20 @@
 
 #define MAX_LIGHTS 8
 
+// The struct that should match the light data in the shaders.
+struct GPU_LIGHT_DATA
+{
+	DirectX::XMFLOAT4 diffuseColor;
+	DirectX::XMFLOAT3 direction;
+	float brightness;
+	DirectX::XMFLOAT3 position;
+	float specularity;
+	float radius;
+	float spotAngle;
+	float spotFalloff;
+	unsigned int type;
+};
+
 enum LightType
 {
 	POINT_LIGHT, DIRECTIONAL_LIGHT, SPOT_LIGHT
@@ -23,11 +37,11 @@ struct LightSettings
 class LightComponent : public Component
 {
 public:
-	LightComponent(Entity* entity);
+	LightComponent(Scene* scene, unsigned int entity);
 	~LightComponent();
 
 	virtual void init() override;
-	virtual void update() override;
+	virtual void update(float deltaTime, float totalTime) override;
 
 	LightType getLightType() const;
 

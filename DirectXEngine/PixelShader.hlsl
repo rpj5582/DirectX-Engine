@@ -20,6 +20,11 @@ cbuffer lighting : register(b0)
 	unsigned int lightCount;
 }
 
+Texture2D diffuseTexture : register(t0);
+Texture2D specularTexture : register(t1);
+Texture2D normalTexture : register(t2);
+SamplerState materialSampler : register(s0);
+
 // Struct representing the data we expect to receive from earlier pipeline stages
 // - Should match the output of our corresponding vertex shader
 // - The name of the struct itself is unimportant
@@ -34,6 +39,7 @@ struct VertexToPixel
 	//  v    v                v
 	float4 position		: SV_POSITION;
 	float3 worldPosition : WORLD_POSITION;
+	float2 uv			: TEXCOORDS;
 	float3 normal		: NORMAL;
 	float3 cameraWorldPosition : CAMERA_POSITION;
 };
@@ -52,7 +58,7 @@ float4 calculateSpecular(Light light, VertexToPixel input, float3 directionToLig
 	return pow(saturate(dot(halfway, input.normal)), light.specularity);
 }
 
-float4 calculateLight(Light light, VertexToPixel input)
+float4 calculateLight(Light light, VertexToPixel input, float4 surfaceColor, float4 specColor)
 {
 	float3 directionToLight = float3(0.0f, 0.0f, 0.0f);
 	float distanceToLight = 0.0f;
@@ -82,8 +88,8 @@ float4 calculateLight(Light light, VertexToPixel input)
 	}
 
 	// Calculates all different types of lighting
-	float4 diffuseColor = calculateDiffuse(light, input, directionToLight);
-	float4 specularColor = calculateSpecular(light, input, directionToLight);
+	float4 diffuseColor = calculateDiffuse(light, input, directionToLight) * surfaceColor;
+	float4 specularColor = calculateSpecular(light, input, directionToLight) * specColor;
 
 	// Light falloff based on radius
 	float attenuationFactor = 1.0f;
@@ -105,12 +111,20 @@ float4 main(VertexToPixel input) : SV_TARGET
 {
 	float3 normal = normalize(input.normal);
 
+	float4 surfaceColor = diffuseTexture.Sample(materialSampler, input.uv);
+	float4 specularColor = specularTexture.Sample(materialSampler, input.uv);
+
+	// Calculates a value - either 1 or 0 - to disable lighting or not.
+	// If there are no lights in the scene, render the scene without shading.
+	float disableShading = 1.0f - min(lightCount, 1.0f);
+
 	// Calculates the lighting for each valid light
-	float4 finalColor = float4(0.1f, 0.1f, 0.1f, 1.0f);
+	float4 globalAmbient = float4(0.1f, 0.1f, 0.1f, 1.0f);
+	float4 finalLightColor = globalAmbient * surfaceColor + disableShading * float4(1.0f, 1.0f, 1.0f, 1.0f);
 	for (unsigned int i = 0; i < lightCount; i++)
 	{
-		finalColor += calculateLight(lights[i], input);
+		finalLightColor += calculateLight(lights[i], input, surfaceColor, specularColor);
 	}
-
-	return finalColor;
+	
+	return finalLightColor;
 }

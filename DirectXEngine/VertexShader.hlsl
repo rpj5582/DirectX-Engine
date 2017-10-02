@@ -47,8 +47,9 @@ struct VertexToPixel
 	//  |   Name          Semantic
 	//  |    |                |
 	//  v    v                v
-	float4 position		: SV_POSITION;	// XYZW position (System Value Position)
+	float4 position		: SV_POSITION;	// XYZW position (System Value Position)	
 	float3 worldPosition : WORLD_POSITION;
+	float2 uv			: TEXCOORDS;
 	float3 normal		: NORMAL;
 	float3 cameraWorldPosition : CAMERA_POSITION;
 };
@@ -84,6 +85,8 @@ VertexToPixel main( VertexShaderInput input )
 	// The result is essentially the position (XY) of the vertex on our 2D 
 	// screen and the distance (Z) from the camera (the "depth" of the pixel)
 	output.position = mul(float4(input.position, 1.0f), worldViewProj);
+
+	output.uv = input.uv;
 
 	// Multiply the normals by a casted inverse transpose of the world matrix
 	// so that the normals rotate and scale with the model (but not translate, hence the casting).

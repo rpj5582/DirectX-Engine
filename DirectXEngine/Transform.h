@@ -1,26 +1,14 @@
 #pragma once
-
 #include "Component.h"
-#include "Mesh.h"
-#include "Material.h"
 
-class Entity
+class Transform : public Component
 {
 public:
-	Entity(Mesh* mesh, Material* material);
-	~Entity();
+	Transform(Scene* scene, unsigned int entity);
+	~Transform();
 
-	template<typename T>
-	T* addComponent();
-
-	template<typename T>
-	T* getComponent() const;
-
-	template<typename T>
-	bool removeComponent();
-
-	Mesh* getMesh() const;
-	Material* getMaterial() const;
+	virtual void init() override;
+	virtual void update(float deltaTime, float totalTime) override;
 
 	const DirectX::XMFLOAT3 getPosition() const;
 	const DirectX::XMFLOAT3 getRotation() const;
@@ -62,11 +50,6 @@ public:
 	void scaleZ(float delta);
 
 private:
-	std::vector<Component*> m_components;
-
-	Mesh* m_mesh;
-	Material* m_material;
-
 	DirectX::XMFLOAT3 m_position;
 	DirectX::XMFLOAT3 m_rotation;
 	DirectX::XMFLOAT3 m_scale;
@@ -77,48 +60,3 @@ private:
 	DirectX::XMFLOAT4X4 m_worldMatrix;
 	DirectX::XMFLOAT4X4 m_worldMatrixInverseTranspose;
 };
-
-template<typename T>
-inline T* Entity::addComponent()
-{
-	static_assert(std::is_base_of<Component, T>::value, "Given type is not a Component.");
-	
-	// Don't allow more than one of the same type of component
-	for (unsigned int i = 0; i < m_components.size(); i++)
-	{
-		if (typeid(m_components[i]) == typeid(T))
-			return nullptr;
-	}
-
-	T* component = new T(this);
-	m_components.push_back(component);
-	return component;
-}
-
-template<typename T>
-inline T* Entity::getComponent() const
-{
-	for (unsigned int i = 0; i < m_components.size(); i++)
-	{
-		if (typeid(m_components[i]) == typeid(T))
-			return m_components[i];
-	}
-
-	return nullptr;
-}
-
-template<typename T>
-inline bool Entity::removeComponent()
-{
-	for (unsigned int i = 0; i < m_components.size(); i++)
-	{
-		if (typeid(m_components[i]) == typeid(T))
-		{
-			delete m_components[i];
-			m_components.erase(m_components.begin() + i);
-			return true;
-		}
-	}
-
-	return false;
-}

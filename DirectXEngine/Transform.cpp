@@ -1,12 +1,9 @@
-#include "Entity.h"
+#include "Transform.h"
 
 using namespace DirectX;
 
-Entity::Entity(Mesh* mesh, Material* material)
+Transform::Transform(Scene* scene, unsigned int entity) : Component(scene, entity)
 {
-	m_mesh = mesh;
-	m_material = material;
-
 	m_position = XMFLOAT3(0.0f, 0.0f, 0.0f);
 	m_rotation = XMFLOAT3(0.0f, 0.0f, 0.0f);
 	m_scale = XMFLOAT3(1.0f, 1.0f, 1.0f);
@@ -18,66 +15,59 @@ Entity::Entity(Mesh* mesh, Material* material)
 	XMStoreFloat4x4(&m_worldMatrixInverseTranspose, XMMatrixIdentity());
 }
 
-Entity::~Entity()
+Transform::~Transform()
 {
-	for (unsigned int i = 0; i < m_components.size(); i++)
-	{
-		delete m_components[i];
-	}
-	m_components.clear();
 }
 
-Mesh* Entity::getMesh() const
+void Transform::init()
 {
-	return m_mesh;
 }
 
-Material* Entity::getMaterial() const
+void Transform::update(float deltaTime, float totalTime)
 {
-	return m_material;
 }
 
-const XMFLOAT3 Entity::getPosition() const
+const XMFLOAT3 Transform::getPosition() const
 {
 	return m_position;
 }
 
-const XMFLOAT3 Entity::getRotation() const
+const XMFLOAT3 Transform::getRotation() const
 {
 	return m_rotation;
 }
 
-const XMFLOAT3 Entity::getScale() const
+const XMFLOAT3 Transform::getScale() const
 {
 	return m_scale;
 }
 
-const XMMATRIX Entity::getTranslationMatrix() const
+const XMMATRIX Transform::getTranslationMatrix() const
 {
 	return XMLoadFloat4x4(&m_translationMatrix);
 }
 
-const XMMATRIX Entity::getRotationMatrix() const
+const XMMATRIX Transform::getRotationMatrix() const
 {
 	return XMLoadFloat4x4(&m_rotationMatrix);
 }
 
-const XMMATRIX Entity::getScaleMatrix() const
+const XMMATRIX Transform::getScaleMatrix() const
 {
 	return XMLoadFloat4x4(&m_scaleMatrix);
 }
 
-const XMMATRIX Entity::getWorldMatrix() const
+const XMMATRIX Transform::getWorldMatrix() const
 {
 	return XMLoadFloat4x4(&m_worldMatrix);
 }
 
-const DirectX::XMMATRIX Entity::getWorldMatrixInverseTranspose() const
+const DirectX::XMMATRIX Transform::getWorldMatrixInverseTranspose() const
 {
 	return XMLoadFloat4x4(&m_worldMatrixInverseTranspose);
 }
 
-const XMFLOAT3 Entity::getRight() const
+const XMFLOAT3 Transform::getRight() const
 {
 	XMVECTOR v = XMVector3Transform(XMVectorSet(1.0f, 0.0f, 0.0f, 0.0f), getRotationMatrix());
 
@@ -86,7 +76,7 @@ const XMFLOAT3 Entity::getRight() const
 	return right;
 }
 
-const XMFLOAT3 Entity::getUp() const
+const XMFLOAT3 Transform::getUp() const
 {
 	XMVECTOR v = XMVector3Transform(XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f), getRotationMatrix());
 
@@ -95,7 +85,7 @@ const XMFLOAT3 Entity::getUp() const
 	return up;
 }
 
-const XMFLOAT3 Entity::getForward() const
+const XMFLOAT3 Transform::getForward() const
 {
 	XMVECTOR v = XMVector3Transform(XMVectorSet(0.0f, 0.0f, 1.0f, 0.0f), getRotationMatrix());
 
@@ -104,7 +94,7 @@ const XMFLOAT3 Entity::getForward() const
 	return forward;
 }
 
-void Entity::calcTranslationMatrix()
+void Transform::calcTranslationMatrix()
 {
 	XMVECTOR position = XMLoadFloat3(&m_position);
 	XMStoreFloat4x4(&m_translationMatrix, XMMatrixTranslationFromVector(position));
@@ -112,7 +102,7 @@ void Entity::calcTranslationMatrix()
 	calcWorldMatrix();
 }
 
-void Entity::calcRotationMatrix()
+void Transform::calcRotationMatrix()
 {
 	XMVECTOR rotation = XMLoadFloat3(&m_rotation);
 	XMStoreFloat4x4(&m_rotationMatrix, XMMatrixRotationRollPitchYawFromVector(rotation));
@@ -120,7 +110,7 @@ void Entity::calcRotationMatrix()
 	calcWorldMatrix();
 }
 
-void Entity::calcScaleMatrix()
+void Transform::calcScaleMatrix()
 {
 	XMVECTOR scale = XMLoadFloat3(&m_scale);
 	XMStoreFloat4x4(&m_scaleMatrix, XMMatrixScalingFromVector(scale));
@@ -128,7 +118,7 @@ void Entity::calcScaleMatrix()
 	calcWorldMatrix();
 }
 
-void Entity::calcWorldMatrix()
+void Transform::calcWorldMatrix()
 {
 	XMMATRIX translation = XMLoadFloat4x4(&m_translationMatrix);
 	XMMATRIX rotation = XMLoadFloat4x4(&m_rotationMatrix);
@@ -136,12 +126,12 @@ void Entity::calcWorldMatrix()
 
 	XMMATRIX world = XMMatrixMultiply(XMMatrixMultiply(scale, rotation), translation);
 	XMStoreFloat4x4(&m_worldMatrix, world);
-
+	
 	XMMATRIX worldInverseTranspose = XMMatrixTranspose(XMMatrixInverse(nullptr, world));
 	XMStoreFloat4x4(&m_worldMatrixInverseTranspose, worldInverseTranspose);
 }
 
-void Entity::move(XMFLOAT3 delta)
+void Transform::move(XMFLOAT3 delta)
 {
 	XMVECTOR position = XMLoadFloat3(&m_position);
 	position = XMVectorAdd(position, XMLoadFloat3(&delta));
@@ -150,7 +140,7 @@ void Entity::move(XMFLOAT3 delta)
 	calcTranslationMatrix();
 }
 
-void Entity::moveX(float delta)
+void Transform::moveX(float delta)
 {
 	XMVECTOR position = XMLoadFloat3(&m_position);
 	position = XMVectorAdd(position, XMVectorScale(XMVectorSet(1.0f, 0.0f, 0.0f, 0.0f), delta));
@@ -159,7 +149,7 @@ void Entity::moveX(float delta)
 	calcTranslationMatrix();
 }
 
-void Entity::moveY(float delta)
+void Transform::moveY(float delta)
 {
 	XMVECTOR position = XMLoadFloat3(&m_position);
 	position = XMVectorAdd(position, XMVectorScale(XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f), delta));
@@ -168,7 +158,7 @@ void Entity::moveY(float delta)
 	calcTranslationMatrix();
 }
 
-void Entity::moveZ(float delta)
+void Transform::moveZ(float delta)
 {
 	XMVECTOR position = XMLoadFloat3(&m_position);
 	position = XMVectorAdd(position, XMVectorScale(XMVectorSet(0.0f, 0.0f, 1.0f, 0.0f), delta));
@@ -177,7 +167,7 @@ void Entity::moveZ(float delta)
 	calcTranslationMatrix();
 }
 
-void Entity::moveLocal(DirectX::XMFLOAT3 delta)
+void Transform::moveLocal(DirectX::XMFLOAT3 delta)
 {
 	XMFLOAT3 rightFloat3 = getRight();
 	XMFLOAT3 upFloat3 = getUp();
@@ -196,7 +186,7 @@ void Entity::moveLocal(DirectX::XMFLOAT3 delta)
 	calcTranslationMatrix();
 }
 
-void Entity::moveLocalX(float delta)
+void Transform::moveLocalX(float delta)
 {
 	XMFLOAT3 rightFloat3 = getRight();
 
@@ -208,7 +198,7 @@ void Entity::moveLocalX(float delta)
 	calcTranslationMatrix();
 }
 
-void Entity::moveLocalY(float delta)
+void Transform::moveLocalY(float delta)
 {
 	XMFLOAT3 upFloat3 = getUp();
 
@@ -220,7 +210,7 @@ void Entity::moveLocalY(float delta)
 	calcTranslationMatrix();
 }
 
-void Entity::moveLocalZ(float delta)
+void Transform::moveLocalZ(float delta)
 {
 	XMFLOAT3 forwardFloat3 = getForward();
 
@@ -232,7 +222,7 @@ void Entity::moveLocalZ(float delta)
 	calcTranslationMatrix();
 }
 
-void Entity::rotateLocal(DirectX::XMFLOAT3 rot)
+void Transform::rotateLocal(DirectX::XMFLOAT3 rot)
 {
 	XMFLOAT3 rotDegrees = XMFLOAT3(XMConvertToRadians(rot.x), XMConvertToRadians(rot.y), XMConvertToRadians(rot.z));
 	XMVECTOR rotation = XMLoadFloat3(&m_rotation);
@@ -243,7 +233,7 @@ void Entity::rotateLocal(DirectX::XMFLOAT3 rot)
 	calcRotationMatrix();
 }
 
-void Entity::rotateLocalX(float angle)
+void Transform::rotateLocalX(float angle)
 {
 	XMVECTOR rotation = XMLoadFloat3(&m_rotation);
 	XMVECTOR angleVector = XMVectorSet(XMConvertToRadians(angle), 0.0f, 0.0f, 0.0f);
@@ -253,7 +243,7 @@ void Entity::rotateLocalX(float angle)
 	calcRotationMatrix();
 }
 
-void Entity::rotateLocalY(float angle)
+void Transform::rotateLocalY(float angle)
 {
 	XMVECTOR rotation = XMLoadFloat3(&m_rotation);
 	XMVECTOR angleVector = XMVectorSet(0.0f, XMConvertToRadians(angle), 0.0f, 0.0f);
@@ -263,7 +253,7 @@ void Entity::rotateLocalY(float angle)
 	calcRotationMatrix();
 }
 
-void Entity::rotateLocalZ(float angle)
+void Transform::rotateLocalZ(float angle)
 {
 	XMVECTOR rotation = XMLoadFloat3(&m_rotation);
 	XMVECTOR angleVector = XMVectorSet(0.0f, 0.0f, XMConvertToRadians(angle), 0.0f);
@@ -273,7 +263,7 @@ void Entity::rotateLocalZ(float angle)
 	calcRotationMatrix();
 }
 
-void Entity::scale(DirectX::XMFLOAT3 delta)
+void Transform::scale(DirectX::XMFLOAT3 delta)
 {
 	XMVECTOR scale = XMLoadFloat3(&m_scale);
 	scale = XMVectorAdd(scale, XMLoadFloat3(&delta));
@@ -282,7 +272,7 @@ void Entity::scale(DirectX::XMFLOAT3 delta)
 	calcScaleMatrix();
 }
 
-void Entity::scaleX(float delta)
+void Transform::scaleX(float delta)
 {
 	XMVECTOR scale = XMLoadFloat3(&m_scale);
 	scale = XMVectorAdd(scale, XMVectorScale(XMVectorSet(1.0f, 0.0f, 0.0f, 0.0f), delta));
@@ -291,7 +281,7 @@ void Entity::scaleX(float delta)
 	calcScaleMatrix();
 }
 
-void Entity::scaleY(float delta)
+void Transform::scaleY(float delta)
 {
 	XMVECTOR scale = XMLoadFloat3(&m_scale);
 	scale = XMVectorAdd(scale, XMVectorScale(XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f), delta));
@@ -300,7 +290,7 @@ void Entity::scaleY(float delta)
 	calcScaleMatrix();
 }
 
-void Entity::scaleZ(float delta)
+void Transform::scaleZ(float delta)
 {
 	XMVECTOR scale = XMLoadFloat3(&m_scale);
 	scale = XMVectorAdd(scale, XMVectorScale(XMVectorSet(0.0f, 0.0f, 1.0f, 0.0f), delta));

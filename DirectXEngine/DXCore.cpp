@@ -229,23 +229,23 @@ HRESULT DXCore::InitDirectX()
 	backBufferTexture->Release();
 
 	// Set up the description of the texture to use for the depth buffer
-	D3D11_TEXTURE2D_DESC depthStencilDesc = {};
-	depthStencilDesc.Width				= width;
-	depthStencilDesc.Height				= height;
-	depthStencilDesc.MipLevels			= 1;
-	depthStencilDesc.ArraySize			= 1;
-	depthStencilDesc.Format				= DXGI_FORMAT_D24_UNORM_S8_UINT;
-	depthStencilDesc.Usage				= D3D11_USAGE_DEFAULT;
-	depthStencilDesc.BindFlags			= D3D11_BIND_DEPTH_STENCIL;
-	depthStencilDesc.CPUAccessFlags		= 0;
-	depthStencilDesc.MiscFlags			= 0;
-	depthStencilDesc.SampleDesc.Count	= 1;
-	depthStencilDesc.SampleDesc.Quality = 0;
+	D3D11_TEXTURE2D_DESC depthStencilTextureDesc = {};
+	depthStencilTextureDesc.Width				= width;
+	depthStencilTextureDesc.Height				= height;
+	depthStencilTextureDesc.MipLevels			= 1;
+	depthStencilTextureDesc.ArraySize			= 1;
+	depthStencilTextureDesc.Format				= DXGI_FORMAT_D24_UNORM_S8_UINT;
+	depthStencilTextureDesc.Usage				= D3D11_USAGE_DEFAULT;
+	depthStencilTextureDesc.BindFlags			= D3D11_BIND_DEPTH_STENCIL;
+	depthStencilTextureDesc.CPUAccessFlags		= 0;
+	depthStencilTextureDesc.MiscFlags			= 0;
+	depthStencilTextureDesc.SampleDesc.Count	= 1;
+	depthStencilTextureDesc.SampleDesc.Quality = 0;
 
 	// Create the depth buffer and its view, then 
 	// release our reference to the texture
 	ID3D11Texture2D* depthBufferTexture;
-	device->CreateTexture2D(&depthStencilDesc, 0, &depthBufferTexture);
+	device->CreateTexture2D(&depthStencilTextureDesc, 0, &depthBufferTexture);
 	device->CreateDepthStencilView(depthBufferTexture, 0, &depthStencilView);
 	depthBufferTexture->Release();
 
@@ -351,7 +351,7 @@ HRESULT DXCore::Run()
 	previousTime = now;
 
 	// Give subclass a chance to initialize
-	Init();
+	if(!Init()) return S_OK;
 
 	// Our overall game and message loop
 	MSG msg = {};

@@ -2,7 +2,7 @@
 
 using namespace DirectX;
 
-LightComponent::LightComponent(Entity* entity) : Component(entity)
+LightComponent::LightComponent(Scene* scene, unsigned int entity) : Component(scene, entity)
 {
 }
 
@@ -14,7 +14,7 @@ void LightComponent::init()
 {
 }
 
-void LightComponent::update()
+void LightComponent::update(float deltaTime, float totalTime)
 {
 }
 

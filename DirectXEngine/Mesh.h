@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Vertex.h"
-#include "DXCore.h"
+#include <d3d11.h>
 
 class Mesh
 {

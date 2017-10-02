@@ -1,15 +1,34 @@
 #include "Component.h"
 
-Component::Component(Entity* entity)
+#include "Scene.h"
+
+Component::Component(Scene* scene, unsigned int entity)
 {
-	m_entity = entity;
+	this->scene = scene;
+	this->entity = entity;
 }
 
 Component::~Component()
 {
 }
 
-Entity* Component::getEntity() const
+void Component::onMouseDown(WPARAM buttonState, int x, int y)
 {
-	return m_entity;
+}
+
+void Component::onMouseUp(WPARAM buttonState, int x, int y)
+{
+}
+
+void Component::onMouseMove(WPARAM wParam, int x, int y)
+{
+}
+
+void Component::onMouseWheel(float wheelDelta, int x, int y)
+{
+}
+
+unsigned int Component::getEntity() const
+{
+	return entity;
 }
