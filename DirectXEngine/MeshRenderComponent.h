@@ -8,7 +8,7 @@ public:
 	~MeshRenderComponent();
 
 	Mesh* getMesh() const;
-	void changeMesh(Mesh* mesh);
+	void setMesh(Mesh* mesh);
 
 private:
 	Mesh* m_mesh;

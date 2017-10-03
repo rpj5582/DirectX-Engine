@@ -3,6 +3,13 @@
 
 #include "AssetManager.h"
 
+enum RenderStyle
+{
+	SOLID,
+	WIREFRAME,
+	SOLID_WIREFRAME
+};
+
 class RenderComponent : public Component
 {
 public:
@@ -13,8 +20,12 @@ public:
 	virtual void update(float deltaTime, float totalTime) override;
 
 	Material* getMaterial() const;
-	void changeMaterial(Material* material);
+	void setMaterial(Material* material);
+
+	RenderStyle getRenderStyle() const;
+	void setRenderStyle(RenderStyle renderStyle);
 
 private:
 	Material* m_material;
+	RenderStyle m_renderStyle;
 };

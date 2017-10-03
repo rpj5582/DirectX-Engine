@@ -14,7 +14,7 @@ Mesh* MeshRenderComponent::getMesh() const
 	return m_mesh;
 }
 
-void MeshRenderComponent::changeMesh(Mesh* mesh)
+void MeshRenderComponent::setMesh(Mesh* mesh)
 {
 	m_mesh = mesh;
 }

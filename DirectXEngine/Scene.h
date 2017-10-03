@@ -7,13 +7,7 @@
 #include "LightComponent.h"
 
 #include <DirectXMath.h>
-
-enum RenderStyle
-{
-	SOLID,
-	WIREFRAME,
-	SOLID_WIREFRAME
-};
+#include <typeinfo>
 
 class Scene
 {
@@ -27,6 +21,8 @@ public:
 
 	DirectX::XMMATRIX getProjectionMatrix() const;
 	void updateProjectionMatrix(int width, int height);
+
+	void drawInWireframeMode(bool wireframe);
 
 	unsigned int createEntity();
 	void deleteEntity(unsigned int entity);
@@ -61,13 +57,11 @@ public:
 	void onMouseWheel(float wheelDelta, int x, int y);
 
 private:
-	void useWireframe(bool wireframe);
-
 	ID3D11Device* m_device;
 	ID3D11DeviceContext* m_context;
 	ID3D11RasterizerState* m_rasterizerState;
 
-	RenderStyle m_renderStyle;
+	
 	bool m_prevUseWireframe;
 
 	DirectX::XMFLOAT4X4 m_projectionMatrix;

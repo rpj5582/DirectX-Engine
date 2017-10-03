@@ -1,6 +1,6 @@
 #include "Mesh.h"
 
-Mesh::Mesh(ID3D11Device* device, Vertex* vertices, int vertexCount, UINT* indices, int indexCount)
+Mesh::Mesh(ID3D11Device* device, Vertex* vertices, unsigned int vertexCount, UINT* indices, unsigned int indexCount)
 {
 	assert(vertexCount > 0);
 	assert(indexCount > 0);
@@ -64,7 +64,7 @@ ID3D11Buffer* Mesh::getIndexBuffer() const
 	return m_indexBuffer;
 }
 
-int Mesh::getIndexCount() const
+unsigned int Mesh::getIndexCount() const
 {
 	return m_indexCount;
 }

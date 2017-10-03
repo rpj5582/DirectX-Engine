@@ -31,8 +31,8 @@ void Renderer::render(Scene* scene, ID3D11DeviceContext* context, GPU_LIGHT_DATA
 	unsigned int entityCount;
 	scene->getAllEntities(&entities, &entityCount);
 
-	UINT stride = sizeof(Vertex);
-	UINT offset = 0;
+	unsigned int stride = sizeof(Vertex);
+	unsigned int offset = 0;
 	for (unsigned int i = 0; i < entityCount; i++)
 	{
 		Transform* transform = scene->getComponentOfEntity<Transform>(entities[i]);
@@ -59,46 +59,100 @@ void Renderer::render(Scene* scene, ID3D11DeviceContext* context, GPU_LIGHT_DATA
 			vertexShader->SetMatrix4x4("worldInverseTranspose", worldMatrixInverseTranspose4x4);
 			vertexShader->CopyBufferData("matrices");
 
-			vertexShader->SetFloat3("cameraPosition", mainCameraTransform->getPosition());
-			vertexShader->CopyBufferData("camera");
-
-			if (lightData)
-			{
-				pixelShader->SetData("lightCount", &lightCount, sizeof(UINT));
-				pixelShader->SetData("lights", lightData, sizeof(GPU_LIGHT_DATA) * MAX_LIGHTS);
-				pixelShader->CopyBufferData("lighting");
-			}
-			else
-			{
-				unsigned int lightCount = 0;
-				pixelShader->SetData("lightCount", &lightCount, sizeof(UINT));
-				pixelShader->CopyBufferData("lighting");
-			}
-
 			// Don't draw the entity if it can't be seen anyway
 			MeshRenderComponent* meshRenderComponent = scene->getComponentOfEntity<MeshRenderComponent>(entities[i]);
 			if (meshRenderComponent)
 			{
+				vertexShader->SetFloat3("cameraPosition", mainCameraTransform->getPosition());
+				vertexShader->CopyBufferData("camera");
+
 				Mesh* mesh = meshRenderComponent->getMesh();
 				if (mesh)
 				{
-					ID3D11Buffer* vertexBuffer = mesh->getVertexBuffer();
-					ID3D11Buffer* indexBuffer = mesh->getIndexBuffer();
+					RenderStyle renderStyle = renderComponent->getRenderStyle();
+					switch (renderStyle)
+					{
+					case RenderStyle::SOLID:
+						scene->drawInWireframeMode(false);
+						renderMeshAndLighting(context, pixelShader, mesh, lightData, lightCount);
+						break;
 
-					context->IASetVertexBuffers(0, 1, &vertexBuffer, &stride, &offset);
-					context->IASetIndexBuffer(indexBuffer, DXGI_FORMAT_R32_UINT, 0);
+					case RenderStyle::WIREFRAME:
+						scene->drawInWireframeMode(true);
+						renderMeshWithoutLighting(context, pixelShader, mesh);
+						break;
 
-					// Finally do the actual drawing
-					//  - Do this ONCE PER OBJECT you intend to draw
-					//  - This will use all of the currently set DirectX "stuff" (shaders, buffers, etc)
-					//  - DrawIndexed() uses the currently set INDEX BUFFER to look up corresponding
-					//     vertices in the currently set VERTEX BUFFER
-					context->DrawIndexed(
-						mesh->getIndexCount(),			// The number of indices to use (we could draw a subset if we wanted)
-						0,								// Offset to the first index we want to use
-						0);								// Offset to add to each index when looking up vertices
+					case RenderStyle::SOLID_WIREFRAME:
+						// Only render in solid wireframe if in debug mode, since it requires rendering the mesh twice.
+					#if defined(DEBUG) || defined(_DEBUG)
+					 	scene->drawInWireframeMode(false);
+						renderMeshAndLighting(context, pixelShader, mesh, lightData, lightCount);
+					#endif
+						scene->drawInWireframeMode(true);
+						renderMeshWithoutLighting(context, pixelShader, mesh);
+						break;
+
+					default:
+						break;
+					}
 				}
 			}
 		}
 	}
+}
+
+void Renderer::renderMeshAndLighting(ID3D11DeviceContext* context, SimplePixelShader* pixelShader, Mesh* mesh, GPU_LIGHT_DATA* lightData, unsigned int lightCount)
+{
+	unsigned int stride = sizeof(Vertex);
+	unsigned int offset = 0;
+
+	if (lightData)
+	{
+		pixelShader->SetData("lightCount", &lightCount, sizeof(unsigned int));
+		pixelShader->SetData("lights", lightData, sizeof(GPU_LIGHT_DATA) * MAX_LIGHTS);
+		pixelShader->CopyBufferData("lighting");
+	}
+
+	ID3D11Buffer* vertexBuffer = mesh->getVertexBuffer();
+	ID3D11Buffer* indexBuffer = mesh->getIndexBuffer();
+
+	context->IASetVertexBuffers(0, 1, &vertexBuffer, &stride, &offset);
+	context->IASetIndexBuffer(indexBuffer, DXGI_FORMAT_R32_UINT, 0);
+
+	// Finally do the actual drawing
+	//  - Do this ONCE PER OBJECT you intend to draw
+	//  - This will use all of the currently set DirectX "stuff" (shaders, buffers, etc)
+	//  - DrawIndexed() uses the currently set INDEX BUFFER to look up corresponding
+	//     vertices in the currently set VERTEX BUFFER
+	context->DrawIndexed(
+		mesh->getIndexCount(),			// The number of indices to use (we could draw a subset if we wanted)
+		0,								// Offset to the first index we want to use
+		0);								// Offset to add to each index when looking up vertices
+}
+
+void Renderer::renderMeshWithoutLighting(ID3D11DeviceContext * context, SimplePixelShader * pixelShader, Mesh * mesh)
+{
+
+	unsigned int stride = sizeof(Vertex);
+	unsigned int offset = 0;
+
+	// Use offset as the light count since both are zero
+	pixelShader->SetData("lightCount", &offset, sizeof(unsigned int));
+	pixelShader->CopyBufferData("lighting");
+
+	ID3D11Buffer* vertexBuffer = mesh->getVertexBuffer();
+	ID3D11Buffer* indexBuffer = mesh->getIndexBuffer();
+
+	context->IASetVertexBuffers(0, 1, &vertexBuffer, &stride, &offset);
+	context->IASetIndexBuffer(indexBuffer, DXGI_FORMAT_R32_UINT, 0);
+
+	// Finally do the actual drawing
+	//  - Do this ONCE PER OBJECT you intend to draw
+	//  - This will use all of the currently set DirectX "stuff" (shaders, buffers, etc)
+	//  - DrawIndexed() uses the currently set INDEX BUFFER to look up corresponding
+	//     vertices in the currently set VERTEX BUFFER
+	context->DrawIndexed(
+		mesh->getIndexCount(),			// The number of indices to use (we could draw a subset if we wanted)
+		0,								// Offset to the first index we want to use
+		0);								// Offset to add to each index when looking up vertices
 }

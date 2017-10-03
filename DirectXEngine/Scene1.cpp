@@ -38,6 +38,10 @@ bool Scene1::init()
 	LightComponent* directionalLight = addComponentToEntity<LightComponent>(directionalLightEnt);
 	directionalLight->setLightType(LightType::DIRECTIONAL_LIGHT);
 
+	LightSettings directionalLightSettings = directionalLight->getLightSettings();
+	directionalLightSettings.color = XMFLOAT4(1.0f, 1.0f, 0.78f, 1.0f);
+	directionalLight->setLightSettings(directionalLightSettings);
+
 	unsigned int spotLightEnt = createEntity();
 	Transform* spotLightTransform = addComponentToEntity<Transform>(spotLightEnt);
 	spotLightTransform->moveLocalZ(10.0f);
@@ -71,15 +75,16 @@ bool Scene1::init()
 	cubeTransform->scale(XMFLOAT3(9.0f, 9.0f, 0.0f));
 
 	MeshRenderComponent* cubeMeshRenderComponent = addComponentToEntity<MeshRenderComponent>(cubeEnt);
-	cubeMeshRenderComponent->changeMaterial(cracksMaterial);
-	cubeMeshRenderComponent->changeMesh(cube);
+	cubeMeshRenderComponent->setMaterial(cracksMaterial);
+	cubeMeshRenderComponent->setMesh(cube);
 	
 	unsigned int torusEnt = createEntity();
 	Transform* torusTransform = addComponentToEntity<Transform>(torusEnt);
 	torusTransform->moveX(2.5f);
 
 	MeshRenderComponent* torusMeshRenderComponent = addComponentToEntity<MeshRenderComponent>(torusEnt);
-	torusMeshRenderComponent->changeMesh(torus);
+	torusMeshRenderComponent->setMesh(torus);
+	//torusMeshRenderComponent->setRenderStyle(RenderStyle::WIREFRAME);
 	
 	unsigned int coneEnt = createEntity();
 	Transform* coneTransform = addComponentToEntity<Transform>(coneEnt);
@@ -87,7 +92,8 @@ bool Scene1::init()
 	coneTransform->scaleY(4.0f);
 
 	MeshRenderComponent* coneMeshRenderComponent = addComponentToEntity<MeshRenderComponent>(coneEnt);
-	coneMeshRenderComponent->changeMesh(cone);
+	coneMeshRenderComponent->setMesh(cone);
+	//coneMeshRenderComponent->setRenderStyle(RenderStyle::SOLID_WIREFRAME);
 
 	return true;
 }

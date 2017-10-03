@@ -8,7 +8,6 @@ Scene::Scene(ID3D11Device* device, ID3D11DeviceContext* context)
 	m_context = context;
 	m_rasterizerState = nullptr;
 
-	m_renderStyle = RenderStyle::SOLID;
 	m_prevUseWireframe = false;
 
 	XMStoreFloat4x4(&m_projectionMatrix, XMMatrixIdentity());
@@ -62,21 +61,6 @@ bool Scene::init()
 
 void Scene::update(float deltaTime, float totalTime)
 {
-	if (GetAsyncKeyState(VK_F1) && 0x8000)
-	{
-		m_renderStyle = RenderStyle::SOLID;
-	}
-
-	if (GetAsyncKeyState(VK_F2) && 0x8000)
-	{
-		m_renderStyle = RenderStyle::WIREFRAME;
-	}
-
-	if (GetAsyncKeyState(VK_F3) && 0x8000)
-	{
-		m_renderStyle = RenderStyle::SOLID_WIREFRAME;
-	}
-
 	for (unsigned int i = 0; i < m_entities.size(); i++)
 	{
 		std::vector<Component*>* components = getComponentsOfEntity(m_entities[i]);
@@ -129,28 +113,7 @@ void Scene::draw()
 		m_cameras[i]->updateViewMatrix();
 	}
 
-	switch (m_renderStyle)
-	{
-	case RenderStyle::SOLID:
-		useWireframe(false);
-		m_renderer->render(this, m_context, &lightData[0], lightData.size());
-		break;
-
-	case RenderStyle::WIREFRAME:
-		useWireframe(true);
-		m_renderer->render(this, m_context, nullptr, 0);
-		break;
-
-	case RenderStyle::SOLID_WIREFRAME:
-		useWireframe(false);
-		m_renderer->render(this, m_context, &lightData[0], lightData.size());
-		useWireframe(true);
-		m_renderer->render(this, m_context, nullptr, 0);
-		break;
-
-	default:
-		break;
-	}	
+	m_renderer->render(this, m_context, &lightData[0], lightData.size());	
 }
 
 DirectX::XMMATRIX Scene::getProjectionMatrix() const
@@ -174,7 +137,7 @@ void Scene::setMainCamera(Camera* camera)
 	m_mainCamera = camera;
 }
 
-void Scene::useWireframe(bool wireframe)
+void Scene::drawInWireframeMode(bool wireframe)
 {
 	if (m_prevUseWireframe == wireframe) return;
 

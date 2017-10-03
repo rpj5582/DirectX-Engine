@@ -7,6 +7,7 @@
 
 class Scene;
 struct GPU_LIGHT_DATA;
+enum RenderStyle;
 
 class Renderer
 {
@@ -14,8 +15,10 @@ public:
 	Renderer();
 	~Renderer();
 
-	virtual void render(Scene* scene, ID3D11DeviceContext* context, GPU_LIGHT_DATA* lightData, unsigned int lightCount);
+	// Renders the scene.
+	void render(Scene* scene, ID3D11DeviceContext* context, GPU_LIGHT_DATA* lightData, unsigned int lightCount);
 
 private:
-
+	void renderMeshAndLighting(ID3D11DeviceContext* context, SimplePixelShader* pixelShader, Mesh* mesh, GPU_LIGHT_DATA* lightData, unsigned int lightCount);
+	void renderMeshWithoutLighting(ID3D11DeviceContext* context, SimplePixelShader* pixelShader, Mesh* mesh);
 };

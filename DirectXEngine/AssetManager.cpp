@@ -327,7 +327,7 @@ Mesh* AssetManager::loadMesh(std::string id, std::string filepath)
 	return loadMesh(id, &vertices[0], vertices.size(), &indices[0], indices.size());
 }
 
-Mesh* AssetManager::loadMesh(std::string id, Vertex* vertices, int vertexCount, UINT* indices, int indexCount)
+Mesh* AssetManager::loadMesh(std::string id, Vertex* vertices, unsigned int vertexCount, UINT* indices, unsigned int indexCount)
 {
 	auto meshIterator = m_instance->m_meshes.find(id);
 	if (meshIterator != m_instance->m_meshes.end())

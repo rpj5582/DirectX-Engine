@@ -29,7 +29,7 @@ public:
 	static SimplePixelShader* getPixelShader(std::string id);
 
 	static Mesh* loadMesh(std::string id, std::string filepath);
-	static Mesh* loadMesh(std::string id, Vertex* vertices, int vertexCount, UINT* indices, int indexCount);
+	static Mesh* loadMesh(std::string id, Vertex* vertices, unsigned int vertexCount, UINT* indices, unsigned int indexCount);
 
 	static Material* createMaterial(std::string id);
 	static Material* createMaterial(std::string id, std::string diffuseTextureID);
