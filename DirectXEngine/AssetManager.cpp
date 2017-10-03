@@ -74,7 +74,7 @@ bool AssetManager::init()
 	// Creates the default textures
 	if (!createSolidColorTexture("defaultDiffuse", 0x808080)) return false;
 	if (!createSolidColorTexture("defaultSpecular", 0xffffff)) return false;
-	if (!createSolidColorTexture("defaultNormal", 0xff8080)) return false;
+	if (!createSolidColorTexture("defaultNormal", 0xff0000)) return false;
 
 	// Creates the default sampler
 	D3D11_SAMPLER_DESC samplerDesc = {};
