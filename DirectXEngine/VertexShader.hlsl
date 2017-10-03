@@ -31,8 +31,9 @@ struct VertexShaderInput
 	//  |    |                |
 	//  v    v                v
 	float3 position		: POSITION;
-	float3 normal		: NORMAL;
 	float2 uv			: TEXCOORDS;
+	float3 normal		: NORMAL;
+	float3 tangent		: TANGENT;
 };
 
 // Struct representing the data we're sending down the pipeline
@@ -51,6 +52,7 @@ struct VertexToPixel
 	float3 worldPosition : WORLD_POSITION;
 	float2 uv			: TEXCOORDS;
 	float3 normal		: NORMAL;
+	float3 tangent		: TANGENT;
 	float3 cameraWorldPosition : CAMERA_POSITION;
 };
 
@@ -91,6 +93,8 @@ VertexToPixel main( VertexShaderInput input )
 	// Multiply the normals by a casted inverse transpose of the world matrix
 	// so that the normals rotate and scale with the model (but not translate, hence the casting).
 	output.normal = mul(input.normal, (float3x3)worldInverseTranspose);
+
+	output.tangent = input.tangent;
 
 	output.cameraWorldPosition = (float3)mul(float4(cameraPosition, 1.0f), world);
 

@@ -71,7 +71,7 @@ bool Scene1::init()
 
 	unsigned int cubeEnt = createEntity();
 	Transform* cubeTransform = addComponentToEntity<Transform>(cubeEnt);
-	cubeTransform->moveZ(5.0f);
+	cubeTransform->moveZ(2.5f);
 	cubeTransform->scale(XMFLOAT3(9.0f, 9.0f, 0.0f));
 
 	MeshRenderComponent* cubeMeshRenderComponent = addComponentToEntity<MeshRenderComponent>(cubeEnt);
@@ -80,7 +80,7 @@ bool Scene1::init()
 	
 	unsigned int torusEnt = createEntity();
 	Transform* torusTransform = addComponentToEntity<Transform>(torusEnt);
-	torusTransform->moveX(2.5f);
+	torusTransform->moveX(5.0f);
 
 	MeshRenderComponent* torusMeshRenderComponent = addComponentToEntity<MeshRenderComponent>(torusEnt);
 	torusMeshRenderComponent->setMesh(torus);
@@ -88,7 +88,7 @@ bool Scene1::init()
 	
 	unsigned int coneEnt = createEntity();
 	Transform* coneTransform = addComponentToEntity<Transform>(coneEnt);
-	coneTransform->moveX(-2.5f);
+	coneTransform->moveX(-5.0f);
 	coneTransform->scaleY(4.0f);
 
 	MeshRenderComponent* coneMeshRenderComponent = addComponentToEntity<MeshRenderComponent>(coneEnt);

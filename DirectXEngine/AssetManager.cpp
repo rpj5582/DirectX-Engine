@@ -181,7 +181,7 @@ Mesh* AssetManager::loadMesh(std::string id, std::string filepath)
 	std::vector<XMFLOAT3> normals;       // Normals from the file
 	std::vector<XMFLOAT2> uvs;           // UVs from the file
 	std::vector<Vertex> vertices;           // Verts we're assembling
-	std::vector<UINT> indices;           // Indices of these verts
+	std::vector<unsigned int> indices;           // Indices of these verts
 	unsigned int vertCounter = 0;        // Count of vertices/indices
 	char chars[100];                     // String for line reading
 
@@ -247,16 +247,19 @@ Mesh* AssetManager::loadMesh(std::string id, std::string filepath)
 			v1.position = positions[i[0] - 1];
 			v1.uv = uvs[i[1] - 1];
 			v1.normal = normals[i[2] - 1];
+			v1.tangent = XMFLOAT3();
 
 			Vertex v2;
 			v2.position = positions[i[3] - 1];
 			v2.uv = uvs[i[4] - 1];
 			v2.normal = normals[i[5] - 1];
+			v2.tangent = XMFLOAT3();
 
 			Vertex v3;
 			v3.position = positions[i[6] - 1];
 			v3.uv = uvs[i[7] - 1];
 			v3.normal = normals[i[8] - 1];
+			v3.tangent = XMFLOAT3();
 
 			// The model is most likely in a right-handed space,
 			// especially if it came from Maya.  We want to convert
@@ -302,6 +305,7 @@ Mesh* AssetManager::loadMesh(std::string id, std::string filepath)
 				v4.position = positions[i[9] - 1];
 				v4.uv = uvs[i[10] - 1];
 				v4.normal = normals[i[11] - 1];
+				v4.tangent = XMFLOAT3();
 
 				// Flip the UV, Z pos and normal
 				v4.uv.y = 1.0f - v4.uv.y;
@@ -327,7 +331,7 @@ Mesh* AssetManager::loadMesh(std::string id, std::string filepath)
 	return loadMesh(id, &vertices[0], vertices.size(), &indices[0], indices.size());
 }
 
-Mesh* AssetManager::loadMesh(std::string id, Vertex* vertices, unsigned int vertexCount, UINT* indices, unsigned int indexCount)
+Mesh* AssetManager::loadMesh(std::string id, Vertex* vertices, unsigned int vertexCount, unsigned int* indices, unsigned int indexCount)
 {
 	auto meshIterator = m_instance->m_meshes.find(id);
 	if (meshIterator != m_instance->m_meshes.end())
@@ -336,10 +340,59 @@ Mesh* AssetManager::loadMesh(std::string id, Vertex* vertices, unsigned int vert
 		return meshIterator->second;
 	}
 
+	m_instance->calculateTangents(vertices, vertexCount, indices);
+
 	Mesh* m = new Mesh(m_instance->m_device, vertices, vertexCount, indices, indexCount);
 	m_instance->m_meshes[id] = m;
 
 	return m;
+}
+
+// Code adapted from: http://www.terathon.com/code/tangent.html
+void AssetManager::calculateTangents(Vertex* vertices, unsigned int vertexCount, unsigned int* indices)
+{
+	for (unsigned int i = 0; i < vertexCount;)
+	{
+		unsigned int i1 = indices[i++];
+		unsigned int i2 = indices[i++];
+		unsigned int i3 = indices[i++];
+
+		Vertex* v1 = &vertices[i1];
+		Vertex* v2 = &vertices[i2];
+		Vertex* v3 = &vertices[i3];
+
+		float x1 = v2->position.x - v1->position.x;
+		float y1 = v2->position.y - v1->position.y;
+		float z1 = v2->position.z - v1->position.z;
+
+		float x2 = v3->position.x - v1->position.x;
+		float y2 = v3->position.y - v1->position.y;
+		float z2 = v3->position.z - v1->position.z;
+
+		float s1 = v2->uv.x - v1->uv.x;
+		float t1 = v2->uv.y - v1->uv.y;
+
+		float s2 = v3->uv.x - v1->uv.x;
+		float t2 = v3->uv.y - v1->uv.y;
+
+		float r = 1.0f / (s1 * t2 - s2 * t1);
+
+		float tx = (t2 * x1 - t1 * x2) * r;
+		float ty = (t2 * y1 - t1 * y2) * r;
+		float tz = (t2 * z1 - t1 * z2) * r;
+
+		v1->tangent.x += tx;
+		v1->tangent.y += ty;
+		v1->tangent.z += tz;
+
+		v2->tangent.x += tx;
+		v2->tangent.y += ty;
+		v2->tangent.z += tz;
+
+		v3->tangent.x += tx;
+		v3->tangent.y += ty;
+		v3->tangent.z += tz;
+	}
 }
 
 Material* AssetManager::createMaterial(std::string id)

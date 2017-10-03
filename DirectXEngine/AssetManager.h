@@ -29,7 +29,7 @@ public:
 	static SimplePixelShader* getPixelShader(std::string id);
 
 	static Mesh* loadMesh(std::string id, std::string filepath);
-	static Mesh* loadMesh(std::string id, Vertex* vertices, unsigned int vertexCount, UINT* indices, unsigned int indexCount);
+	static Mesh* loadMesh(std::string id, Vertex* vertices, unsigned int vertexCount, unsigned int* indices, unsigned int indexCount);
 
 	static Material* createMaterial(std::string id);
 	static Material* createMaterial(std::string id, std::string diffuseTextureID);
@@ -44,6 +44,9 @@ public:
 	static ID3D11SamplerState* createSampler(std::string id, const D3D11_SAMPLER_DESC& samplerDesc);
 
 private:
+	// A helper function when loading meshes to calculate tangents for the normal map lighting calculation.
+	void calculateTangents(Vertex* vertices, unsigned int vertexCount, unsigned int* indices);
+
 	static AssetManager* m_instance;
 
 	ID3D11Device* m_device;

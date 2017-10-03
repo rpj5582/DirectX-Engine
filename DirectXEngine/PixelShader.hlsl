@@ -41,6 +41,7 @@ struct VertexToPixel
 	float3 worldPosition : WORLD_POSITION;
 	float2 uv			: TEXCOORDS;
 	float3 normal		: NORMAL;
+	float3 tangent		: TANGENT;
 	float3 cameraWorldPosition : CAMERA_POSITION;
 };
 
@@ -110,9 +111,21 @@ float4 calculateLight(Light light, VertexToPixel input, float4 surfaceColor, flo
 float4 main(VertexToPixel input) : SV_TARGET
 {
 	float3 normal = normalize(input.normal);
+	float3 tangent = normalize(input.tangent);
 
 	float4 surfaceColor = diffuseTexture.Sample(materialSampler, input.uv);
 	float4 specularColor = specularTexture.Sample(materialSampler, input.uv);
+	float4 normalColor = normalTexture.Sample(materialSampler, input.uv);
+
+	// Construct the TBN matrix for conversion from tangent space to world space
+	float3 N = input.normal;
+	float3 T = normalize(input.tangent - input.normal * dot(input.tangent, input.normal));
+	float3 B = cross(T, N);
+	float3x3 TBN = float3x3(T, B, N);
+
+	// Convert the normal from the normal map to world space, and overwrite the model's normal
+	// so that it can be used in the lighting calculations.
+	input.normal = normalize(mul(normalColor.xyz, TBN));
 
 	// Calculates a value - either 1 or 0 - to disable lighting or not.
 	// If there are no lights in the scene, render the scene without shading.
