@@ -32,8 +32,7 @@ void Material::useMaterial()
 	m_pixelShader->SetShader();
 
 	m_pixelShader->SetShaderResourceView("diffuseTexture", m_diffuseTextureSRV);
-	m_pixelShader->SetShaderResourceView("specularTexture", m_specularTextureSRV);
 	m_pixelShader->SetShaderResourceView("normalTexture", m_normalTextureSRV);
+	m_pixelShader->SetShaderResourceView("specularTexture", m_specularTextureSRV);
 	m_pixelShader->SetSamplerState("materialSampler", m_sampler);
-
 }

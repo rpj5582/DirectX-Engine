@@ -68,13 +68,14 @@ AssetManager::~AssetManager()
 
 bool AssetManager::init()
 {
+	// Loads the default shaders
 	if (!loadShader("default", VertexShader, L"VertexShader.cso")) return false;
 	if (!loadShader("default", PixelShader, L"PixelShader.cso")) return false;
 
 	// Creates the default textures
 	if (!createSolidColorTexture("defaultDiffuse", 0x808080)) return false;
 	if (!createSolidColorTexture("defaultSpecular", 0xffffff)) return false;
-	if (!createSolidColorTexture("defaultNormal", 0xff0000)) return false;
+	if (!createSolidColorTexture("defaultNormal", 0xff8080)) return false;
 
 	// Creates the default sampler
 	D3D11_SAMPLER_DESC samplerDesc = {};
@@ -91,6 +92,22 @@ bool AssetManager::init()
 	Material* defaultMaterial = createMaterial("default");
 	if (!defaultMaterial) return false;
 	
+	// Create primitive meshes
+	Vertex quadVertices[4] = 
+	{
+		XMFLOAT3(-1.0f, 1.0f, 0.0f), XMFLOAT2(0.0f, 0.0f), XMFLOAT3(0.0f, 0.0f, -1.0f), XMFLOAT3(1.0f, 0.0f, 0.0f), // Top left
+		XMFLOAT3(1.0f, 1.0f, 0.0f), XMFLOAT2(1.0f, 0.0f), XMFLOAT3(0.0f, 0.0f, -1.0f), XMFLOAT3(1.0f, 0.0f, 0.0f), // Top right
+		XMFLOAT3(-1.0f, -1.0f, 0.0f), XMFLOAT2(0.0f, 1.0f), XMFLOAT3(0.0f, 0.0f, -1.0f), XMFLOAT3(1.0f, 0.0f, 0.0f), // Bottom left
+		XMFLOAT3(1.0f, -1.0f, 0.0f), XMFLOAT2(1.0f, 1.0f), XMFLOAT3(0.0f, 0.0f, -1.0f), XMFLOAT3(1.0f, 0.0f, 0.0f), // Bottom right
+	};
+
+	unsigned int quadIndices[6] =
+	{
+		0, 1, 2, 1, 3, 2
+	};
+
+	if (!loadMesh("quad", quadVertices, 4, quadIndices, 6)) return false;
+
 	return true;
 }
 
@@ -467,8 +484,8 @@ Material* AssetManager::createMaterial(std::string id, std::string diffuseTextur
 
 	Material* m = new Material(m_instance->m_device, m_instance->m_context, m_instance->m_vertexShaders[vertexShaderID], m_instance->m_pixelShaders[pixelShaderID],
 		m_instance->m_textures[diffuseTextureID], m_instance->m_textures[specularTextureID], m_instance->m_textures[normalTextureID], m_instance->m_samplers[samplerID]);
-	m_instance->m_materials[id] = m;
 
+	m_instance->m_materials[id] = m;
 	return m;
 }
 

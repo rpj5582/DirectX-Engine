@@ -18,7 +18,6 @@ public:
 	const DirectX::XMMATRIX getRotationMatrix() const;
 	const DirectX::XMMATRIX getScaleMatrix() const;
 	const DirectX::XMMATRIX getWorldMatrix() const;
-	const DirectX::XMMATRIX getWorldMatrixInverseTranspose() const;
 
 	const DirectX::XMFLOAT3 getRight() const;
 	const DirectX::XMFLOAT3 getUp() const;
@@ -58,5 +57,4 @@ private:
 	DirectX::XMFLOAT4X4 m_rotationMatrix;
 	DirectX::XMFLOAT4X4 m_scaleMatrix;
 	DirectX::XMFLOAT4X4 m_worldMatrix;
-	DirectX::XMFLOAT4X4 m_worldMatrixInverseTranspose;
 };

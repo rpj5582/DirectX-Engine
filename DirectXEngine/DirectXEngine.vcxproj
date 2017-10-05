@@ -152,6 +152,8 @@
     <ClInclude Include="Vertex.h" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="LightingFunctions.hlsli" />
+    <None Include="UtilityFunctions.hlsli" />
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>

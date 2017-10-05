@@ -1,5 +1,7 @@
 #pragma once
 
+#include "AssetManager.h"
+
 #include <Windows.h>
 #include <DirectXMath.h>
 
@@ -14,6 +16,8 @@ public:
 	virtual void update(float deltaTime, float totalTime) = 0;
 
 	unsigned int getEntity() const;
+
+	bool enabled;
 	
 protected:
 	Component(Scene* scene, unsigned int entity);

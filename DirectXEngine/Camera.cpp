@@ -29,6 +29,8 @@ DirectX::XMMATRIX Camera::getViewMatrix() const
 void Camera::updateViewMatrix()
 {
 	Transform* transform = scene->getComponentOfEntity<Transform>(entity);
+	if (!transform) return;
+
 	XMFLOAT3 cameraPosition = transform->getPosition();
 
 	XMFLOAT3 forwardFloat3 = transform->getForward();

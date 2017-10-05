@@ -12,7 +12,6 @@ Transform::Transform(Scene* scene, unsigned int entity) : Component(scene, entit
 	XMStoreFloat4x4(&m_rotationMatrix, XMMatrixIdentity());
 	XMStoreFloat4x4(&m_scaleMatrix, XMMatrixIdentity());
 	XMStoreFloat4x4(&m_worldMatrix, XMMatrixIdentity());
-	XMStoreFloat4x4(&m_worldMatrixInverseTranspose, XMMatrixIdentity());
 }
 
 Transform::~Transform()
@@ -60,11 +59,6 @@ const XMMATRIX Transform::getScaleMatrix() const
 const XMMATRIX Transform::getWorldMatrix() const
 {
 	return XMLoadFloat4x4(&m_worldMatrix);
-}
-
-const DirectX::XMMATRIX Transform::getWorldMatrixInverseTranspose() const
-{
-	return XMLoadFloat4x4(&m_worldMatrixInverseTranspose);
 }
 
 const XMFLOAT3 Transform::getRight() const
@@ -126,9 +120,6 @@ void Transform::calcWorldMatrix()
 
 	XMMATRIX world = XMMatrixMultiply(XMMatrixMultiply(scale, rotation), translation);
 	XMStoreFloat4x4(&m_worldMatrix, world);
-	
-	XMMATRIX worldInverseTranspose = XMMatrixTranspose(XMMatrixInverse(nullptr, world));
-	XMStoreFloat4x4(&m_worldMatrixInverseTranspose, worldInverseTranspose);
 }
 
 void Transform::move(XMFLOAT3 delta)

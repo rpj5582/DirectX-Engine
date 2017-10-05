@@ -6,13 +6,14 @@ Scene::Scene(ID3D11Device* device, ID3D11DeviceContext* context)
 {
 	m_device = device;
 	m_context = context;
+
 	m_rasterizerState = nullptr;
 
 	m_prevUseWireframe = false;
 
 	XMStoreFloat4x4(&m_projectionMatrix, XMMatrixIdentity());
-
-	m_renderer = nullptr;
+	m_near = 0;
+	m_far = 0;
 
 	m_entities = std::vector<unsigned int>();
 	m_components = std::unordered_map<unsigned int, std::vector<Component*>>();
@@ -25,8 +26,6 @@ Scene::Scene(ID3D11Device* device, ID3D11DeviceContext* context)
 
 Scene::~Scene()
 {
-	delete m_renderer;
-
 	m_lights.clear();
 	m_cameras.clear();
 
@@ -40,7 +39,7 @@ Scene::~Scene()
 
 bool Scene::init()
 {
-	// Added a rasterizer state so that we can control whether wireframe is on or off.
+	// Add a rasterizer state so that we can control whether wireframe is on or off.
 	D3D11_RASTERIZER_DESC rastDesc = {};
 	rastDesc.CullMode = D3D11_CULL_BACK;
 	rastDesc.DepthClipEnable = true;
@@ -55,12 +54,12 @@ bool Scene::init()
 
 	m_context->RSSetState(m_rasterizerState);
 
-	m_renderer = new Renderer();
 	return true;
 }
 
 void Scene::update(float deltaTime, float totalTime)
 {
+	// Update all entities in the scene
 	for (unsigned int i = 0; i < m_entities.size(); i++)
 	{
 		std::vector<Component*>* components = getComponentsOfEntity(m_entities[i]);
@@ -69,51 +68,12 @@ void Scene::update(float deltaTime, float totalTime)
 			components->at(j)->update(deltaTime, totalTime);
 		}
 	}
-}
-
-void Scene::draw()
-{
-	// Don't continue if there is no main camera
-	if (!m_mainCamera) return; 
-
-	// Preprocess each light entity to get it's position and direction
-	std::vector<GPU_LIGHT_DATA> lightData = std::vector<GPU_LIGHT_DATA>();
-
-	for (unsigned int i = 0; i < m_lights.size(); i++)
-	{
-		const LightSettings lightSettings = m_lights[i]->getLightSettings();
-
-		// Get position, direction, and type of each light
-		Transform* lightTransform = getComponentOfEntity<Transform>(m_lights[i]->getEntity());
-		if (lightTransform)
-		{
-			XMFLOAT3 lightPosition = lightTransform->getPosition();
-			XMFLOAT3 lightDirection = lightTransform->getForward();
-			unsigned int lightType = (unsigned int)m_lights[i]->getLightType();
-
-			// Creates the final memory-aligned struct that is sent to the GPU
-			lightData.push_back(
-			{
-				lightSettings.color,
-				lightDirection,
-				lightSettings.brightness,
-				lightPosition,
-				lightSettings.specularity,
-				lightSettings.radius,
-				lightSettings.spotAngle,
-				lightSettings.spotFalloff,
-				lightType
-			});
-		}
-	}
 
 	// Preprocess each camera by updating it's view matrix
 	for (unsigned int i = 0; i < m_cameras.size(); i++)
 	{
 		m_cameras[i]->updateViewMatrix();
 	}
-
-	m_renderer->render(this, m_context, &lightData[0], lightData.size());	
 }
 
 DirectX::XMMATRIX Scene::getProjectionMatrix() const
@@ -121,10 +81,22 @@ DirectX::XMMATRIX Scene::getProjectionMatrix() const
 	return XMLoadFloat4x4(&m_projectionMatrix);
 }
 
-void Scene::updateProjectionMatrix(int width, int height)
+void Scene::updateProjectionMatrix(int width, int height, float nearZ, float farZ)
 {
-	XMMATRIX perspective = XMMatrixPerspectiveFovLH(XM_PIDIV4, (float)width / height, 0.1f, 100.0f);
+	m_near = nearZ;
+	m_far = farZ;
+	XMMATRIX perspective = XMMatrixPerspectiveFovLH(XM_PIDIV4, (float)width / height, m_near, m_far);
 	XMStoreFloat4x4(&m_projectionMatrix, perspective);
+}
+
+float Scene::getNearZ() const
+{
+	return m_near;
+}
+
+float Scene::getFarZ() const
+{
+	return m_far;
 }
 
 Camera* Scene::getMainCamera() const
@@ -343,8 +315,23 @@ void Scene::deleteEntity(unsigned int entity)
 
 void Scene::getAllEntities(unsigned int** entities, unsigned int* entityCount)
 {
-	*entities = &m_entities[0];
 	*entityCount = m_entities.size();
+
+	if (*entityCount > 0)
+		*entities = &m_entities[0];
+	else
+		*entities = nullptr;
+}
+
+void Scene::getAllLights(LightComponent*** lights, unsigned int* lightCount)
+{
+	*lightCount = m_lights.size();
+	
+	if (*lightCount > 0)
+		*lights = &m_lights[0];
+	else
+		*lights = nullptr;
+	
 }
 
 std::vector<Component*>* Scene::getComponentsOfEntity(unsigned int entity)

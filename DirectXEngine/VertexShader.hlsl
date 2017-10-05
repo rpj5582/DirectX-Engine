@@ -13,11 +13,6 @@ cbuffer matrices : register(b0)
 	matrix worldInverseTranspose;
 };
 
-cbuffer camera : register(b1)
-{
-	float3 cameraPosition : CAMERA_POSITION;
-}
-
 // Struct representing a single vertex worth of data
 // - This should match the vertex definition in our C++ code
 // - By "match", I mean the size, order and number of members
@@ -31,7 +26,7 @@ struct VertexShaderInput
 	//  |    |                |
 	//  v    v                v
 	float3 position		: POSITION;
-	float2 uv			: TEXCOORDS;
+	float2 uv			: TEXCOORD;
 	float3 normal		: NORMAL;
 	float3 tangent		: TANGENT;
 };
@@ -50,10 +45,9 @@ struct VertexToPixel
 	//  v    v                v
 	float4 position		: SV_POSITION;	// XYZW position (System Value Position)	
 	float3 worldPosition : WORLD_POSITION;
-	float2 uv			: TEXCOORDS;
+	float2 uv			: TEXCOORD;
 	float3 normal		: NORMAL;
 	float3 tangent		: TANGENT;
-	float3 cameraWorldPosition : CAMERA_POSITION;
 };
 
 // --------------------------------------------------------
@@ -94,9 +88,7 @@ VertexToPixel main( VertexShaderInput input )
 	// so that the normals rotate and scale with the model (but not translate, hence the casting).
 	output.normal = mul(input.normal, (float3x3)worldInverseTranspose);
 
-	output.tangent = input.tangent;
-
-	output.cameraWorldPosition = (float3)mul(float4(cameraPosition, 1.0f), world);
+	output.tangent = mul(input.tangent, (float3x3)worldInverseTranspose);
 
 	// Whatever we return will make its way through the pipeline to the
 	// next programmable stage we're using (the pixel shader for now)

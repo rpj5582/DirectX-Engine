@@ -1,21 +1,22 @@
 #pragma once
-
 #include "Component.h"
+
+#include "Mesh.h"
 #include <DirectXMath.h>
 
-#define MAX_LIGHTS 8
+#define MAX_LIGHTS 64
 
 // The struct that should match the light data in the shaders.
 struct GPU_LIGHT_DATA
 {
-	DirectX::XMFLOAT4 diffuseColor;
+	DirectX::XMFLOAT4 color;
 	DirectX::XMFLOAT3 direction;
 	float brightness;
 	DirectX::XMFLOAT3 position;
 	float specularity;
 	float radius;
 	float spotAngle;
-	float spotFalloff;
+	bool enabled;
 	unsigned int type;
 };
 
@@ -31,7 +32,6 @@ struct LightSettings
 	float specularity;
 	float radius;
 	float spotAngle;
-	float spotFalloff;
 };
 
 class LightComponent : public Component
@@ -57,6 +57,7 @@ public:
 
 private:
 	void setSettingsDefault();
+
 	LightSettings m_light;
 	LightType m_lightType;
 };

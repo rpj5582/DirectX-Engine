@@ -2,6 +2,7 @@
 
 #include "Transform.h"
 #include "MeshRenderComponent.h"
+#include "LightComponent.h"
 
 #include <DirectXMath.h>
 
@@ -12,13 +13,17 @@ enum RenderStyle;
 class Renderer
 {
 public:
-	Renderer();
+	Renderer(ID3D11Device* device, ID3D11DeviceContext* context);
 	~Renderer();
 
-	// Renders the scene.
-	void render(Scene* scene, ID3D11DeviceContext* context, GPU_LIGHT_DATA* lightData, unsigned int lightCount);
+	bool init();
+
+	void render(Scene* scene, GPU_LIGHT_DATA* lightData, unsigned int lightCount);
 
 private:
-	void renderMeshAndLighting(ID3D11DeviceContext* context, SimplePixelShader* pixelShader, Mesh* mesh, GPU_LIGHT_DATA* lightData, unsigned int lightCount);
-	void renderMeshWithoutLighting(ID3D11DeviceContext* context, SimplePixelShader* pixelShader, Mesh* mesh);
+	void renderMesh(SimplePixelShader* pixelShader, Mesh* mesh, GPU_LIGHT_DATA* lightData, unsigned int lightCount);
+	void renderMeshWithoutLighting(SimplePixelShader* pixelShader, Mesh* mesh);
+
+	ID3D11Device* m_device;
+	ID3D11DeviceContext* m_context;
 };

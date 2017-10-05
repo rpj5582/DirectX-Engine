@@ -1,10 +1,8 @@
 #pragma once
 
-#include "AssetManager.h"
-#include "Renderer.h"
-
 #include "Camera.h"
 #include "LightComponent.h"
+#include "MeshRenderComponent.h"
 
 #include <DirectXMath.h>
 #include <typeinfo>
@@ -17,16 +15,20 @@ public:
 
 	virtual bool init();
 	virtual void update(float deltaTime, float totalTime);
-	void draw();
 
 	DirectX::XMMATRIX getProjectionMatrix() const;
-	void updateProjectionMatrix(int width, int height);
+	void updateProjectionMatrix(int width, int height, float nearZ, float farZ);
+
+	float getNearZ() const;
+	float getFarZ() const;
 
 	void drawInWireframeMode(bool wireframe);
 
 	unsigned int createEntity();
 	void deleteEntity(unsigned int entity);
+
 	void getAllEntities(unsigned int** entities, unsigned int* entityCount);
+	void getAllLights(LightComponent*** lights, unsigned int* lightCount);
 
 	template<typename T>
 	T* addComponentToEntity(unsigned int entity);
@@ -59,14 +61,14 @@ public:
 private:
 	ID3D11Device* m_device;
 	ID3D11DeviceContext* m_context;
+
 	ID3D11RasterizerState* m_rasterizerState;
 
-	
 	bool m_prevUseWireframe;
 
 	DirectX::XMFLOAT4X4 m_projectionMatrix;
-
-	Renderer* m_renderer;
+	float m_near;
+	float m_far;
 
 	std::vector<unsigned int> m_entities;
 	std::unordered_map<unsigned int, std::vector<Component*>> m_components;

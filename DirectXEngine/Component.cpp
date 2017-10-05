@@ -6,6 +6,8 @@ Component::Component(Scene* scene, unsigned int entity)
 {
 	this->scene = scene;
 	this->entity = entity;
+
+	enabled = true;
 }
 
 Component::~Component()

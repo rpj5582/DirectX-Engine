@@ -1,6 +1,7 @@
 #pragma once
-
 #include "DXCore.h"
+
+#include "Renderer.h"
 
 #include "Scene1.h"
 
@@ -26,7 +27,8 @@ public:
 	void OnMouseWheel(float wheelDelta,   int x, int y);
 
 private:
-	AssetManager* assetManager;
+	AssetManager* m_assetManager;
+	Renderer* m_renderer;
 	Scene* m_scene;
 };
 

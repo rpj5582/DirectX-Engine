@@ -32,6 +32,8 @@ void Output::Error(std::string error)
 	SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 12);
 	std::cout << error << std::endl;
 	SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), oldColorAttrs);
+
+	DebugBreak();
 #endif
 }
 

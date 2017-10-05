@@ -33,13 +33,13 @@ bool Scene1::init()
 
 	unsigned int directionalLightEnt = createEntity();
 	Transform* directionalLightTransform = addComponentToEntity<Transform>(directionalLightEnt);
-	directionalLightTransform->rotateLocal(XMFLOAT3(45.0f, 90.0f, 0.0f));
+	directionalLightTransform->rotateLocal(XMFLOAT3(45.0f, 0.0f, 0.0f));
 
 	LightComponent* directionalLight = addComponentToEntity<LightComponent>(directionalLightEnt);
 	directionalLight->setLightType(LightType::DIRECTIONAL_LIGHT);
 
 	LightSettings directionalLightSettings = directionalLight->getLightSettings();
-	directionalLightSettings.color = XMFLOAT4(1.0f, 1.0f, 0.78f, 1.0f);
+	directionalLightSettings.color = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
 	directionalLight->setLightSettings(directionalLightSettings);
 
 	unsigned int spotLightEnt = createEntity();
@@ -52,10 +52,8 @@ bool Scene1::init()
 
 	LightSettings spotLightSettings = spotLight->getLightSettings();
 	spotLightSettings.color = XMFLOAT4(1.0f, 1.0f, 0.0f, 1.0f);
-	spotLightSettings.radius = 6.0f;
-	spotLightSettings.brightness = 2.5f;
-	spotLightSettings.spotAngle = XMConvertToRadians(5.0f);
-	spotLightSettings.spotFalloff = 96.0f;
+	spotLightSettings.radius = 10.0f;
+	spotLightSettings.spotAngle = 30.0f;
 	spotLight->setLightSettings(spotLightSettings);
 
 	unsigned int pointLightEnt = createEntity();
@@ -71,7 +69,8 @@ bool Scene1::init()
 
 	unsigned int cubeEnt = createEntity();
 	Transform* cubeTransform = addComponentToEntity<Transform>(cubeEnt);
-	cubeTransform->moveZ(2.5f);
+	cubeTransform->moveZ(3.0f);
+	//cubeTransform->rotateLocalY(45.0f);
 	cubeTransform->scale(XMFLOAT3(9.0f, 9.0f, 0.0f));
 
 	MeshRenderComponent* cubeMeshRenderComponent = addComponentToEntity<MeshRenderComponent>(cubeEnt);

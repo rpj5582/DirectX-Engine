@@ -12,6 +12,7 @@ LightComponent::~LightComponent()
 
 void LightComponent::init()
 {
+	setLightType(DIRECTIONAL_LIGHT);
 }
 
 void LightComponent::update(float deltaTime, float totalTime)
@@ -45,7 +46,6 @@ void LightComponent::setLightSettings(const LightSettings& settings)
 	m_light.specularity = settings.specularity;
 	m_light.radius = settings.radius;
 	m_light.spotAngle = settings.spotAngle;
-	m_light.spotFalloff = settings.spotFalloff;
 }
 
 void LightComponent::useDefaultSettings()
@@ -59,6 +59,5 @@ void LightComponent::setSettingsDefault()
 	m_light.brightness = 1.0f;
 	m_light.specularity = 32.0f;
 	m_light.radius = 1.0f;
-	m_light.spotAngle = XMConvertToRadians(15.0f);
-	m_light.spotFalloff = 2.0f;
+	m_light.spotAngle = 15.0f;
 }

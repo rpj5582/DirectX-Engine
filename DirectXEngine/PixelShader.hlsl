@@ -1,23 +1,15 @@
-#define MAX_LIGHTS 8
-
-// Struct representing a generic light
-struct Light
-{
-	float4 diffuseColor;
-	float3 direction;
-	float brightness;
-	float3 position;
-	float specularity;
-	float radius;
-	float spotAngle;
-	float spotFalloff;
-	unsigned int type;
-};
+#include "UtilityFunctions.hlsli"
+#include "LightingFunctions.hlsli"
 
 cbuffer lighting : register(b0)
 {
 	Light lights[MAX_LIGHTS];
 	unsigned int lightCount;
+}
+
+cbuffer camera : register(b1)
+{
+	float3 cameraWorldPosition : CAMERA_POSITION;
 }
 
 Texture2D diffuseTexture : register(t0);
@@ -39,64 +31,61 @@ struct VertexToPixel
 	//  v    v                v
 	float4 position		: SV_POSITION;
 	float3 worldPosition : WORLD_POSITION;
-	float2 uv			: TEXCOORDS;
+	float2 uv			: TEXCOORD;
 	float3 normal		: NORMAL;
 	float3 tangent		: TANGENT;
-	float3 cameraWorldPosition : CAMERA_POSITION;
 };
 
-// Calculates the diffuse lighting for all light types
-float4 calculateDiffuse(Light light, VertexToPixel input, float3 directionToLight)
+float4 calculateLight(Light light, float3 normal, float3 worldPosition, float4 surfaceColor, float4 specColor)
 {
-	return saturate(dot(directionToLight, input.normal)) * light.diffuseColor * light.brightness;
-}
-
-// Calculates the specular lighting for all light types
-float4 calculateSpecular(Light light, VertexToPixel input, float3 directionToLight)
-{
-	float3 directionToCamera = normalize(input.cameraWorldPosition - input.worldPosition);
-	float3 halfway = normalize(directionToLight + directionToCamera);
-	return pow(saturate(dot(halfway, input.normal)), light.specularity);
-}
-
-float4 calculateLight(Light light, VertexToPixel input, float4 surfaceColor, float4 specColor)
-{
-	float3 directionToLight = float3(0.0f, 0.0f, 0.0f);
-	float distanceToLight = 0.0f;
-	float spotlightAttenuation = 1.0f;
-
-	// Defines the direction and distance to the light from this pixel
-	// as well as spot light attenuation based on the type of light
-	switch (light.type)
+	if (!light.enabled)
 	{
-	case 0: // Point light
-		distanceToLight = length((float3)light.position - input.worldPosition);
-		directionToLight = ((float3)light.position - input.worldPosition) / distanceToLight;
-		break;
-
-	case 1: // Directional light
-		directionToLight = normalize((float3) - light.direction);
-		break;
-
-	case 2: // Spot light
-		distanceToLight = length((float3)light.position - input.worldPosition);
-		directionToLight = ((float3)light.position - input.worldPosition) / distanceToLight;
-		spotlightAttenuation = pow(max(0.0f, dot(-directionToLight, light.direction) / cos(light.spotAngle)), light.spotFalloff);
-		break;
-
-	default:
-		break;
+		return float4(0.0f, 0.0f, 0.0f, 0.0f);
 	}
+	else
+	{
+		float3 directionToLight = float3(0.0f, 0.0f, 0.0f);
+		float distanceToLight = 0.0f;
+		float attenuation = 1.0f;
+		float spotlightAttenuation = 1.0f;
 
-	// Calculates all different types of lighting
-	float4 diffuseColor = calculateDiffuse(light, input, directionToLight) * surfaceColor;
-	float4 specularColor = calculateSpecular(light, input, directionToLight) * specColor;
+		// Defines the direction and distance to the light from this pixel
+		// as well as spot light attenuation based on the type of light
+		switch (light.type)
+		{
+		case POINT_LIGHT:
+			directionToLight = light.position - worldPosition;
+			distanceToLight = length(directionToLight);
+			directionToLight /= distanceToLight;
 
-	// Light falloff based on radius
-	float attenuationFactor = 1.0f;
-	float attenuation = light.radius / (1.0f + attenuationFactor * distanceToLight * distanceToLight);
+			attenuation = calculateAttenuation(light, distanceToLight, 0.75f);
+			break;
 
-	return (diffuseColor + specularColor) * attenuation * spotlightAttenuation;
+		case DIRECTIONAL_LIGHT:
+			directionToLight = normalize(-light.direction);
+			break;
+
+		case SPOT_LIGHT:
+			directionToLight = light.position - worldPosition;
+			distanceToLight = length(directionToLight);
+			directionToLight /= distanceToLight;
+
+			attenuation = calculateAttenuation(light, distanceToLight, 0.75f);
+			spotlightAttenuation = calculateSpotlightAttenuation(light, directionToLight);
+			break;
+
+		default:
+			break;
+		}
+
+		float3 directionToCamera = normalize(cameraWorldPosition - worldPosition);
+
+		// Calculates all different types of lighting
+		float4 diffuseColor = calculateDiffuse(light, normal, directionToLight) * surfaceColor;
+		float4 specularColor = calculateSpecular(light, worldPosition, directionToCamera, normal, directionToLight) * specColor;
+
+		return (diffuseColor + specularColor) * attenuation * spotlightAttenuation;
+	}
 }
 
 // --------------------------------------------------------
@@ -113,19 +102,19 @@ float4 main(VertexToPixel input) : SV_TARGET
 	float3 normal = normalize(input.normal);
 	float3 tangent = normalize(input.tangent);
 
-	float4 surfaceColor = diffuseTexture.Sample(materialSampler, input.uv);
+	float4 diffuseColor = diffuseTexture.Sample(materialSampler, input.uv);
 	float4 specularColor = specularTexture.Sample(materialSampler, input.uv);
 	float4 normalColor = normalTexture.Sample(materialSampler, input.uv);
+	float3 unpackedNormal = unpackFloat3(normalColor.xyz);
 
 	// Construct the TBN matrix for conversion from tangent space to world space
-	float3 N = input.normal;
-	float3 T = normalize(input.tangent - input.normal * dot(input.tangent, input.normal));
+	float3 N = normal;
+	float3 T = normalize(tangent - normal * dot(tangent, normal));
 	float3 B = cross(T, N);
 	float3x3 TBN = float3x3(T, B, N);
 
-	// Convert the normal from the normal map to world space, and overwrite the model's normal
-	// so that it can be used in the lighting calculations.
-	input.normal = normalize(mul(normalColor.xyz, TBN));
+	// Convert the normal from the normal map to world space.
+	float3 finalNormal = normalize(mul(unpackedNormal, TBN));
 
 	// Calculates a value - either 1 or 0 - to disable lighting or not.
 	// If there are no lights in the scene, render the scene without shading.
@@ -133,10 +122,11 @@ float4 main(VertexToPixel input) : SV_TARGET
 
 	// Calculates the lighting for each valid light
 	float4 globalAmbient = float4(0.1f, 0.1f, 0.1f, 1.0f);
-	float4 finalLightColor = globalAmbient * surfaceColor + disableShading * float4(1.0f, 1.0f, 1.0f, 1.0f);
+	float4 finalLightColor = globalAmbient  * diffuseColor + disableShading * float4(1.0f, 1.0f, 1.0f, 1.0f);
 	for (unsigned int i = 0; i < lightCount; i++)
 	{
-		finalLightColor += calculateLight(lights[i], input, surfaceColor, specularColor);
+		float4 lightColor = calculateLight(lights[i], finalNormal, input.worldPosition, diffuseColor, specularColor);
+		finalLightColor += lightColor;
 	}
 	
 	return finalLightColor;
