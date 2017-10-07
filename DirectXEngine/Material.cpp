@@ -36,3 +36,8 @@ void Material::useMaterial()
 	m_pixelShader->SetShaderResourceView("specularTexture", m_specularTextureSRV);
 	m_pixelShader->SetSamplerState("materialSampler", m_sampler);
 }
+
+ID3D11ShaderResourceView* Material::getDiffuseTextureSRV() const
+{
+	return m_diffuseTextureSRV;
+}

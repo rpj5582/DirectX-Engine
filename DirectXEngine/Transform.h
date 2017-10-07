@@ -38,10 +38,10 @@ public:
 	void moveLocalY(float delta);
 	void moveLocalZ(float delta);
 
-	void rotateLocal(DirectX::XMFLOAT3 rot);
-	void rotateLocalX(float angle);
-	void rotateLocalY(float angle);
-	void rotateLocalZ(float angle);
+	void rotateLocal(DirectX::XMFLOAT3 rotDegrees);
+	void rotateLocalX(float degrees);
+	void rotateLocalY(float degrees);
+	void rotateLocalZ(float degrees);
 
 	void scale(DirectX::XMFLOAT3 delta);
 	void scaleX(float delta);

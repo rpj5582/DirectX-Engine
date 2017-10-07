@@ -14,6 +14,8 @@ public:
 
 	void useMaterial();
 
+	ID3D11ShaderResourceView* getDiffuseTextureSRV() const;
+
 private:
 	SimpleVertexShader* m_vertexShader;
 	SimplePixelShader* m_pixelShader;

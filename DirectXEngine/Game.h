@@ -1,8 +1,6 @@
 #pragma once
 #include "DXCore.h"
 
-#include "Renderer.h"
-
 #include "Scene1.h"
 
 class Game 
@@ -28,7 +26,6 @@ public:
 
 private:
 	AssetManager* m_assetManager;
-	Renderer* m_renderer;
 	Scene* m_scene;
 };
 

@@ -84,10 +84,10 @@ void FreeCamControls::onMouseDown(WPARAM buttonState, int x, int y)
 	if (buttonState == MK_LBUTTON)
 	{
 		freeLook = true;
-	}
 
-	prevMousePos.x = x;
-	prevMousePos.y = y;
+		prevMousePos.x = x;
+		prevMousePos.y = y;
+	}
 }
 
 void FreeCamControls::onMouseUp(WPARAM buttonState, int x, int y)
@@ -103,8 +103,8 @@ void FreeCamControls::onMouseMove(WPARAM buttonState, int x, int y)
 		float mouseDeltaY = y - (float)prevMousePos.y;
 
 		transform->rotateLocal(XMFLOAT3(mouseDeltaY / 10.0f, mouseDeltaX / 10.0f, 0.0f));
-	}
 
-	prevMousePos.x = x;
-	prevMousePos.y = y;
+		prevMousePos.x = x;
+		prevMousePos.y = y;
+	}
 }

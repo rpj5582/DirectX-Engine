@@ -118,6 +118,9 @@
     <ClCompile Include="FreeCamControls.cpp" />
     <ClCompile Include="Game.cpp" />
     <ClCompile Include="Component.cpp" />
+    <ClCompile Include="GUIComponent.cpp" />
+    <ClCompile Include="GUIRenderer.cpp" />
+    <ClCompile Include="GUITransform.cpp" />
     <ClCompile Include="LightComponent.cpp" />
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="Material.cpp" />
@@ -138,6 +141,9 @@
     <ClInclude Include="DXCore.h" />
     <ClInclude Include="FreeCamControls.h" />
     <ClInclude Include="Game.h" />
+    <ClInclude Include="GUIComponent.h" />
+    <ClInclude Include="GUIRenderer.h" />
+    <ClInclude Include="GUITransform.h" />
     <ClInclude Include="LightComponent.h" />
     <ClInclude Include="Material.h" />
     <ClInclude Include="Mesh.h" />

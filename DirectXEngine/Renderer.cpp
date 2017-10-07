@@ -4,9 +4,8 @@
 
 using namespace DirectX;
 
-Renderer::Renderer(ID3D11Device* device, ID3D11DeviceContext* context)
+Renderer::Renderer(ID3D11DeviceContext* context)
 {
-	m_device = device;
 	m_context = context;
 }
 
@@ -25,7 +24,7 @@ void Renderer::render(Scene* scene, GPU_LIGHT_DATA* lightData, unsigned int ligh
 	Camera* mainCamera = scene->getMainCamera();
 	Transform* mainCameraTransform = scene->getComponentOfEntity<Transform>(mainCamera->getEntity());
 	if (!mainCameraTransform) return;
-	
+
 	XMMATRIX viewMatrix = XMMatrixTranspose(mainCamera->getViewMatrix());
 	XMFLOAT4X4 viewMatrix4x4;
 	XMStoreFloat4x4(&viewMatrix4x4, viewMatrix);

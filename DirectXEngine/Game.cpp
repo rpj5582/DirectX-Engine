@@ -23,7 +23,6 @@ Game::Game(HINSTANCE hInstance)
 		720,			   // Height of the window's client area
 		true)			   // Show extra stats (fps) in title bar?
 {
-	m_renderer = nullptr;
 	m_assetManager = nullptr;
 	m_scene = nullptr;
 
@@ -42,7 +41,6 @@ Game::Game(HINSTANCE hInstance)
 // --------------------------------------------------------
 Game::~Game()
 {
-	delete m_renderer;
 	delete m_assetManager;
 	delete m_scene;
 }
@@ -65,9 +63,6 @@ bool Game::Init()
 	if (!m_scene->init()) return false;
 
 	m_scene->updateProjectionMatrix(width, height, NEAR_Z, FAR_Z);
-
-	m_renderer = new Renderer(device, context);
-	if (!m_renderer->init()) return false;
 
 	return true;
 }
@@ -105,64 +100,10 @@ void Game::Draw(float deltaTime, float totalTime)
 	// Background color (Cornflower Blue in this case) for clearing
 	const float backgroundColor[4] = { 0.4f, 0.6f, 0.75f, 0.0f };
 
-	// Clear the render target and depth buffer (erases what's on the screen)
-	//  - Do this ONCE PER FRAME
-	//  - At the beginning of Draw (before drawing *anything*)
 	context->ClearRenderTargetView(backBufferRTV, backgroundColor);
-	context->ClearDepthStencilView(
-		depthStencilView,
-		D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL,
-		1.0f,
-		0);
+	context->ClearDepthStencilView(depthStencilView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 
-	LightComponent** lights;
-	unsigned int lightCount;
-	m_scene->getAllLights(&lights, &lightCount);
-
-	// Preprocess each light entity to get it's position and direction (for forward rendering).
-	std::vector<GPU_LIGHT_DATA> lightData = std::vector<GPU_LIGHT_DATA>(MAX_LIGHTS);
-
-	// Only loop through the lights if there is a main camera, since we need its view matrix.
-	Camera* mainCamera = m_scene->getMainCamera();
-	if (mainCamera)
-	{
-		for (unsigned int i = 0; i < lightCount; i++)
-		{
-			//  Don't use disabled components
-			if (!lights[i]->enabled) continue;
-
-			const LightSettings lightSettings = lights[i]->getLightSettings();
-
-			// Get position, direction, and type of each light
-			Transform* lightTransform = m_scene->getComponentOfEntity<Transform>(lights[i]->getEntity());
-			if (lightTransform)
-			{
-				XMFLOAT3 lightPosition = lightTransform->getPosition();
-				XMFLOAT3 lightDirection = lightTransform->getForward();
-
-				unsigned int lightType = (unsigned int)lights[i]->getLightType();
-
-				// Creates the final memory-aligned struct that is sent to the GPU
-				lightData[i] = 
-				{
-					lightSettings.color,
-					lightDirection,
-					lightSettings.brightness,
-					lightPosition,
-					lightSettings.specularity,
-					lightSettings.radius,
-					lightSettings.spotAngle,
-					lights[i]->enabled,
-					lightType,
-				};
-			}
-		}
-	}
-
-	if(lightData.size() > 0)
-		m_renderer->render(m_scene, &lightData[0], lightData.size());
-	else
-		m_renderer->render(m_scene, nullptr, 0);
+	m_scene->render();
 
 	// Present the back buffer to the user
 	//  - Puts the final frame we're drawing into the window so the user can see it

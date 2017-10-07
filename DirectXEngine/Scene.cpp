@@ -7,8 +7,10 @@ Scene::Scene(ID3D11Device* device, ID3D11DeviceContext* context)
 	m_device = device;
 	m_context = context;
 
-	m_rasterizerState = nullptr;
+	m_renderer = nullptr;
+	m_guiRenderer = nullptr;
 
+	m_rasterizerState = nullptr;
 	m_prevUseWireframe = false;
 
 	XMStoreFloat4x4(&m_projectionMatrix, XMMatrixIdentity());
@@ -35,10 +37,19 @@ Scene::~Scene()
 	}
 
 	if (m_rasterizerState) m_rasterizerState->Release();
+
+	delete m_guiRenderer;
+	delete m_renderer;
 }
 
 bool Scene::init()
 {
+	m_renderer = new Renderer(m_context);
+	if (!m_renderer->init()) return false;
+
+	m_guiRenderer = new GUIRenderer(m_context);
+	if (!m_guiRenderer->init()) return false;
+
 	// Add a rasterizer state so that we can control whether wireframe is on or off.
 	D3D11_RASTERIZER_DESC rastDesc = {};
 	rastDesc.CullMode = D3D11_CULL_BACK;
@@ -73,6 +84,71 @@ void Scene::update(float deltaTime, float totalTime)
 	for (unsigned int i = 0; i < m_cameras.size(); i++)
 	{
 		m_cameras[i]->updateViewMatrix();
+	}
+}
+
+void Scene::render()
+{
+	// Preprocess each light entity to get it's position and direction (for forward rendering).
+	std::vector<GPU_LIGHT_DATA> lightData = std::vector<GPU_LIGHT_DATA>(MAX_LIGHTS);
+
+	// Only loop through the lights if there is a main camera, since we need its view matrix.
+	if (m_mainCamera)
+	{
+		for (unsigned int i = 0; i < m_lights.size(); i++)
+		{
+			//  Don't use disabled components
+			if (!m_lights[i]->enabled) continue;
+
+			const LightSettings lightSettings = m_lights[i]->getLightSettings();
+
+			// Get position, direction, and type of each light
+			Transform* lightTransform = getComponentOfEntity<Transform>(m_lights[i]->getEntity());
+			if (lightTransform)
+			{
+				XMFLOAT3 lightPosition = lightTransform->getPosition();
+				XMFLOAT3 lightDirection = lightTransform->getForward();
+
+				unsigned int lightType = (unsigned int)m_lights[i]->getLightType();
+
+				// Creates the final memory-aligned struct that is sent to the GPU
+				lightData[i] =
+				{
+					lightSettings.color,
+					lightDirection,
+					lightSettings.brightness,
+					lightPosition,
+					lightSettings.specularity,
+					lightSettings.radius,
+					lightSettings.spotAngle,
+					m_lights[i]->enabled,
+					lightType,
+				};
+			}
+		}
+	}
+
+	CommonStates states(m_device);
+	ID3D11BlendState* blendState = states.Opaque();
+	ID3D11DepthStencilState* depthStencilState = states.DepthDefault();
+
+	m_context->OMSetBlendState(blendState, nullptr, 0xffffffff);
+	m_context->OMSetDepthStencilState(depthStencilState, 0);
+
+	if (lightData.size() > 0)
+		m_renderer->render(this, blendState, &lightData[0], lightData.size());
+	else
+		m_renderer->render(this, blendState, nullptr, 0);
+
+	blendState = states.NonPremultiplied();
+	depthStencilState = states.DepthRead();
+
+	m_context->OMSetBlendState(blendState, nullptr, 0xffffffff);
+	m_context->OMSetDepthStencilState(depthStencilState, 0);
+
+	if (m_guis.size() > 0)
+	{
+		m_guiRenderer->render(this, blendState, depthStencilState, &m_guis[0], m_guis.size());
 	}
 }
 

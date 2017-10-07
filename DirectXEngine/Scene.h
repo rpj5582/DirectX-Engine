@@ -1,11 +1,11 @@
 #pragma once
 
+#include "Renderer.h"
+#include "GUIRenderer.h"
 #include "Camera.h"
-#include "LightComponent.h"
-#include "MeshRenderComponent.h"
 
+#include <CommonStates.h>
 #include <DirectXMath.h>
-#include <typeinfo>
 
 class Scene
 {
@@ -14,7 +14,8 @@ public:
 	virtual ~Scene();
 
 	virtual bool init();
-	virtual void update(float deltaTime, float totalTime);
+	void update(float deltaTime, float totalTime);
+	void render();
 
 	DirectX::XMMATRIX getProjectionMatrix() const;
 	void updateProjectionMatrix(int width, int height, float nearZ, float farZ);
@@ -62,8 +63,10 @@ private:
 	ID3D11Device* m_device;
 	ID3D11DeviceContext* m_context;
 
-	ID3D11RasterizerState* m_rasterizerState;
+	Renderer* m_renderer;
+	GUIRenderer* m_guiRenderer;
 
+	ID3D11RasterizerState* m_rasterizerState;
 	bool m_prevUseWireframe;
 
 	DirectX::XMFLOAT4X4 m_projectionMatrix;
@@ -77,6 +80,7 @@ private:
 	std::vector<LightComponent*> m_lights;
 	std::vector<Camera*> m_cameras;
 	Camera* m_mainCamera;
+	std::vector<GUIComponent*> m_guis;
 
 	std::vector<Component*> m_mouseDownCallbacks;
 	std::vector<Component*> m_mouseUpCallbacks;
@@ -96,7 +100,8 @@ inline T* Scene::addComponentToEntity(unsigned int entity)
 			for (unsigned int j = 0; j < m_components[entity].size(); j++)
 			{
 				// Don't allow more than one of the same type of component on an entity
-				if (typeid(m_components[entity][j]) == typeid(T))
+				T* component = dynamic_cast<T*>(m_components[entity][j]);
+				if (component)
 				{
 					Output::Warning("Did not add component because a component of the same type already exists on entity " + std::to_string(entity) + ".");
 					return nullptr;
@@ -125,7 +130,8 @@ inline LightComponent* Scene::addComponentToEntity<LightComponent>(unsigned int 
 			for (unsigned int j = 0; j < m_components[entity].size(); j++)
 			{
 				// Don't allow more than one of the same type of component on an entity
-				if (typeid(m_components[entity][j]) == typeid(LightComponent))
+				LightComponent* component = dynamic_cast<LightComponent*>(m_components[entity][j]);
+				if (component)
 				{
 					Output::Warning("Did not add component because a component of the same type already exists on entity " + std::to_string(entity) + ".");
 					return nullptr;
@@ -154,7 +160,8 @@ inline Camera* Scene::addComponentToEntity<Camera>(unsigned int entity)
 			for (unsigned int j = 0; j < m_components[entity].size(); j++)
 			{
 				// Don't allow more than one of the same type of component on an entity
-				if (typeid(m_components[entity][j]) == typeid(Camera))
+				Camera* component = dynamic_cast<Camera*>(m_components[entity][j]);
+				if (component)
 				{
 					Output::Warning("Did not add component because a component of the same type already exists on entity " + std::to_string(entity) + ".");
 					return nullptr;
@@ -164,7 +171,37 @@ inline Camera* Scene::addComponentToEntity<Camera>(unsigned int entity)
 			Camera* component = new Camera(this, entity);
 			component->init();
 			m_components[entity].push_back(component);
-			m_cameras.push_back(component); // Adds light components to list of cameras
+			m_cameras.push_back(component); // Adds camera components to list of cameras
+			return component;
+		}
+	}
+
+	Output::Warning("Given entity " + std::to_string(entity) + " could not be found.");
+	return nullptr;
+}
+
+template<>
+inline GUIComponent* Scene::addComponentToEntity<GUIComponent>(unsigned int entity)
+{
+	for (unsigned int i = 0; i < m_entities.size(); i++)
+	{
+		if (m_entities[i] == entity)
+		{
+			for (unsigned int j = 0; j < m_components[entity].size(); j++)
+			{
+				// Don't allow more than one of the same type of component on an entity
+				GUIComponent* component = dynamic_cast<GUIComponent*>(m_components[entity][j]);
+				if (component)
+				{
+					Output::Warning("Did not add component because a component of the same type already exists on entity " + std::to_string(entity) + ".");
+					return nullptr;
+				}
+			}
+
+			GUIComponent* component = new GUIComponent(this, entity);
+			component->init();
+			m_components[entity].push_back(component);
+			m_guis.push_back(component); // Adds gui components to list of guis
 			return component;
 		}
 	}
@@ -207,7 +244,8 @@ inline void Scene::removeComponentFromEntity(unsigned int entity)
 		{
 			for (unsigned int j = 0; j < m_components[entity].size(); j++)
 			{
-				if (typeid(m_components[entity][j]) == typeid(T))
+				T* component = dynamic_cast<T*>(m_components[entity][j]);
+				if (component)
 				{
 					delete m_components[entity][j];
 					m_components[entity].erase(m_components[entity].begin() + j);
@@ -234,9 +272,9 @@ inline void Scene::removeComponentFromEntity<LightComponent>(unsigned int entity
 		{
 			for (unsigned int j = 0; j < m_components[entity].size(); j++)
 			{
-				if (typeid(m_components[entity][j]) == typeid(LightComponent))
+				LightComponent* component = dynamic_cast<LightComponent*>(m_components[entity][j]);
+				if (component)
 				{
-					Component* component = m_components[entity][j];
 					delete component;
 					m_components[entity].erase(m_components[entity].begin() + j);
 					
@@ -273,9 +311,9 @@ inline void Scene::removeComponentFromEntity<Camera>(unsigned int entity)
 		{
 			for (unsigned int j = 0; j < m_components[entity].size(); j++)
 			{
-				if (typeid(m_components[entity][j]) == typeid(Camera))
+				Camera* component = dynamic_cast<Camera*>(m_components[entity][j]);
+				if (component)
 				{
-					Component* component = m_components[entity][j];
 					delete component;
 					m_components[entity].erase(m_components[entity].begin() + j);
 
@@ -286,6 +324,45 @@ inline void Scene::removeComponentFromEntity<Camera>(unsigned int entity)
 						if (m_cameras[k] == component)
 						{
 							m_cameras.erase(m_cameras.begin() + k);
+							return;
+						}
+					}
+
+					return;
+				}
+			}
+
+			Output::Warning("Given component was not removed because it could not be found on entity " + std::to_string(entity) + ".");
+			return;
+		}
+	}
+
+	Output::Warning("Given entity " + std::to_string(entity) + " could not be found.");
+	return;
+}
+
+template<>
+inline void Scene::removeComponentFromEntity<GUIComponent>(unsigned int entity)
+{
+	for (unsigned int i = 0; i < m_entities.size(); i++)
+	{
+		if (m_entities[i] == entity)
+		{
+			for (unsigned int j = 0; j < m_components[entity].size(); j++)
+			{
+				GUIComponent* component = dynamic_cast<GUIComponent*>(m_components[entity][j]);
+				if (component)
+				{
+					delete component;
+					m_components[entity].erase(m_components[entity].begin() + j);
+
+					// component is a pointer to deleted memory. We need to check if we have another 
+					// pointer in the list (which we should) and remove that pointer as well.
+					for (unsigned int k = 0; k < m_guis.size(); k++)
+					{
+						if (m_guis[k] == component)
+						{
+							m_guis.erase(m_guis.begin() + k);
 							return;
 						}
 					}

@@ -13,7 +13,7 @@ enum RenderStyle;
 class Renderer
 {
 public:
-	Renderer(ID3D11Device* device, ID3D11DeviceContext* context);
+	Renderer(ID3D11DeviceContext* context);
 	~Renderer();
 
 	bool init();
@@ -24,6 +24,5 @@ private:
 	void renderMesh(SimplePixelShader* pixelShader, Mesh* mesh, GPU_LIGHT_DATA* lightData, unsigned int lightCount);
 	void renderMeshWithoutLighting(SimplePixelShader* pixelShader, Mesh* mesh);
 
-	ID3D11Device* m_device;
 	ID3D11DeviceContext* m_context;
 };

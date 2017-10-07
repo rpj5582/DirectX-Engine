@@ -64,7 +64,7 @@ bool Scene1::init()
 
 	LightSettings pointLightSettings = pointLight->getLightSettings();
 	pointLightSettings.color = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
-	pointLightSettings.radius = 10.0f;
+	pointLightSettings.radius = 5.0f;
 	pointLight->setLightSettings(pointLightSettings);
 
 	unsigned int cubeEnt = createEntity();
@@ -83,7 +83,7 @@ bool Scene1::init()
 
 	MeshRenderComponent* torusMeshRenderComponent = addComponentToEntity<MeshRenderComponent>(torusEnt);
 	torusMeshRenderComponent->setMesh(torus);
-	//torusMeshRenderComponent->setRenderStyle(RenderStyle::WIREFRAME);
+	torusMeshRenderComponent->setRenderStyle(RenderStyle::WIREFRAME);
 	
 	unsigned int coneEnt = createEntity();
 	Transform* coneTransform = addComponentToEntity<Transform>(coneEnt);
@@ -92,7 +92,12 @@ bool Scene1::init()
 
 	MeshRenderComponent* coneMeshRenderComponent = addComponentToEntity<MeshRenderComponent>(coneEnt);
 	coneMeshRenderComponent->setMesh(cone);
-	//coneMeshRenderComponent->setRenderStyle(RenderStyle::SOLID_WIREFRAME);
+	coneMeshRenderComponent->setRenderStyle(RenderStyle::SOLID_WIREFRAME);
+
+	unsigned int guiEntity = createEntity();
+	GUITransform* guiTransform = addComponentToEntity<GUITransform>(guiEntity);
+	guiTransform->setPosition(XMFLOAT2(640, 360));
+	GUIComponent* gui = addComponentToEntity<GUIComponent>(guiEntity);
 
 	return true;
 }

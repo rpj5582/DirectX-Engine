@@ -76,6 +76,7 @@ bool AssetManager::init()
 	if (!createSolidColorTexture("defaultDiffuse", 0x808080)) return false;
 	if (!createSolidColorTexture("defaultSpecular", 0xffffff)) return false;
 	if (!createSolidColorTexture("defaultNormal", 0xff8080)) return false;
+	if (!createSolidColorTexture("defaultGUI", 0xffffffff)) return false;
 
 	// Creates the default sampler
 	D3D11_SAMPLER_DESC samplerDesc = {};
@@ -611,7 +612,7 @@ ID3D11ShaderResourceView* AssetManager::createSolidColorTexture(std::string id, 
 	srvDescTexture2D.MostDetailedMip = 0;
 
 	D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
-	srvDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+	srvDesc.Format = desc.Format;
 	srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
 	srvDesc.Texture2D = srvDescTexture2D;
 
