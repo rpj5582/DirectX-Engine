@@ -136,9 +136,9 @@ void Scene::render()
 	m_context->OMSetDepthStencilState(depthStencilState, 0);
 
 	if (lightData.size() > 0)
-		m_renderer->render(this, blendState, &lightData[0], lightData.size());
+		m_renderer->render(this, &lightData[0], lightData.size());
 	else
-		m_renderer->render(this, blendState, nullptr, 0);
+		m_renderer->render(this, nullptr, 0);
 
 	blendState = states.NonPremultiplied();
 	depthStencilState = states.DepthRead();
