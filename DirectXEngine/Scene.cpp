@@ -47,7 +47,7 @@ bool Scene::init()
 	m_renderer = new Renderer(m_context);
 	if (!m_renderer->init()) return false;
 
-	m_guiRenderer = new GUIRenderer(m_context);
+	m_guiRenderer = new GUIRenderer(m_device, m_context);
 	if (!m_guiRenderer->init()) return false;
 
 	// Add a rasterizer state so that we can control whether wireframe is on or off.
