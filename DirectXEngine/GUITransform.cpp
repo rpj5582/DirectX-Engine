@@ -7,6 +7,7 @@ GUITransform::GUITransform(Scene* scene, unsigned int entity) : Component(scene,
 	m_position = XMFLOAT2();
 	m_rotation = 0.0f;
 	m_size = XMFLOAT2();
+	m_origin = XMFLOAT2();
 }
 
 GUITransform::~GUITransform()
@@ -15,7 +16,7 @@ GUITransform::~GUITransform()
 
 void GUITransform::init()
 {
-	m_size = XMFLOAT2(100.0f, 100.0f);
+	m_size = XMFLOAT2(1.0f, 1.0f);
 }
 
 void GUITransform::update(float deltaTime, float totalTime)
@@ -74,4 +75,14 @@ DirectX::XMFLOAT2 GUITransform::getSize() const
 void GUITransform::setSize(DirectX::XMFLOAT2 size)
 {
 	m_size = size;
+}
+
+DirectX::XMFLOAT2 GUITransform::getOrigin() const
+{
+	return m_origin;
+}
+
+void GUITransform::setOrigin(XMFLOAT2 origin)
+{
+	m_origin = origin;
 }

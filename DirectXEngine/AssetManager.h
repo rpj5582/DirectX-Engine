@@ -5,6 +5,7 @@
 #include "Mesh.h"
 #include "Material.h"
 
+#include <SpriteFont.h>
 #include <unordered_map>
 
 enum ShaderType
@@ -27,9 +28,7 @@ public:
 	static ID3D11SamplerState* getSampler(std::string id);
 	static SimpleVertexShader* getVertexShader(std::string id);
 	static SimplePixelShader* getPixelShader(std::string id);
-
-	static Mesh* loadMesh(std::string id, std::string filepath);
-	static Mesh* loadMesh(std::string id, Vertex* vertices, unsigned int vertexCount, unsigned int* indices, unsigned int indexCount);
+	static DirectX::SpriteFont* getFont(std::string id);
 
 	static Material* createMaterial(std::string id);
 	static Material* createMaterial(std::string id, std::string diffuseTextureID);
@@ -38,10 +37,17 @@ public:
 	static Material* createMaterial(std::string id, std::string diffuseTextureID, std::string specularTextureID, std::string normalTextureID, std::string samplerID);
 	static Material* createMaterial(std::string id, std::string diffuseTextureID, std::string specularTextureID, std::string normalTextureID, std::string samplerID, std::string vertexShaderID, std::string pixelShaderID);
 
+	static ID3D11SamplerState* createSampler(std::string id, const D3D11_SAMPLER_DESC& samplerDesc);
+
 	static bool loadShader(std::string id, ShaderType type, LPCWSTR filepath);
+
+	static Mesh* loadMesh(std::string id, std::string filepath);
+	static Mesh* loadMesh(std::string id, Vertex* vertices, unsigned int vertexCount, unsigned int* indices, unsigned int indexCount);
+
 	static ID3D11ShaderResourceView* loadTexture(std::string id, std::string filepath);
 	static ID3D11ShaderResourceView* createSolidColorTexture(std::string id, unsigned int hexColor);
-	static ID3D11SamplerState* createSampler(std::string id, const D3D11_SAMPLER_DESC& samplerDesc);
+
+	static DirectX::SpriteFont* loadFont(std::string id, std::string filepath);
 
 private:
 	// A helper function when loading meshes to calculate tangents for the normal map lighting calculation.
@@ -60,4 +66,6 @@ private:
 
 	std::unordered_map<std::string, ID3D11ShaderResourceView*> m_textures;
 	std::unordered_map<std::string, ID3D11SamplerState*> m_samplers;
+
+	std::unordered_map<std::string, DirectX::SpriteFont*> m_fonts;
 };

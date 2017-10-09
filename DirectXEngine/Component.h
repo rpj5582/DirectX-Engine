@@ -21,7 +21,7 @@ public:
 	
 protected:
 	Component(Scene* scene, unsigned int entity);
-	~Component();
+	virtual ~Component();
 
 	virtual void onMouseDown(WPARAM buttonState, int x, int y);
 	virtual void onMouseUp(WPARAM buttonState, int x, int y);

@@ -1,10 +1,10 @@
 #pragma once
 
-#include "GUIComponent.h"
 #include "GUITransform.h"
+#include "GUISpriteComponent.h"
+#include "GUITextComponent.h"
 
 #include <SpriteBatch.h>
-#include <SpriteFont.h>
 
 class Scene;
 
@@ -16,11 +16,13 @@ public:
 
 	bool init();
 
-	void render(Scene* scene, ID3D11BlendState* blendState, ID3D11DepthStencilState* depthStencilState, GUIComponent** guiComponents, unsigned int guiCount);
+	void begin(ID3D11BlendState* blendState, ID3D11DepthStencilState* depthStencilState);
+	void renderSprites(Scene* scene, GUISpriteComponent** guiSpriteComponents, unsigned int guiSpriteCount);
+	void renderText(Scene* scene, GUITextComponent** guiTextComponents, unsigned int guiTextCount);
+	void end();
 
 private:
 	ID3D11Device* m_device;
 	ID3D11DeviceContext* m_context;
 	DirectX::SpriteBatch* m_spriteBatch;
-	DirectX::SpriteFont* m_spriteFont;
 };

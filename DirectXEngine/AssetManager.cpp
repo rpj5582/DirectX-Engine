@@ -25,10 +25,17 @@ AssetManager::AssetManager(ID3D11Device* device, ID3D11DeviceContext* context)
 	m_pixelShaders = std::unordered_map<std::string, SimplePixelShader*>();
 	m_textures = std::unordered_map<std::string, ID3D11ShaderResourceView*>();
 	m_samplers = std::unordered_map<std::string, ID3D11SamplerState*>();
+	m_fonts = std::unordered_map<std::string, SpriteFont*>();
 }
 
 AssetManager::~AssetManager()
 {
+	for (auto it = m_fonts.begin(); it != m_fonts.end(); it++)
+	{
+		delete it->second;
+	}
+	m_fonts.clear();
+
 	for (auto it = m_samplers.begin(); it != m_samplers.end(); it++)
 	{
 		it->second->Release();
@@ -93,21 +100,24 @@ bool AssetManager::init()
 	Material* defaultMaterial = createMaterial("default");
 	if (!defaultMaterial) return false;
 	
+	// Load Arial font
+	SpriteFont* arial = loadFont("Arial", "Arial.spritefont");
+
 	// Create primitive meshes
-	Vertex quadVertices[4] = 
-	{
-		XMFLOAT3(-1.0f, 1.0f, 0.0f), XMFLOAT2(0.0f, 0.0f), XMFLOAT3(0.0f, 0.0f, -1.0f), XMFLOAT3(1.0f, 0.0f, 0.0f), // Top left
-		XMFLOAT3(1.0f, 1.0f, 0.0f), XMFLOAT2(1.0f, 0.0f), XMFLOAT3(0.0f, 0.0f, -1.0f), XMFLOAT3(1.0f, 0.0f, 0.0f), // Top right
-		XMFLOAT3(-1.0f, -1.0f, 0.0f), XMFLOAT2(0.0f, 1.0f), XMFLOAT3(0.0f, 0.0f, -1.0f), XMFLOAT3(1.0f, 0.0f, 0.0f), // Bottom left
-		XMFLOAT3(1.0f, -1.0f, 0.0f), XMFLOAT2(1.0f, 1.0f), XMFLOAT3(0.0f, 0.0f, -1.0f), XMFLOAT3(1.0f, 0.0f, 0.0f), // Bottom right
-	};
+	//Vertex quadVertices[4] = 
+	//{
+	//	XMFLOAT3(-1.0f, 1.0f, 0.0f), XMFLOAT2(0.0f, 0.0f), XMFLOAT3(0.0f, 0.0f, -1.0f), XMFLOAT3(1.0f, 0.0f, 0.0f), // Top left
+	//	XMFLOAT3(1.0f, 1.0f, 0.0f), XMFLOAT2(1.0f, 0.0f), XMFLOAT3(0.0f, 0.0f, -1.0f), XMFLOAT3(1.0f, 0.0f, 0.0f), // Top right
+	//	XMFLOAT3(-1.0f, -1.0f, 0.0f), XMFLOAT2(0.0f, 1.0f), XMFLOAT3(0.0f, 0.0f, -1.0f), XMFLOAT3(1.0f, 0.0f, 0.0f), // Bottom left
+	//	XMFLOAT3(1.0f, -1.0f, 0.0f), XMFLOAT2(1.0f, 1.0f), XMFLOAT3(0.0f, 0.0f, -1.0f), XMFLOAT3(1.0f, 0.0f, 0.0f), // Bottom right
+	//};
 
-	unsigned int quadIndices[6] =
-	{
-		0, 1, 2, 1, 3, 2
-	};
+	//unsigned int quadIndices[6] =
+	//{
+	//	0, 1, 2, 1, 3, 2
+	//};
 
-	if (!loadMesh("quad", quadVertices, 4, quadIndices, 6)) return false;
+	//if (!loadMesh("quad", quadVertices, 4, quadIndices, 6)) return false;
 
 	return true;
 }
@@ -176,6 +186,17 @@ SimplePixelShader* AssetManager::getPixelShader(std::string id)
 	}
 
 	return m_instance->m_pixelShaders.at(id);
+}
+
+SpriteFont* AssetManager::getFont(std::string id)
+{
+	if (m_instance->m_fonts.find(id) == m_instance->m_fonts.end())
+	{
+		Output::Error("Could not find font with ID " + id + ".");
+		return nullptr;
+	}
+
+	return m_instance->m_fonts.at(id);
 }
 
 Mesh* AssetManager::loadMesh(std::string id, std::string filepath)
@@ -629,6 +650,29 @@ ID3D11ShaderResourceView* AssetManager::createSolidColorTexture(std::string id, 
 	texture->Release();
 
 	return textureSRV;
+}
+
+DirectX::SpriteFont* AssetManager::loadFont(std::string id, std::string filepath)
+{
+	std::wstring filePath = L"Assets/Fonts/" + std::wstring(filepath.begin(), filepath.end());
+
+	// Return a pointer to the font if it has already been loaded
+	auto fontIterator = m_instance->m_fonts.find(id);
+	if (fontIterator != m_instance->m_fonts.end())
+	{
+		Output::Warning("Font with ID " + id + " already exists, consider getting the font instead of attempting to load it again.");
+		return fontIterator->second;
+	}
+
+	SpriteFont* font = new SpriteFont(m_instance->m_device, filePath.c_str());
+	if (!font)
+	{
+		Output::Error("Failed to load font " + id + " at Assets/Fonts/" + filepath);
+		return nullptr;
+	}
+
+	m_instance->m_fonts[id] = font;
+	return font;
 }
 
 ID3D11SamplerState* AssetManager::createSampler(std::string id, const D3D11_SAMPLER_DESC& samplerDesc)

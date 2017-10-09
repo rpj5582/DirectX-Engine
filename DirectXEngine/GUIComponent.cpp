@@ -1,8 +1,10 @@
 #include "GUIComponent.h"
 
+using namespace DirectX;
+
 GUIComponent::GUIComponent(Scene* scene, unsigned int entity) : Component(scene, entity)
 {
-	m_textureSRV = nullptr;
+	m_color = XMFLOAT4();
 }
 
 GUIComponent::~GUIComponent()
@@ -11,19 +13,15 @@ GUIComponent::~GUIComponent()
 
 void GUIComponent::init()
 {
-	m_textureSRV = AssetManager::getTexture("defaultGUI");
+	m_color = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
 }
 
-void GUIComponent::update(float deltaTime, float totalTime)
+DirectX::XMFLOAT4 GUIComponent::getColor() const
 {
+	return m_color;
 }
 
-ID3D11ShaderResourceView* GUIComponent::getTextureSRV() const
+void GUIComponent::setColor(DirectX::XMFLOAT4 color)
 {
-	return m_textureSRV;
-}
-
-void GUIComponent::setTextureSRV(ID3D11ShaderResourceView* textureSRV)
-{
-	m_textureSRV = textureSRV;
+	m_color = color;
 }

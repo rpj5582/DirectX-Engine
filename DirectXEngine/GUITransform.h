@@ -23,9 +23,12 @@ public:
 	DirectX::XMFLOAT2 getSize() const;
 	void setSize(DirectX::XMFLOAT2 size);
 
+	DirectX::XMFLOAT2 getOrigin() const;
+	void setOrigin(DirectX::XMFLOAT2 origin);
 
 private:
 	DirectX::XMFLOAT2 m_position;
 	float m_rotation;
 	DirectX::XMFLOAT2 m_size;
+	DirectX::XMFLOAT2 m_origin;
 };

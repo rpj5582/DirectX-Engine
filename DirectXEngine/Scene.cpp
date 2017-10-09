@@ -23,6 +23,9 @@ Scene::Scene(ID3D11Device* device, ID3D11DeviceContext* context)
 
 	m_lights = std::vector<LightComponent*>();
 	m_cameras = std::vector<Camera*>();
+	m_sprites = std::vector<GUISpriteComponent*>();
+	m_texts = std::vector<GUITextComponent*>();
+
 	m_mainCamera = nullptr;
 }
 
@@ -30,6 +33,8 @@ Scene::~Scene()
 {
 	m_lights.clear();
 	m_cameras.clear();
+	m_sprites.clear();
+	m_texts.clear();
 
 	while (m_entities.size() > 0)
 	{
@@ -89,67 +94,16 @@ void Scene::update(float deltaTime, float totalTime)
 
 void Scene::render()
 {
-	// Preprocess each light entity to get it's position and direction (for forward rendering).
-	std::vector<GPU_LIGHT_DATA> lightData = std::vector<GPU_LIGHT_DATA>(MAX_LIGHTS);
-
-	// Only loop through the lights if there is a main camera, since we need its view matrix.
-	if (m_mainCamera)
-	{
-		for (unsigned int i = 0; i < m_lights.size(); i++)
-		{
-			//  Don't use disabled components
-			if (!m_lights[i]->enabled) continue;
-
-			const LightSettings lightSettings = m_lights[i]->getLightSettings();
-
-			// Get position, direction, and type of each light
-			Transform* lightTransform = getComponentOfEntity<Transform>(m_lights[i]->getEntity());
-			if (lightTransform)
-			{
-				XMFLOAT3 lightPosition = lightTransform->getPosition();
-				XMFLOAT3 lightDirection = lightTransform->getForward();
-
-				unsigned int lightType = (unsigned int)m_lights[i]->getLightType();
-
-				// Creates the final memory-aligned struct that is sent to the GPU
-				lightData[i] =
-				{
-					lightSettings.color,
-					lightDirection,
-					lightSettings.brightness,
-					lightPosition,
-					lightSettings.specularity,
-					lightSettings.radius,
-					lightSettings.spotAngle,
-					m_lights[i]->enabled,
-					lightType,
-				};
-			}
-		}
-	}
-
 	CommonStates states(m_device);
 	ID3D11BlendState* blendState = states.Opaque();
 	ID3D11DepthStencilState* depthStencilState = states.DepthDefault();
 
-	m_context->OMSetBlendState(blendState, nullptr, 0xffffffff);
-	m_context->OMSetDepthStencilState(depthStencilState, 0);
-
-	if (lightData.size() > 0)
-		m_renderer->render(this, &lightData[0], lightData.size());
-	else
-		m_renderer->render(this, nullptr, 0);
+	renderGeometry(blendState, depthStencilState);
 
 	blendState = states.NonPremultiplied();
 	depthStencilState = states.DepthRead();
 
-	m_context->OMSetBlendState(blendState, nullptr, 0xffffffff);
-	m_context->OMSetDepthStencilState(depthStencilState, 0);
-
-	if (m_guis.size() > 0)
-	{
-		m_guiRenderer->render(this, blendState, depthStencilState, &m_guis[0], m_guis.size());
-	}
+	renderGUI(blendState, depthStencilState);
 }
 
 DirectX::XMMATRIX Scene::getProjectionMatrix() const
@@ -356,6 +310,76 @@ void Scene::onMouseWheel(float wheelDelta, int x, int y)
 	{
 		m_mouseWheelCallbacks[i]->onMouseWheel(wheelDelta, x, y);
 	}
+}
+
+void Scene::renderGeometry(ID3D11BlendState* blendState, ID3D11DepthStencilState* depthStencilState)
+{
+	// Preprocess each light entity to get it's position and direction (for forward rendering).
+	std::vector<GPU_LIGHT_DATA> lightData = std::vector<GPU_LIGHT_DATA>(MAX_LIGHTS);
+
+	// Only loop through the lights if there is a main camera, since we need its view matrix.
+	if (m_mainCamera)
+	{
+		for (unsigned int i = 0; i < m_lights.size(); i++)
+		{
+			//  Don't use disabled components
+			if (!m_lights[i]->enabled) continue;
+
+			const LightSettings lightSettings = m_lights[i]->getLightSettings();
+
+			// Get position, direction, and type of each light
+			Transform* lightTransform = getComponentOfEntity<Transform>(m_lights[i]->getEntity());
+			if (lightTransform)
+			{
+				XMFLOAT3 lightPosition = lightTransform->getPosition();
+				XMFLOAT3 lightDirection = lightTransform->getForward();
+
+				unsigned int lightType = (unsigned int)m_lights[i]->getLightType();
+
+				// Creates the final memory-aligned struct that is sent to the GPU
+				lightData[i] =
+				{
+					lightSettings.color,
+					lightDirection,
+					lightSettings.brightness,
+					lightPosition,
+					lightSettings.specularity,
+					lightSettings.radius,
+					lightSettings.spotAngle,
+					m_lights[i]->enabled,
+					lightType,
+				};
+			}
+		}
+	}
+
+	m_context->OMSetBlendState(blendState, nullptr, 0xffffffff);
+	m_context->OMSetDepthStencilState(depthStencilState, 0);
+
+	if (lightData.size() > 0)
+		m_renderer->render(this, &lightData[0], lightData.size());
+	else
+		m_renderer->render(this, nullptr, 0);
+}
+
+void Scene::renderGUI(ID3D11BlendState* blendState, ID3D11DepthStencilState* depthStencilState)
+{
+	m_context->OMSetBlendState(blendState, nullptr, 0xffffffff);
+	m_context->OMSetDepthStencilState(depthStencilState, 0);
+
+	m_guiRenderer->begin(blendState, depthStencilState);
+
+	if (m_sprites.size() > 0)
+	{
+		m_guiRenderer->renderSprites(this, &m_sprites[0], m_sprites.size());
+	}
+
+	if (m_texts.size() > 0)
+	{
+		m_guiRenderer->renderText(this, &m_texts[0], m_texts.size());
+	}
+
+	m_guiRenderer->end();
 }
 
 unsigned int Scene::createEntity()

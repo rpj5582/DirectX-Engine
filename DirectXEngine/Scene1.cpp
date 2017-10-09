@@ -94,10 +94,26 @@ bool Scene1::init()
 	coneMeshRenderComponent->setMesh(cone);
 	coneMeshRenderComponent->setRenderStyle(RenderStyle::SOLID_WIREFRAME);
 
-	unsigned int guiEntity = createEntity();
-	GUITransform* guiTransform = addComponentToEntity<GUITransform>(guiEntity);
-	guiTransform->setPosition(XMFLOAT2(640, 360));
-	GUIComponent* gui = addComponentToEntity<GUIComponent>(guiEntity);
+	unsigned int guiSpriteEntity = createEntity();
+	GUITransform* guiSpriteTransform = addComponentToEntity<GUITransform>(guiSpriteEntity);
+	guiSpriteTransform->setPosition(XMFLOAT2(640, 360));
+	guiSpriteTransform->setSize(XMFLOAT2(100.0f, 100.0f));
+	guiSpriteTransform->setOrigin(XMFLOAT2(0.5f, 0.5f));
+	GUISpriteComponent* sprite = addComponentToEntity<GUISpriteComponent>(guiSpriteEntity);
+
+	unsigned int guiTextEntity = createEntity();
+	GUITransform* guiTextTransform = addComponentToEntity<GUITransform>(guiTextEntity);
+	guiTextTransform->setPosition(XMFLOAT2(640, 360));
+	guiTextTransform->setOrigin(XMFLOAT2(0.5f, 0.5f));
+	GUITextComponent* textComponent = addComponentToEntity<GUITextComponent>(guiTextEntity);
+	textComponent->setColor(XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f));
+
+	std::string text = "HELLO";
+	textComponent->setText(text);
+	XMVECTOR originVector = textComponent->getFont()->MeasureString(std::wstring(text.begin(), text.end()).c_str()) / 2.0f;
+	XMFLOAT2 origin;
+	XMStoreFloat2(&origin, originVector);
+	guiTextTransform->setOrigin(origin);
 
 	return true;
 }

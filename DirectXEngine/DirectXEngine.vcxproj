@@ -120,6 +120,8 @@
     <ClCompile Include="Component.cpp" />
     <ClCompile Include="GUIComponent.cpp" />
     <ClCompile Include="GUIRenderer.cpp" />
+    <ClCompile Include="GUISpriteComponent.cpp" />
+    <ClCompile Include="GUITextComponent.cpp" />
     <ClCompile Include="GUITransform.cpp" />
     <ClCompile Include="LightComponent.cpp" />
     <ClCompile Include="Main.cpp" />
@@ -143,6 +145,8 @@
     <ClInclude Include="Game.h" />
     <ClInclude Include="GUIComponent.h" />
     <ClInclude Include="GUIRenderer.h" />
+    <ClInclude Include="GUISpriteComponent.h" />
+    <ClInclude Include="GUITextComponent.h" />
     <ClInclude Include="GUITransform.h" />
     <ClInclude Include="LightComponent.h" />
     <ClInclude Include="Material.h" />

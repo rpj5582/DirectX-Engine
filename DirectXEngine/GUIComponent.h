@@ -5,14 +5,13 @@ class GUIComponent : public Component
 {
 public:
 	GUIComponent(Scene* scene, unsigned int entity);
-	~GUIComponent();
+	virtual ~GUIComponent();
 
 	virtual void init() override;
-	virtual void update(float deltaTime, float totalTime) override;
 
-	ID3D11ShaderResourceView* getTextureSRV() const;
-	void setTextureSRV(ID3D11ShaderResourceView* textureSRV);
+	DirectX::XMFLOAT4 getColor() const;
+	void setColor(DirectX::XMFLOAT4 color);
 
 private:
-	ID3D11ShaderResourceView* m_textureSRV;
+	DirectX::XMFLOAT4 m_color;
 };
