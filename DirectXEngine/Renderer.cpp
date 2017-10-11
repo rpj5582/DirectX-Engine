@@ -18,7 +18,7 @@ bool Renderer::init()
 	return true;
 }
 
-void Renderer::render(Scene* scene, GPU_LIGHT_DATA* lightData, unsigned int lightCount)
+void Renderer::render(Scene* scene, const GPU_LIGHT_DATA* lightData, unsigned int lightCount)
 {
 	// Only use the main camera when rendering to the screen.
 	Camera* mainCamera = scene->getMainCamera();
@@ -33,17 +33,15 @@ void Renderer::render(Scene* scene, GPU_LIGHT_DATA* lightData, unsigned int ligh
 	XMFLOAT4X4 projectionMatrix4x4;
 	XMStoreFloat4x4(&projectionMatrix4x4, projectionMatrix);
 
-	unsigned int* entities;
+	Entity* entities;
 	unsigned int entityCount;
 	scene->getAllEntities(&entities, &entityCount);
 
-	unsigned int stride = sizeof(Vertex);
-	unsigned int offset = 0;
 	for (unsigned int i = 0; i < entityCount; i++)
 	{
 		Transform* transform = scene->getComponentOfEntity<Transform>(entities[i]);
 		RenderComponent* renderComponent = scene->getComponentOfEntity<RenderComponent>(entities[i]);
-		if (renderComponent && transform)
+		if (renderComponent && renderComponent->enabled && transform)
 		{
 			Material* material = renderComponent->getMaterial();
 			material->useMaterial();
@@ -106,7 +104,7 @@ void Renderer::render(Scene* scene, GPU_LIGHT_DATA* lightData, unsigned int ligh
 	}
 }
 
-void Renderer::renderMesh(SimplePixelShader* pixelShader, Mesh* mesh, GPU_LIGHT_DATA* lightData, unsigned int lightCount)
+void Renderer::renderMesh(SimplePixelShader* pixelShader, const Mesh* mesh, const GPU_LIGHT_DATA* lightData, unsigned int lightCount)
 {
 	unsigned int stride = sizeof(Vertex);
 	unsigned int offset = 0;
@@ -138,7 +136,7 @@ void Renderer::renderMesh(SimplePixelShader* pixelShader, Mesh* mesh, GPU_LIGHT_
 		0);								// Offset to add to each index when looking up vertices
 }
 
-void Renderer::renderMeshWithoutLighting(SimplePixelShader* pixelShader, Mesh* mesh)
+void Renderer::renderMeshWithoutLighting(SimplePixelShader* pixelShader, const Mesh* mesh)
 {
 
 	unsigned int stride = sizeof(Vertex);

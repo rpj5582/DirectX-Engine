@@ -2,7 +2,7 @@
 
 using namespace DirectX;
 
-GUITransform::GUITransform(Scene* scene, unsigned int entity) : Component(scene, entity)
+GUITransform::GUITransform(Scene* scene, Entity entity) : Component(scene, entity)
 {
 	m_position = XMFLOAT2();
 	m_rotation = 0.0f;
@@ -19,8 +19,13 @@ void GUITransform::init()
 	m_size = XMFLOAT2(1.0f, 1.0f);
 }
 
-void GUITransform::update(float deltaTime, float totalTime)
+bool GUITransform::containsPoint(int x, int y) const
 {
+	if (x >= m_position.x && x <= m_position.x + m_size.x &&
+		y >= m_position.y && y <= m_position.y + m_size.y)
+		return true;
+
+	return false;
 }
 
 DirectX::XMFLOAT2 GUITransform::getPosition() const
@@ -28,12 +33,12 @@ DirectX::XMFLOAT2 GUITransform::getPosition() const
 	return m_position;
 }
 
-void GUITransform::setPosition(DirectX::XMFLOAT2 position)
+void GUITransform::setPosition(XMFLOAT2 position)
 {
 	m_position = position;
 }
 
-void GUITransform::move(DirectX::XMFLOAT2 delta)
+void GUITransform::move(XMFLOAT2 delta)
 {
 	XMVECTOR pos = XMLoadFloat2(&m_position);
 	XMVECTOR del = XMLoadFloat2(&delta);
@@ -67,17 +72,17 @@ void GUITransform::rotate(float degrees)
 	m_rotation += degrees;
 }
 
-DirectX::XMFLOAT2 GUITransform::getSize() const
+XMFLOAT2 GUITransform::getSize() const
 {
 	return m_size;
 }
 
-void GUITransform::setSize(DirectX::XMFLOAT2 size)
+void GUITransform::setSize(XMFLOAT2 size)
 {
 	m_size = size;
 }
 
-DirectX::XMFLOAT2 GUITransform::getOrigin() const
+XMFLOAT2 GUITransform::getOrigin() const
 {
 	return m_origin;
 }

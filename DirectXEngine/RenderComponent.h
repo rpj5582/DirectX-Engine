@@ -13,11 +13,10 @@ enum RenderStyle
 class RenderComponent : public Component
 {
 public:
-	RenderComponent(Scene* scene, unsigned int entity);
+	RenderComponent(Scene* scene, Entity entity);
 	virtual ~RenderComponent();
 
 	virtual void init() override;
-	virtual void update(float deltaTime, float totalTime) override;
 
 	Material* getMaterial() const;
 	void setMaterial(Material* material);

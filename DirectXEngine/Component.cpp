@@ -1,8 +1,6 @@
 #include "Component.h"
 
-#include "Scene.h"
-
-Component::Component(Scene* scene, unsigned int entity)
+Component::Component(Scene* scene, Entity entity)
 {
 	this->scene = scene;
 	this->entity = entity;
@@ -30,7 +28,15 @@ void Component::onMouseWheel(float wheelDelta, int x, int y)
 {
 }
 
-unsigned int Component::getEntity() const
+void Component::init()
+{
+}
+
+void Component::update(float deltaTime, float totalTime)
+{
+}
+
+Entity Component::getEntity() const
 {
 	return entity;
 }

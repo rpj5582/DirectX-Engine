@@ -6,7 +6,7 @@
 class FreeCamControls : public Component
 {
 public:
-	FreeCamControls(Scene* scene, unsigned int entity);
+	FreeCamControls(Scene* scene, Entity entity);
 	~FreeCamControls();
 
 	virtual void init() override;

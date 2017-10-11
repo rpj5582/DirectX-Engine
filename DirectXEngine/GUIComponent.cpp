@@ -2,7 +2,7 @@
 
 using namespace DirectX;
 
-GUIComponent::GUIComponent(Scene* scene, unsigned int entity) : Component(scene, entity)
+GUIComponent::GUIComponent(Scene* scene, Entity entity) : Component(scene, entity)
 {
 	m_color = XMFLOAT4();
 }

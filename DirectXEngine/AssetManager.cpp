@@ -76,8 +76,8 @@ AssetManager::~AssetManager()
 bool AssetManager::init()
 {
 	// Loads the default shaders
-	if (!loadShader("default", VertexShader, L"VertexShader.cso")) return false;
-	if (!loadShader("default", PixelShader, L"PixelShader.cso")) return false;
+	if (!loadShader("default", VertexShader, "VertexShader.cso")) return false;
+	if (!loadShader("default", PixelShader, "PixelShader.cso")) return false;
 
 	// Creates the default textures
 	if (!createSolidColorTexture("defaultDiffuse", 0x808080)) return false;
@@ -101,7 +101,7 @@ bool AssetManager::init()
 	if (!defaultMaterial) return false;
 	
 	// Load Arial font
-	SpriteFont* arial = loadFont("Arial", "Arial.spritefont");
+	SpriteFont* arial = loadFont("Arial_16pt", "Arial_16pt.spritefont");
 
 	// Create primitive meshes
 	//Vertex quadVertices[4] = 
@@ -511,7 +511,7 @@ Material* AssetManager::createMaterial(std::string id, std::string diffuseTextur
 	return m;
 }
 
-bool AssetManager::loadShader(std::string id, ShaderType type, LPCWSTR filepath)
+bool AssetManager::loadShader(std::string id, ShaderType type, std::string filepath)
 {
 	switch (type)
 	{
@@ -525,7 +525,7 @@ bool AssetManager::loadShader(std::string id, ShaderType type, LPCWSTR filepath)
 			}
 
 			SimpleVertexShader* vs = new SimpleVertexShader(m_instance->m_device, m_instance->m_context);
-			std::wstring filePathStr = L"Assets/Shaders/" + std::wstring(filepath);
+			std::wstring filePathStr = L"Assets/Shaders/" + std::wstring(filepath.begin(), filepath.end());
 			if (!vs->LoadShaderFile(filePathStr.c_str()))
 			{
 				Output::Error("Failed to load vertex shader with ID " + id + " at file location " + std::string(filePathStr.begin(), filePathStr.end()));
@@ -546,7 +546,7 @@ bool AssetManager::loadShader(std::string id, ShaderType type, LPCWSTR filepath)
 				return pixelIterator->second;
 			}
 
-			std::wstring filePathStr = L"Assets/Shaders/" + std::wstring(filepath);
+			std::wstring filePathStr = L"Assets/Shaders/" + std::wstring(filepath.begin(), filepath.end());
 			SimplePixelShader* ps = new SimplePixelShader(m_instance->m_device, m_instance->m_context);
 			if (!ps->LoadShaderFile(filePathStr.c_str()))
 			{

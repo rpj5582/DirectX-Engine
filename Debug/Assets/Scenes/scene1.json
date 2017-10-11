@@ -1,0 +1,155 @@
+{
+	"assets": [
+		{
+			"type": "texture",
+			"id": "cracks",
+			"path": "cracks.png"
+		},
+		{
+			"type": "texture",
+			"id": "cracks_spec",
+			"path": "cracks_spec.png"
+		},
+		{
+			"type": "texture",
+			"id": "cracks_norm",
+			"path": "cracks_norm.png"
+		},
+		{
+			"type": "model",
+			"id": "cube",
+			"path": "cube.obj"
+		},
+		{
+			"type": "material",
+			"id": "cracks",
+			"diffuse": "cracks",
+			"specular": "cracks_spec",
+			"normal": "cracks_norm"
+		}
+	],
+
+	"entities": [
+		{
+			"name": "Cube",
+			"components": [
+				{
+					"type": "Transform",
+					"data": [
+						{
+							"position": {
+								"x": 0,
+								"y": 0,
+								"z": 0
+							}
+						},
+						{
+							"rotation": {
+								"x": 0,
+								"y": 0,
+								"z": 0
+							}
+						},
+						{
+							"scale": {
+								"x": 10,
+								"y": 10,
+								"z": 1
+							}
+						}
+					]
+				},
+				{
+					"type": "MeshRenderComponent",
+					"data": [
+						{
+							"material": "cracks"
+						},
+						{
+							"mesh": "cube"
+						},
+						{
+							"renderStyle": "solid"
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "Directional Light",
+			"components": [
+				{
+					"type": "Transform",
+					"data": [
+						{
+							"position": {
+								"x": 0,
+								"y": 0,
+								"z": 0
+							}
+						},
+						{
+							"rotation": {
+								"x": 45,
+								"y": 90,
+								"z": 0
+							}
+						},
+						{
+							"scale": {
+								"x": 1,
+								"y": 1,
+								"z": 1
+							}
+						}
+					]
+				},
+				{
+					"type": "LightComponent",
+					"data": []
+				}
+			]
+		},
+		{
+			"name": "Camera",
+			"components": [
+				{
+					"type": "Transform",
+					"data": [
+						{
+							"position": {
+								"x": 0,
+								"y": 0,
+								"z": -10
+							}
+						},
+						{
+							"rotation": {
+								"x": 0,
+								"y": 0,
+								"z": 0
+							}
+						},
+						{
+							"scale": {
+								"x": 1,
+								"y": 1,
+								"z": 1
+							}
+						}
+					]
+				},
+				{
+					"type": "Camera",
+					"data": []
+				},
+				{
+					"type": "FreeCamControls",
+					"data": []
+				}
+			]
+		}
+	],
+	
+	"mainCamera": "Camera"
+}

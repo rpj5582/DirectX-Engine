@@ -39,7 +39,7 @@ public:
 
 	static ID3D11SamplerState* createSampler(std::string id, const D3D11_SAMPLER_DESC& samplerDesc);
 
-	static bool loadShader(std::string id, ShaderType type, LPCWSTR filepath);
+	static bool loadShader(std::string id, ShaderType type, std::string filepath);
 
 	static Mesh* loadMesh(std::string id, std::string filepath);
 	static Mesh* loadMesh(std::string id, Vertex* vertices, unsigned int vertexCount, unsigned int* indices, unsigned int indexCount);

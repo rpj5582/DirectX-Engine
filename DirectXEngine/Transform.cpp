@@ -2,7 +2,7 @@
 
 using namespace DirectX;
 
-Transform::Transform(Scene* scene, unsigned int entity) : Component(scene, entity)
+Transform::Transform(Scene* scene, Entity entity) : Component(scene, entity)
 {
 	m_position = XMFLOAT3(0.0f, 0.0f, 0.0f);
 	m_rotation = XMFLOAT3(0.0f, 0.0f, 0.0f);
@@ -15,14 +15,6 @@ Transform::Transform(Scene* scene, unsigned int entity) : Component(scene, entit
 }
 
 Transform::~Transform()
-{
-}
-
-void Transform::init()
-{
-}
-
-void Transform::update(float deltaTime, float totalTime)
 {
 }
 
@@ -39,6 +31,24 @@ const XMFLOAT3 Transform::getRotation() const
 const XMFLOAT3 Transform::getScale() const
 {
 	return m_scale;
+}
+
+void Transform::setPosition(DirectX::XMFLOAT3 position)
+{
+	m_position = position;
+	calcTranslationMatrix();
+}
+
+void Transform::setRotation(DirectX::XMFLOAT3 rotation)
+{
+	m_rotation = rotation;
+	calcRotationMatrix();
+}
+
+void Transform::setScale(DirectX::XMFLOAT3 scale)
+{
+	m_scale = scale;
+	calcScaleMatrix();
 }
 
 const XMMATRIX Transform::getTranslationMatrix() const

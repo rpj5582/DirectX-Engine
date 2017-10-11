@@ -21,8 +21,9 @@ bool Scene1::init()
 	Mesh* cube = AssetManager::loadMesh("cube", "cube.obj");
 	Mesh* torus = AssetManager::loadMesh("torus", "torus.obj");
 	Mesh* cone = AssetManager::loadMesh("cone", "cone.obj");
+	SpriteFont* arial_12pt = AssetManager::loadFont("Arial_12pt", "Arial_12pt.spritefont");
 
-	unsigned int cameraEnt = createEntity();
+	Entity cameraEnt = createEntity();
 	Transform* cameraTransform = addComponentToEntity<Transform>(cameraEnt);
 	cameraTransform->move(XMFLOAT3(0.0f, 0.0f, -10.0f));
 
@@ -31,7 +32,7 @@ bool Scene1::init()
 
 	FreeCamControls* freeCamControls = addComponentToEntity<FreeCamControls>(cameraEnt);
 
-	unsigned int directionalLightEnt = createEntity();
+	Entity directionalLightEnt = createEntity();
 	Transform* directionalLightTransform = addComponentToEntity<Transform>(directionalLightEnt);
 	directionalLightTransform->rotateLocal(XMFLOAT3(45.0f, 0.0f, 0.0f));
 
@@ -42,7 +43,7 @@ bool Scene1::init()
 	directionalLightSettings.color = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
 	directionalLight->setLightSettings(directionalLightSettings);
 
-	unsigned int spotLightEnt = createEntity();
+	Entity spotLightEnt = createEntity();
 	Transform* spotLightTransform = addComponentToEntity<Transform>(spotLightEnt);
 	spotLightTransform->moveLocalZ(10.0f);
 	spotLightTransform->rotateLocalY(180.0f);
@@ -56,7 +57,7 @@ bool Scene1::init()
 	spotLightSettings.spotAngle = 30.0f;
 	spotLight->setLightSettings(spotLightSettings);
 
-	unsigned int pointLightEnt = createEntity();
+	Entity pointLightEnt = createEntity();
 	Transform* pointLightTransform = addComponentToEntity<Transform>(pointLightEnt);
 
 	LightComponent* pointLight = addComponentToEntity<LightComponent>(pointLightEnt);
@@ -67,17 +68,16 @@ bool Scene1::init()
 	pointLightSettings.radius = 5.0f;
 	pointLight->setLightSettings(pointLightSettings);
 
-	unsigned int cubeEnt = createEntity();
+	Entity cubeEnt = createEntity();
 	Transform* cubeTransform = addComponentToEntity<Transform>(cubeEnt);
 	cubeTransform->moveZ(3.0f);
-	//cubeTransform->rotateLocalY(45.0f);
 	cubeTransform->scale(XMFLOAT3(9.0f, 9.0f, 0.0f));
 
 	MeshRenderComponent* cubeMeshRenderComponent = addComponentToEntity<MeshRenderComponent>(cubeEnt);
 	cubeMeshRenderComponent->setMaterial(cracksMaterial);
 	cubeMeshRenderComponent->setMesh(cube);
 	
-	unsigned int torusEnt = createEntity();
+	Entity torusEnt = createEntity();
 	Transform* torusTransform = addComponentToEntity<Transform>(torusEnt);
 	torusTransform->moveX(5.0f);
 
@@ -85,7 +85,7 @@ bool Scene1::init()
 	torusMeshRenderComponent->setMesh(torus);
 	torusMeshRenderComponent->setRenderStyle(RenderStyle::WIREFRAME);
 	
-	unsigned int coneEnt = createEntity();
+	Entity coneEnt = createEntity();
 	Transform* coneTransform = addComponentToEntity<Transform>(coneEnt);
 	coneTransform->moveX(-5.0f);
 	coneTransform->scaleY(4.0f);
@@ -94,14 +94,14 @@ bool Scene1::init()
 	coneMeshRenderComponent->setMesh(cone);
 	coneMeshRenderComponent->setRenderStyle(RenderStyle::SOLID_WIREFRAME);
 
-	unsigned int guiSpriteEntity = createEntity();
+	Entity guiSpriteEntity = createEntity();
 	GUITransform* guiSpriteTransform = addComponentToEntity<GUITransform>(guiSpriteEntity);
 	guiSpriteTransform->setPosition(XMFLOAT2(640, 360));
 	guiSpriteTransform->setSize(XMFLOAT2(100.0f, 100.0f));
 	guiSpriteTransform->setOrigin(XMFLOAT2(0.5f, 0.5f));
 	GUISpriteComponent* sprite = addComponentToEntity<GUISpriteComponent>(guiSpriteEntity);
 
-	unsigned int guiTextEntity = createEntity();
+	Entity guiTextEntity = createEntity();
 	GUITransform* guiTextTransform = addComponentToEntity<GUITransform>(guiTextEntity);
 	guiTextTransform->setPosition(XMFLOAT2(640, 360));
 	guiTextTransform->setOrigin(XMFLOAT2(0.5f, 0.5f));
@@ -114,6 +114,17 @@ bool Scene1::init()
 	XMFLOAT2 origin;
 	XMStoreFloat2(&origin, originVector);
 	guiTextTransform->setOrigin(origin);
+
+	Entity guiButtonEntity = createEntity();
+	GUITransform* guiButtonTransform = addComponentToEntity<GUITransform>(guiButtonEntity);
+	guiButtonTransform->setSize(XMFLOAT2(80.0f, 30.0f));
+	GUIButtonComponent* guiButton = addComponentToEntity<GUIButtonComponent>(guiButtonEntity);
+	guiButton->setFont(arial_12pt);
+	guiButton->setText("Click me");
+	guiButton->setOnClickCallback([guiButton]()
+	{
+		guiButton->setText("Yay!");
+	});
 
 	return true;
 }

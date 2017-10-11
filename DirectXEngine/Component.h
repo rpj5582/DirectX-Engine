@@ -5,6 +5,8 @@
 #include <Windows.h>
 #include <DirectXMath.h>
 
+typedef unsigned int Entity;
+
 class Scene;
 
 class Component
@@ -12,15 +14,15 @@ class Component
 public:
 	friend class Scene;
 
-	virtual void init() = 0;
-	virtual void update(float deltaTime, float totalTime) = 0;
+	virtual void init();
+	virtual void update(float deltaTime, float totalTime);
 
-	unsigned int getEntity() const;
+	Entity getEntity() const;
 
 	bool enabled;
 	
 protected:
-	Component(Scene* scene, unsigned int entity);
+	Component(Scene* scene, Entity entity);
 	virtual ~Component();
 
 	virtual void onMouseDown(WPARAM buttonState, int x, int y);
@@ -29,5 +31,5 @@ protected:
 	virtual void onMouseWheel(float wheelDelta, int x, int y);
 
 	Scene* scene;
-	unsigned int entity;
+	Entity entity;
 };

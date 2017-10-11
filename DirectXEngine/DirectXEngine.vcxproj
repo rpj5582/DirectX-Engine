@@ -118,6 +118,7 @@
     <ClCompile Include="FreeCamControls.cpp" />
     <ClCompile Include="Game.cpp" />
     <ClCompile Include="Component.cpp" />
+    <ClCompile Include="GUIButtonComponent.cpp" />
     <ClCompile Include="GUIComponent.cpp" />
     <ClCompile Include="GUIRenderer.cpp" />
     <ClCompile Include="GUISpriteComponent.cpp" />
@@ -143,6 +144,7 @@
     <ClInclude Include="DXCore.h" />
     <ClInclude Include="FreeCamControls.h" />
     <ClInclude Include="Game.h" />
+    <ClInclude Include="GUIButtonComponent.h" />
     <ClInclude Include="GUIComponent.h" />
     <ClInclude Include="GUIRenderer.h" />
     <ClInclude Include="GUISpriteComponent.h" />
@@ -159,7 +161,6 @@
     <ClInclude Include="Scene1.h" />
     <ClInclude Include="SimpleShader.h" />
     <ClInclude Include="Transform.h" />
-    <ClInclude Include="Vertex.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="LightingFunctions.hlsli" />

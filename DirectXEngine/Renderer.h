@@ -18,11 +18,11 @@ public:
 
 	bool init();
 
-	void render(Scene* scene, GPU_LIGHT_DATA* lightData, unsigned int lightCount);
+	void render(Scene* scene, const GPU_LIGHT_DATA* lightData, unsigned int lightCount);
 
 private:
-	void renderMesh(SimplePixelShader* pixelShader, Mesh* mesh, GPU_LIGHT_DATA* lightData, unsigned int lightCount);
-	void renderMeshWithoutLighting(SimplePixelShader* pixelShader, Mesh* mesh);
+	void renderMesh(SimplePixelShader* pixelShader, const Mesh* mesh, const GPU_LIGHT_DATA* lightData, unsigned int lightCount);
+	void renderMeshWithoutLighting(SimplePixelShader* pixelShader, const Mesh* mesh);
 
 	ID3D11DeviceContext* m_context;
 };

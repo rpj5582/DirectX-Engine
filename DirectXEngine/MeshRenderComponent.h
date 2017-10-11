@@ -4,7 +4,7 @@
 class MeshRenderComponent : public RenderComponent
 {
 public:
-	MeshRenderComponent(Scene* scene, unsigned int entity);
+	MeshRenderComponent(Scene* scene, Entity entity);
 	~MeshRenderComponent();
 
 	Mesh* getMesh() const;

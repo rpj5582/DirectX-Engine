@@ -37,11 +37,10 @@ struct LightSettings
 class LightComponent : public Component
 {
 public:
-	LightComponent(Scene* scene, unsigned int entity);
+	LightComponent(Scene* scene, Entity entity);
 	~LightComponent();
 
 	virtual void init() override;
-	virtual void update(float deltaTime, float totalTime) override;
 
 	LightType getLightType() const;
 

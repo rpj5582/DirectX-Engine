@@ -4,15 +4,15 @@
 class GUISpriteComponent : public GUIComponent
 {
 public:
-	GUISpriteComponent(Scene* scene, unsigned int entity);
-	~GUISpriteComponent();
+	GUISpriteComponent(Scene* scene, Entity entity);
+	virtual ~GUISpriteComponent();
 
 	virtual void init() override;
-	virtual void update(float deltaTime, float totalTime) override;
+	virtual void draw(Scene* scene, DirectX::SpriteBatch* spriteBatch) const override;
 
 	ID3D11ShaderResourceView* getTextureSRV() const;
 	void setTextureSRV(ID3D11ShaderResourceView* textureSRV);
 
-private:
+protected:
 	ID3D11ShaderResourceView* m_textureSRV;
 };

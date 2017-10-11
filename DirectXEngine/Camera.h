@@ -6,11 +6,8 @@
 class Camera : public Component
 {
 public:
-	Camera(Scene* scene, unsigned int entity);
+	Camera(Scene* scene, Entity entity);
 	~Camera();
-
-	virtual void init() override;
-	virtual void update(float deltaTime, float totalTime) override;
 
 	DirectX::XMMATRIX getViewMatrix() const;
 	void updateViewMatrix();

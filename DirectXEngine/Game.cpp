@@ -1,5 +1,4 @@
 #include "Game.h"
-#include "Vertex.h"
 
 #define NEAR_Z 0.1f
 #define FAR_Z 100.0f
@@ -59,7 +58,7 @@ bool Game::Init()
 	m_assetManager = new AssetManager(device, context);
 	if (!m_assetManager->init()) return false;
 
-	m_scene = new Scene1(device, context);
+	m_scene = new Scene(device, context);
 	if (!m_scene->init()) return false;
 
 	m_scene->updateProjectionMatrix(width, height, NEAR_Z, FAR_Z);

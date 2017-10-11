@@ -4,7 +4,7 @@
 
 using namespace DirectX;
 
-FreeCamControls::FreeCamControls(Scene* scene, unsigned int entity) : Component(scene, entity)
+FreeCamControls::FreeCamControls(Scene* scene, Entity entity) : Component(scene, entity)
 {
 	transform = nullptr;
 

@@ -4,20 +4,12 @@
 
 using namespace DirectX;
 
-Camera::Camera(Scene* scene, unsigned int entity) : Component(scene, entity)
+Camera::Camera(Scene* scene, Entity entity) : Component(scene, entity)
 {
 	XMStoreFloat4x4(&m_viewMatrix, XMMatrixIdentity());
 }
 
 Camera::~Camera()
-{
-}
-
-void Camera::init()
-{
-}
-
-void Camera::update(float deltaTime, float totalTime)
 {
 }
 

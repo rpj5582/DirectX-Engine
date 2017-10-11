@@ -3,6 +3,7 @@
 #include "Renderer.h"
 #include "GUIRenderer.h"
 #include "Camera.h"
+#include "FreeCamControls.h"
 
 #include <CommonStates.h>
 #include <DirectXMath.h>
@@ -25,22 +26,21 @@ public:
 
 	void drawInWireframeMode(bool wireframe);
 
-	unsigned int createEntity();
-	void deleteEntity(unsigned int entity);
+	Entity createEntity();
+	void deleteEntity(Entity entity);
 
-	void getAllEntities(unsigned int** entities, unsigned int* entityCount);
-	void getAllLights(LightComponent*** lights, unsigned int* lightCount);
-
-	template<typename T>
-	T* addComponentToEntity(unsigned int entity);
+	void getAllEntities(Entity** entities, unsigned int* entityCount);
 
 	template<typename T>
-	T* getComponentOfEntity(unsigned int entity);
-
-	std::vector<Component*>* getComponentsOfEntity(unsigned int entity);
+	T* addComponentToEntity(Entity entity);
 
 	template<typename T>
-	void removeComponentFromEntity(unsigned int entity);
+	T* getComponentOfEntity(Entity entity);
+
+	std::vector<Component*>* getComponentsOfEntity(Entity entity);
+
+	template<typename T>
+	void removeComponentFromEntity(Entity entity);
 
 	Camera* getMainCamera() const;
 	void setMainCamera(Camera* camera);
@@ -60,6 +60,8 @@ public:
 	void onMouseWheel(float wheelDelta, int x, int y);
 
 private:
+	bool loadFromJSON(std::string filepath);
+
 	void renderGeometry(ID3D11BlendState* blendState, ID3D11DepthStencilState* depthStencilState);
 	void renderGUI(ID3D11BlendState* blendState, ID3D11DepthStencilState* depthStencilState);
 
@@ -76,14 +78,13 @@ private:
 	float m_near;
 	float m_far;
 
-	std::vector<unsigned int> m_entities;
-	std::unordered_map<unsigned int, std::vector<Component*>> m_components;
+	std::vector<Entity> m_entities;
+	std::unordered_map<Entity, std::vector<Component*>> m_components;
 	unsigned int m_entityCounter;
 
 	std::vector<LightComponent*> m_lights;
 	std::vector<Camera*> m_cameras;
-	std::vector<GUISpriteComponent*> m_sprites;
-	std::vector<GUITextComponent*> m_texts;
+	std::vector<GUIComponent*> m_guis;
 
 	Camera* m_mainCamera;
 
@@ -94,7 +95,7 @@ private:
 };
 
 template<typename T>
-inline T* Scene::addComponentToEntity(unsigned int entity)
+inline T* Scene::addComponentToEntity(Entity entity)
 {
 	static_assert(std::is_base_of<Component, T>::value, "Given type is not a Component.");
 
@@ -126,7 +127,7 @@ inline T* Scene::addComponentToEntity(unsigned int entity)
 
 // addComponent overloads for special component types
 template<>
-inline LightComponent* Scene::addComponentToEntity<LightComponent>(unsigned int entity)
+inline LightComponent* Scene::addComponentToEntity<LightComponent>(Entity entity)
 {
 	for (unsigned int i = 0; i < m_entities.size(); i++)
 	{
@@ -156,7 +157,7 @@ inline LightComponent* Scene::addComponentToEntity<LightComponent>(unsigned int 
 }
 
 template<>
-inline Camera* Scene::addComponentToEntity<Camera>(unsigned int entity)
+inline Camera* Scene::addComponentToEntity<Camera>(Entity entity)
 {
 	for (unsigned int i = 0; i < m_entities.size(); i++)
 	{
@@ -186,7 +187,7 @@ inline Camera* Scene::addComponentToEntity<Camera>(unsigned int entity)
 }
 
 template<>
-inline GUISpriteComponent* Scene::addComponentToEntity<GUISpriteComponent>(unsigned int entity)
+inline GUISpriteComponent* Scene::addComponentToEntity<GUISpriteComponent>(Entity entity)
 {
 	for (unsigned int i = 0; i < m_entities.size(); i++)
 	{
@@ -206,7 +207,7 @@ inline GUISpriteComponent* Scene::addComponentToEntity<GUISpriteComponent>(unsig
 			GUISpriteComponent* component = new GUISpriteComponent(this, entity);
 			component->init();
 			m_components[entity].push_back(component);
-			m_sprites.push_back(component); // Adds gui components to list of guis
+			m_guis.push_back(component); // Adds gui components to list of guis
 			return component;
 		}
 	}
@@ -216,7 +217,7 @@ inline GUISpriteComponent* Scene::addComponentToEntity<GUISpriteComponent>(unsig
 }
 
 template<>
-inline GUITextComponent* Scene::addComponentToEntity<GUITextComponent>(unsigned int entity)
+inline GUITextComponent* Scene::addComponentToEntity<GUITextComponent>(Entity entity)
 {
 	for (unsigned int i = 0; i < m_entities.size(); i++)
 	{
@@ -236,7 +237,37 @@ inline GUITextComponent* Scene::addComponentToEntity<GUITextComponent>(unsigned 
 			GUITextComponent* component = new GUITextComponent(this, entity);
 			component->init();
 			m_components[entity].push_back(component);
-			m_texts.push_back(component); // Adds gui components to list of guis
+			m_guis.push_back(component); // Adds gui components to list of guis
+			return component;
+		}
+	}
+
+	Output::Warning("Given entity " + std::to_string(entity) + " could not be found.");
+	return nullptr;
+}
+
+template<>
+inline GUIButtonComponent* Scene::addComponentToEntity<GUIButtonComponent>(Entity entity)
+{
+	for (unsigned int i = 0; i < m_entities.size(); i++)
+	{
+		if (m_entities[i] == entity)
+		{
+			for (unsigned int j = 0; j < m_components[entity].size(); j++)
+			{
+				// Don't allow more than one of the same type of component on an entity
+				GUIButtonComponent* component = dynamic_cast<GUIButtonComponent*>(m_components[entity][j]);
+				if (component)
+				{
+					Output::Warning("Did not add component because a component of the same type already exists on entity " + std::to_string(entity) + ".");
+					return nullptr;
+				}
+			}
+
+			GUIButtonComponent* component = new GUIButtonComponent(this, entity);
+			component->init();
+			m_components[entity].push_back(component);
+			m_guis.push_back(component); // Adds gui components to list of guis
 			return component;
 		}
 	}
@@ -246,7 +277,7 @@ inline GUITextComponent* Scene::addComponentToEntity<GUITextComponent>(unsigned 
 }
 
 template<typename T>
-inline T* Scene::getComponentOfEntity(unsigned int entity)
+inline T* Scene::getComponentOfEntity(Entity entity)
 {
 	static_assert(std::is_base_of<Component, T>::value, "Given type is not a Component.");
 
@@ -269,7 +300,7 @@ inline T* Scene::getComponentOfEntity(unsigned int entity)
 }
 
 template<typename T>
-inline void Scene::removeComponentFromEntity(unsigned int entity)
+inline void Scene::removeComponentFromEntity(Entity entity)
 {
 	static_assert(std::is_base_of<Component, T>::value, "Given type is not a Component.");
 
@@ -299,7 +330,7 @@ inline void Scene::removeComponentFromEntity(unsigned int entity)
 
 // removeComponent overloads for special component types
 template<>
-inline void Scene::removeComponentFromEntity<LightComponent>(unsigned int entity)
+inline void Scene::removeComponentFromEntity<LightComponent>(Entity entity)
 {
 	for (unsigned int i = 0; i < m_entities.size(); i++)
 	{
@@ -338,7 +369,7 @@ inline void Scene::removeComponentFromEntity<LightComponent>(unsigned int entity
 }
 
 template<>
-inline void Scene::removeComponentFromEntity<Camera>(unsigned int entity)
+inline void Scene::removeComponentFromEntity<Camera>(Entity entity)
 {
 	for (unsigned int i = 0; i < m_entities.size(); i++)
 	{
@@ -377,7 +408,7 @@ inline void Scene::removeComponentFromEntity<Camera>(unsigned int entity)
 }
 
 template<>
-inline void Scene::removeComponentFromEntity<GUISpriteComponent>(unsigned int entity)
+inline void Scene::removeComponentFromEntity<GUISpriteComponent>(Entity entity)
 {
 	for (unsigned int i = 0; i < m_entities.size(); i++)
 	{
@@ -393,11 +424,11 @@ inline void Scene::removeComponentFromEntity<GUISpriteComponent>(unsigned int en
 
 					// component is a pointer to deleted memory. We need to check if we have another 
 					// pointer in the list (which we should) and remove that pointer as well.
-					for (unsigned int k = 0; k < m_sprites.size(); k++)
+					for (unsigned int k = 0; k < m_guis.size(); k++)
 					{
-						if (m_sprites[k] == component)
+						if (m_guis[k] == component)
 						{
-							m_sprites.erase(m_sprites.begin() + k);
+							m_guis.erase(m_guis.begin() + k);
 							return;
 						}
 					}
@@ -416,7 +447,7 @@ inline void Scene::removeComponentFromEntity<GUISpriteComponent>(unsigned int en
 }
 
 template<>
-inline void Scene::removeComponentFromEntity<GUITextComponent>(unsigned int entity)
+inline void Scene::removeComponentFromEntity<GUITextComponent>(Entity entity)
 {
 	for (unsigned int i = 0; i < m_entities.size(); i++)
 	{
@@ -432,11 +463,50 @@ inline void Scene::removeComponentFromEntity<GUITextComponent>(unsigned int enti
 
 					// component is a pointer to deleted memory. We need to check if we have another 
 					// pointer in the list (which we should) and remove that pointer as well.
-					for (unsigned int k = 0; k < m_texts.size(); k++)
+					for (unsigned int k = 0; k < m_guis.size(); k++)
 					{
-						if (m_texts[k] == component)
+						if (m_guis[k] == component)
 						{
-							m_texts.erase(m_texts.begin() + k);
+							m_guis.erase(m_guis.begin() + k);
+							return;
+						}
+					}
+
+					return;
+				}
+			}
+
+			Output::Warning("Given component was not removed because it could not be found on entity " + std::to_string(entity) + ".");
+			return;
+		}
+	}
+
+	Output::Warning("Given entity " + std::to_string(entity) + " could not be found.");
+	return;
+}
+
+template<>
+inline void Scene::removeComponentFromEntity<GUIButtonComponent>(Entity entity)
+{
+	for (unsigned int i = 0; i < m_entities.size(); i++)
+	{
+		if (m_entities[i] == entity)
+		{
+			for (unsigned int j = 0; j < m_components[entity].size(); j++)
+			{
+				GUIButtonComponent* component = dynamic_cast<GUIButtonComponent*>(m_components[entity][j]);
+				if (component)
+				{
+					delete component;
+					m_components[entity].erase(m_components[entity].begin() + j);
+
+					// component is a pointer to deleted memory. We need to check if we have another 
+					// pointer in the list (which we should) and remove that pointer as well.
+					for (unsigned int k = 0; k < m_guis.size(); k++)
+					{
+						if (m_guis[k] == component)
+						{
+							m_guis.erase(m_guis.begin() + k);
 							return;
 						}
 					}

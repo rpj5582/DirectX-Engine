@@ -4,11 +4,12 @@
 class GUITransform : public Component
 {
 public:
-	GUITransform(Scene* scene, unsigned int entity);
+	GUITransform(Scene* scene, Entity entity);
 	~GUITransform();
 
 	virtual void init() override;
-	virtual void update(float deltaTime, float totalTime) override;
+
+	bool containsPoint(int x, int y) const;
 
 	DirectX::XMFLOAT2 getPosition() const;
 	void setPosition(DirectX::XMFLOAT2 position);

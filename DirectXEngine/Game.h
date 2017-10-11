@@ -1,10 +1,9 @@
 #pragma once
 #include "DXCore.h"
 
-#include "Scene1.h"
+#include "Scene.h"
 
-class Game 
-	: public DXCore
+class Game : public DXCore
 {
 
 public:

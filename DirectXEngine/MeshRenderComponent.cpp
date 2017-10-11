@@ -1,6 +1,6 @@
 #include "MeshRenderComponent.h"
 
-MeshRenderComponent::MeshRenderComponent(Scene* scene, unsigned int entity) : RenderComponent(scene, entity)
+MeshRenderComponent::MeshRenderComponent(Scene* scene, Entity entity) : RenderComponent(scene, entity)
 {
 	m_mesh = nullptr;
 }

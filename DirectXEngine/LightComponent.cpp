@@ -2,7 +2,7 @@
 
 using namespace DirectX;
 
-LightComponent::LightComponent(Scene* scene, unsigned int entity) : Component(scene, entity)
+LightComponent::LightComponent(Scene* scene, Entity entity) : Component(scene, entity)
 {
 }
 
@@ -13,10 +13,6 @@ LightComponent::~LightComponent()
 void LightComponent::init()
 {
 	setLightType(DIRECTIONAL_LIGHT);
-}
-
-void LightComponent::update(float deltaTime, float totalTime)
-{
 }
 
 LightType LightComponent::getLightType() const

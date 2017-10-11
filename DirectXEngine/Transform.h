@@ -4,15 +4,16 @@
 class Transform : public Component
 {
 public:
-	Transform(Scene* scene, unsigned int entity);
+	Transform(Scene* scene, Entity entity);
 	~Transform();
-
-	virtual void init() override;
-	virtual void update(float deltaTime, float totalTime) override;
 
 	const DirectX::XMFLOAT3 getPosition() const;
 	const DirectX::XMFLOAT3 getRotation() const;
 	const DirectX::XMFLOAT3 getScale() const;
+
+	void setPosition(DirectX::XMFLOAT3 position);
+	void setRotation(DirectX::XMFLOAT3 rotation);
+	void setScale(DirectX::XMFLOAT3 scale);
 
 	const DirectX::XMMATRIX getTranslationMatrix() const;
 	const DirectX::XMMATRIX getRotationMatrix() const;

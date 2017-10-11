@@ -3,6 +3,7 @@
 #include "GUITransform.h"
 #include "GUISpriteComponent.h"
 #include "GUITextComponent.h"
+#include "GUIButtonComponent.h"
 
 #include <SpriteBatch.h>
 
@@ -17,8 +18,7 @@ public:
 	bool init();
 
 	void begin(ID3D11BlendState* blendState, ID3D11DepthStencilState* depthStencilState);
-	void renderSprites(Scene* scene, GUISpriteComponent** guiSpriteComponents, unsigned int guiSpriteCount);
-	void renderText(Scene* scene, GUITextComponent** guiTextComponents, unsigned int guiTextCount);
+	void render(Scene* scene, const GUIComponent* const* guiComponents, unsigned int guiCount);
 	void end();
 
 private:
