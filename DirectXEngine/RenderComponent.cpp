@@ -17,6 +17,8 @@ void RenderComponent::init()
 
 void RenderComponent::loadFromJSON(rapidjson::Value& dataObject)
 {
+	Component::loadFromJSON(dataObject);
+
 	rapidjson::Value::MemberIterator material = dataObject.FindMember("material");
 	if (material != dataObject.MemberEnd())
 	{

@@ -26,8 +26,6 @@ public:
 	float getNearZ() const;
 	float getFarZ() const;
 
-	void getAllEntities(Entity*** entities, unsigned int* entityCount);
-
 	CameraComponent* getMainCamera() const;
 
 	void onMouseDown(WPARAM buttonState, int x, int y);

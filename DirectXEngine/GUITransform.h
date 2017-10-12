@@ -8,6 +8,7 @@ public:
 	~GUITransform();
 
 	virtual void init() override;
+	virtual void loadFromJSON(rapidjson::Value& dataObject) override;
 
 	bool containsPoint(int x, int y) const;
 

@@ -16,7 +16,26 @@ GUITextComponent::~GUITextComponent()
 
 void GUITextComponent::init()
 {
+	GUIComponent::init();
+
 	m_font = AssetManager::getFont("Arial_16pt");
+}
+
+void GUITextComponent::loadFromJSON(rapidjson::Value& dataObject)
+{
+	GUIComponent::loadFromJSON(dataObject);
+
+	rapidjson::Value::MemberIterator font = dataObject.FindMember("font");
+	if (font != dataObject.MemberEnd())
+	{
+		m_font = AssetManager::getFont(font->value.GetString());
+	}
+
+	rapidjson::Value::MemberIterator text = dataObject.FindMember("text");
+	if (text != dataObject.MemberEnd())
+	{
+		m_text = text->value.GetString();
+	}
 }
 
 void GUITextComponent::draw(DirectX::SpriteBatch& spriteBatch) const

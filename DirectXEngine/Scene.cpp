@@ -535,61 +535,63 @@ void Scene::onMouseWheel(float wheelDelta, int x, int y)
 
 void Scene::renderGeometry()
 {
+	// Only continue with rendering if there is a main camera, since we need its view matrix.
+	if (!m_mainCamera) return;
+
 	// Preprocess each light entity to get it's position and direction (for forward rendering).
 	std::vector<GPU_LIGHT_DATA> lightData = std::vector<GPU_LIGHT_DATA>(MAX_LIGHTS);
-
-	// Only loop through the lights if there is a main camera, since we need its view matrix.
-	if (m_mainCamera)
+	unsigned int lightCount = 0;
+	for (unsigned int i = 0; i < m_entities.size(); i++)
 	{
-		unsigned int lightCount = 0;
-		for (unsigned int i = 0; i < m_entities.size(); i++)
+		//  Don't use disabled entities
+		if (!m_entities[i]->enabled) continue;
+
+		LightComponent* lightComponent = nullptr;
+		std::vector<Component*>& components = m_entities[i]->getComponents();
+		for (unsigned int j = 0; j < components.size(); j++)
 		{
-			//  Don't use disabled entities
-			if (!m_entities[i]->enabled) continue;
-
-			LightComponent* lightComponent = nullptr;
-			std::vector<Component*>& components = m_entities[i]->getComponents();
-			for (unsigned int j = 0; j < components.size(); j++)
-			{
-				lightComponent = dynamic_cast<LightComponent*>(components[j]);
-				if (lightComponent)
-					break;
-			}
-
-			if (!lightComponent) continue;
-
-			const LightSettings lightSettings = lightComponent->getLightSettings();
-
-			// Get position, direction, and type of each light
-			Transform* lightTransform = m_entities[i]->getComponent<Transform>();
-			if (!lightTransform) continue;
-
-			XMFLOAT3 lightPosition = lightTransform->getPosition();
-			XMFLOAT3 lightDirection = lightTransform->getForward();
-
-			unsigned int lightType = (unsigned int)lightComponent->getLightType();
-
-			// Creates the final memory-aligned struct that is sent to the GPU
-			lightCount = (lightCount + 1) % MAX_LIGHTS;
-			lightData[lightCount] = 
-			{
-				lightSettings.color,
-				lightDirection,
-				lightSettings.brightness,
-				lightPosition,
-				lightSettings.specularity,
-				lightSettings.radius,
-				lightSettings.spotAngle,
-				lightComponent->enabled,
-				lightType,
-			};
+			lightComponent = dynamic_cast<LightComponent*>(components[j]);
+			if (lightComponent)
+				break;
 		}
+
+		if (!lightComponent) continue;
+
+		const LightSettings lightSettings = lightComponent->getLightSettings();
+
+		// Get position, direction, and type of each light
+		Transform* lightTransform = m_entities[i]->getComponent<Transform>();
+		if (!lightTransform) continue;
+
+		XMFLOAT3 lightPosition = lightTransform->getPosition();
+		XMFLOAT3 lightDirection = lightTransform->getForward();
+
+		unsigned int lightType = (unsigned int)lightComponent->getLightType();
+
+		// Creates the final memory-aligned struct that is sent to the GPU
+		lightCount = (lightCount + 1) % MAX_LIGHTS;
+		lightData[lightCount] =
+		{
+			lightSettings.color,
+			lightDirection,
+			lightSettings.brightness,
+			lightPosition,
+			lightSettings.specularity,
+			lightSettings.radius,
+			lightSettings.spotAngle,
+			lightComponent->enabled,
+			lightType,
+		};
 	}
 
-	if (lightData.size() > 0)
-		m_renderer->render(this, &lightData[0]);
-	else
-		m_renderer->render(this, nullptr);
+	if (m_entities.size() > 0 && lightData.size() > 0)
+	{
+		m_renderer->render(*m_mainCamera, getProjectionMatrix(), &m_entities[0], m_entities.size(), &lightData[0]);
+	}
+	else if (lightData.size() > 0)
+	{
+		m_renderer->render(*m_mainCamera, getProjectionMatrix(), &m_entities[0], m_entities.size(), nullptr);
+	}
 }
 
 void Scene::renderGUI()
@@ -642,16 +644,6 @@ void Scene::deleteEntity(Entity* entity)
 			return;
 		}
 	}
-}
-
-void Scene::getAllEntities(Entity*** entities, unsigned int* entityCount)
-{
-	*entityCount = m_entities.size();
-
-	if (*entityCount > 0)
-		*entities = &m_entities[0];
-	else
-		*entities = nullptr;
 }
 
 Entity* Scene::getEntityByName(std::string name)

@@ -20,6 +20,17 @@ void GUISpriteComponent::init()
 	m_textureSRV = AssetManager::getTexture("defaultGUI");
 }
 
+void GUISpriteComponent::loadFromJSON(rapidjson::Value& dataObject)
+{
+	GUIComponent::loadFromJSON(dataObject);
+
+	rapidjson::Value::MemberIterator texture = dataObject.FindMember("texture");
+	if (texture != dataObject.MemberEnd())
+	{
+		m_textureSRV = AssetManager::getTexture(texture->value.GetString());
+	}
+}
+
 void GUISpriteComponent::draw(DirectX::SpriteBatch& spriteBatch) const
 {
 	GUITransform* guiTransform = entity.getComponent<GUITransform>();

@@ -8,6 +8,7 @@ public:
 	virtual ~GUIComponent();
 
 	virtual void init() override;
+	virtual void loadFromJSON(rapidjson::Value& dataObject) override;
 	virtual void draw(DirectX::SpriteBatch& spriteBatch) const = 0;
 
 	DirectX::XMFLOAT4 getColor() const;

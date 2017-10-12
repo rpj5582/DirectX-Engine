@@ -7,8 +7,6 @@
 
 #include <SpriteBatch.h>
 
-class Scene;
-
 class GUIRenderer
 {
 public:

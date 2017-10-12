@@ -10,8 +10,8 @@ public:
 	~GUIButtonComponent();
 
 	virtual void init() override;
-	virtual void draw(DirectX::SpriteBatch& spriteBatch) const override;
 	virtual void loadFromJSON(rapidjson::Value& dataObject) override;
+	virtual void draw(DirectX::SpriteBatch& spriteBatch) const override;
 
 	template<typename T>
 	void setOnClickCallback(T& onClick);

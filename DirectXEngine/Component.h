@@ -18,8 +18,6 @@ constexpr unsigned int stringHash(const char* string, unsigned int h = fnv1aBasi
 	return !*string ? h : stringHash(string + 1, static_cast<unsigned int>((h ^ *string) * static_cast<unsigned long long>(fnv1aPrime)));
 }
 
-class Scene;
-
 class Component
 {
 public:

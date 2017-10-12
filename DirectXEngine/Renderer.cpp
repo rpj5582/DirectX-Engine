@@ -18,25 +18,18 @@ bool Renderer::init()
 	return true;
 }
 
-void Renderer::render(Scene* scene, const GPU_LIGHT_DATA* lightData)
+void Renderer::render(const CameraComponent& mainCamera, XMMATRIX projectionMatrix, Entity** entities, unsigned int entityCount, const GPU_LIGHT_DATA* lightData)
 {
-	// Only use the main camera when rendering to the screen.
-	CameraComponent* mainCamera = scene->getMainCamera();
-	if (!mainCamera) return;
-	Transform* mainCameraTransform = mainCamera->getEntity().getComponent<Transform>();
+	Transform* mainCameraTransform = mainCamera.getEntity().getComponent<Transform>();
 	if (!mainCameraTransform) return;
 
-	XMMATRIX viewMatrix = XMMatrixTranspose(mainCamera->getViewMatrix());
+	XMMATRIX viewMatrixT = XMMatrixTranspose(mainCamera.getViewMatrix());
 	XMFLOAT4X4 viewMatrix4x4;
-	XMStoreFloat4x4(&viewMatrix4x4, viewMatrix);
+	XMStoreFloat4x4(&viewMatrix4x4, viewMatrixT);
 
-	XMMATRIX projectionMatrix = XMMatrixTranspose(scene->getProjectionMatrix());
+	XMMATRIX projectionMatrixT = XMMatrixTranspose(projectionMatrix);
 	XMFLOAT4X4 projectionMatrix4x4;
-	XMStoreFloat4x4(&projectionMatrix4x4, projectionMatrix);
-
-	Entity** entities;
-	unsigned int entityCount;
-	scene->getAllEntities(&entities, &entityCount);
+	XMStoreFloat4x4(&projectionMatrix4x4, projectionMatrixT);
 
 	for (unsigned int i = 0; i < entityCount; i++)
 	{
@@ -49,13 +42,13 @@ void Renderer::render(Scene* scene, const GPU_LIGHT_DATA* lightData)
 			SimpleVertexShader* vertexShader = material->getVertexShader();
 			SimplePixelShader* pixelShader = material->getPixelShader();
 
-			XMMATRIX worldMatrix = XMMatrixTranspose(transform->getWorldMatrix());
+			XMMATRIX worldMatrixT = XMMatrixTranspose(transform->getWorldMatrix());
 			XMFLOAT4X4 worldMatrix4x4;
-			XMStoreFloat4x4(&worldMatrix4x4, worldMatrix);
+			XMStoreFloat4x4(&worldMatrix4x4, worldMatrixT);
 
-			XMMATRIX worldMatrixInverseTranspose = XMMatrixInverse(nullptr, worldMatrix);
+			XMMATRIX worldMatrixIT = XMMatrixInverse(nullptr, worldMatrixT);
 			XMFLOAT4X4 worldMatrixInverseTranspose4x4;
-			XMStoreFloat4x4(&worldMatrixInverseTranspose4x4, worldMatrixInverseTranspose);
+			XMStoreFloat4x4(&worldMatrixInverseTranspose4x4, worldMatrixIT);
 
 			vertexShader->SetMatrix4x4("world", worldMatrix4x4);
 			vertexShader->SetMatrix4x4("view", viewMatrix4x4);

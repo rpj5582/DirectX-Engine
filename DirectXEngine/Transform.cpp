@@ -20,6 +20,8 @@ Transform::~Transform()
 
 void Transform::loadFromJSON(rapidjson::Value& dataObject)
 {
+	Component::loadFromJSON(dataObject);
+
 	rapidjson::Value::MemberIterator position = dataObject.FindMember("position");
 	rapidjson::Value::MemberIterator rotation = dataObject.FindMember("rotation");
 	rapidjson::Value::MemberIterator scale = dataObject.FindMember("scale");

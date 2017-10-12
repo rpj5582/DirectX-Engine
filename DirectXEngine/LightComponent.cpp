@@ -13,6 +13,68 @@ LightComponent::~LightComponent()
 void LightComponent::init()
 {
 	setLightType(DIRECTIONAL_LIGHT);
+	setSettingsDefault();
+}
+
+void LightComponent::loadFromJSON(rapidjson::Value& dataObject)
+{
+	Component::loadFromJSON(dataObject);
+
+	rapidjson::Value::MemberIterator type = dataObject.FindMember("type");
+	if (type != dataObject.MemberEnd())
+	{
+		std::string lightTypeString = type->value.GetString();
+
+		switch (stringHash(lightTypeString.c_str()))
+		{
+		case stringHash("point"):
+			m_lightType = POINT_LIGHT;
+			break;
+
+		case stringHash("directional"):
+			m_lightType = DIRECTIONAL_LIGHT;
+			break;
+
+		case stringHash("spot"):
+			m_lightType = SPOT_LIGHT;
+			break;
+
+		default:
+			Output::Warning("Invalid light type " + lightTypeString + " on LightComponent of entity " + entity.getName() + ", treating as directional light.");
+			break;
+		}
+	}
+
+		rapidjson::Value::MemberIterator color = dataObject.FindMember("color");
+		rapidjson::Value::MemberIterator brightness = dataObject.FindMember("brightness");
+		rapidjson::Value::MemberIterator specularity = dataObject.FindMember("specularity");
+		rapidjson::Value::MemberIterator radius = dataObject.FindMember("radius");
+		rapidjson::Value::MemberIterator spotAngle = dataObject.FindMember("spotAngle");
+
+		if (color != dataObject.MemberEnd())
+		{
+			m_light.color = XMFLOAT4(color->value["r"].GetFloat(), color->value["g"].GetFloat(), color->value["b"].GetFloat(), color->value["a"].GetFloat());
+		}
+
+		if (brightness != dataObject.MemberEnd())
+		{
+			m_light.brightness = brightness->value.GetFloat();
+		}
+
+		if (specularity != dataObject.MemberEnd())
+		{
+			m_light.specularity = specularity->value.GetFloat();
+		}
+
+		if (radius != dataObject.MemberEnd())
+		{
+			m_light.radius = radius->value.GetFloat();
+		}
+
+		if (spotAngle != dataObject.MemberEnd())
+		{
+			m_light.spotAngle = spotAngle->value.GetFloat();
+		}
 }
 
 LightType LightComponent::getLightType() const
@@ -20,14 +82,9 @@ LightType LightComponent::getLightType() const
 	return m_lightType;
 }
 
-void LightComponent::setLightType(LightType lightType, bool useDefaults)
+void LightComponent::setLightType(LightType lightType)
 {
 	m_lightType = lightType;
-
-	if (useDefaults)
-	{
-		setSettingsDefault();
-	}
 }
 
 LightSettings LightComponent::getLightSettings() const

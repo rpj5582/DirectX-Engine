@@ -19,6 +19,36 @@ void GUITransform::init()
 	m_size = XMFLOAT2(1.0f, 1.0f);
 }
 
+void GUITransform::loadFromJSON(rapidjson::Value& dataObject)
+{
+	Component::loadFromJSON(dataObject); 
+
+	rapidjson::Value::MemberIterator position = dataObject.FindMember("position");
+	rapidjson::Value::MemberIterator rotation = dataObject.FindMember("rotation");
+	rapidjson::Value::MemberIterator size = dataObject.FindMember("size");
+	rapidjson::Value::MemberIterator origin = dataObject.FindMember("origin");
+
+	if (position != dataObject.MemberEnd())
+	{
+		m_position = XMFLOAT2(position->value["x"].GetFloat(), position->value["y"].GetFloat());
+	}
+
+	if (rotation != dataObject.MemberEnd())
+	{
+		m_rotation = rotation->value.GetFloat();
+	}
+
+	if (size != dataObject.MemberEnd())
+	{
+		m_size = XMFLOAT2(size->value["x"].GetFloat(), size->value["y"].GetFloat());
+	}
+
+	if (origin != dataObject.MemberEnd())
+	{
+		m_origin = XMFLOAT2(origin->value["x"].GetFloat(), origin->value["y"].GetFloat());
+	}
+}
+
 bool GUITransform::containsPoint(int x, int y) const
 {
 	if (x >= m_position.x && x <= m_position.x + m_size.x &&

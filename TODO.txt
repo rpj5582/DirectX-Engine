@@ -1,10 +1,9 @@
 TODO:
-Load LightComponent properly
-Load GUI components properly
-Add json parsing for saving? levels
+Add json parsing for saving levels
 Make Input class
 Parenting
 Tagging?
+Collision detection
 
 BUGS:
 if window is not focused input can still be accessed

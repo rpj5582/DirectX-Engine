@@ -38,12 +38,12 @@ public:
 	~LightComponent();
 
 	virtual void init() override;
+	virtual void loadFromJSON(rapidjson::Value& dataObject) override;
 
 	LightType getLightType() const;
 
 	// Changes the light type to either a point light, directional light, or spot light.
-	// If useDefaults is true, the light's settings will be set to the default settings.
-	void setLightType(LightType lightType, bool useDefaults = true);
+	void setLightType(LightType lightType);
 
 	LightSettings getLightSettings() const;
 	void setLightSettings(const LightSettings& settings);

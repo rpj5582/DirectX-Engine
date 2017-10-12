@@ -30,6 +30,29 @@ void GUIButtonComponent::init()
 	m_font = AssetManager::getFont("Arial_16pt");
 }
 
+void GUIButtonComponent::loadFromJSON(rapidjson::Value& dataObject)
+{
+	GUISpriteComponent::loadFromJSON(dataObject);
+
+	rapidjson::Value::MemberIterator font = dataObject.FindMember("font");
+	if (font != dataObject.MemberEnd())
+	{
+		m_font = AssetManager::getFont(font->value.GetString());
+	}
+
+	rapidjson::Value::MemberIterator text = dataObject.FindMember("text");
+	if (text != dataObject.MemberEnd())
+	{
+		m_text = text->value.GetString();
+	}
+
+	rapidjson::Value::MemberIterator textColor = dataObject.FindMember("textColor");
+	if (textColor != dataObject.MemberEnd())
+	{
+		m_textColor = XMFLOAT4(textColor->value["r"].GetFloat(), textColor->value["g"].GetFloat(), textColor->value["b"].GetFloat(), textColor->value["a"].GetFloat());
+	}
+}
+
 void GUIButtonComponent::draw(DirectX::SpriteBatch& spriteBatch) const
 {
 	GUITransform* guiTransform = entity.getComponent<GUITransform>();
@@ -46,13 +69,6 @@ void GUIButtonComponent::draw(DirectX::SpriteBatch& spriteBatch) const
 	spriteBatch.Draw(m_textureSRV, position, nullptr, color, sinf(XMConvertToRadians(rotation)), origin, size);
 
 	m_font->DrawString(&spriteBatch, std::wstring(m_text.begin(), m_text.end()).c_str(), position, textColor, sinf(XMConvertToRadians(rotation)), origin);
-}
-
-void GUIButtonComponent::loadFromJSON(rapidjson::Value& dataObject)
-{
-	GUISpriteComponent::loadFromJSON(dataObject);
-
-
 }
 
 DirectX::SpriteFont* GUIButtonComponent::getFont() const

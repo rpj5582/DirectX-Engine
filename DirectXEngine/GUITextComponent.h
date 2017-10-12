@@ -8,6 +8,7 @@ public:
 	~GUITextComponent();
 
 	virtual void init() override;
+	virtual void loadFromJSON(rapidjson::Value& dataObject) override;
 	virtual void draw(DirectX::SpriteBatch& spriteBatch) const override;
 
 	DirectX::SpriteFont* getFont() const;
