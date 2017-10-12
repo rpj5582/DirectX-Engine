@@ -1,9 +1,6 @@
 #pragma once
 #include "Component.h"
 
-#include "Mesh.h"
-#include <DirectXMath.h>
-
 #define MAX_LIGHTS 64
 
 // The struct that should match the light data in the shaders.
@@ -37,7 +34,7 @@ struct LightSettings
 class LightComponent : public Component
 {
 public:
-	LightComponent(Scene* scene, Entity entity);
+	LightComponent(Entity& entity);
 	~LightComponent();
 
 	virtual void init() override;

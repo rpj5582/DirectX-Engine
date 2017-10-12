@@ -504,7 +504,7 @@ Material* AssetManager::createMaterial(std::string id, std::string diffuseTextur
 		return nullptr;
 	}
 
-	Material* m = new Material(m_instance->m_device, m_instance->m_context, m_instance->m_vertexShaders[vertexShaderID], m_instance->m_pixelShaders[pixelShaderID],
+	Material* m = new Material(m_instance->m_vertexShaders[vertexShaderID], m_instance->m_pixelShaders[pixelShaderID],
 		m_instance->m_textures[diffuseTextureID], m_instance->m_textures[specularTextureID], m_instance->m_textures[normalTextureID], m_instance->m_samplers[samplerID]);
 
 	m_instance->m_materials[id] = m;

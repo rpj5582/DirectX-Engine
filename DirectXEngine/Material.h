@@ -5,7 +5,7 @@
 class Material
 {
 public:
-	Material(ID3D11Device* device, ID3D11DeviceContext* context, SimpleVertexShader* vertexShader, SimplePixelShader* pixelShader,
+	Material(SimpleVertexShader* vertexShader, SimplePixelShader* pixelShader,
 		ID3D11ShaderResourceView* diffuseTextureSRV, ID3D11ShaderResourceView* specularTextureSRV, ID3D11ShaderResourceView* normalTextureSRV, ID3D11SamplerState* sampler);
 	~Material();
 

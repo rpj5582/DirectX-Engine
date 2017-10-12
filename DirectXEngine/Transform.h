@@ -4,8 +4,10 @@
 class Transform : public Component
 {
 public:
-	Transform(Scene* scene, Entity entity);
+	Transform(Entity& entity);
 	~Transform();
+
+	virtual void loadFromJSON(rapidjson::Value& dataObject) override;
 
 	const DirectX::XMFLOAT3 getPosition() const;
 	const DirectX::XMFLOAT3 getRotation() const;

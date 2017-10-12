@@ -1,26 +1,31 @@
-#include "Camera.h"
+#include "CameraComponent.h"
 
-#include "Scene.h"
+#include "Transform.h"
 
 using namespace DirectX;
 
-Camera::Camera(Scene* scene, Entity entity) : Component(scene, entity)
+CameraComponent::CameraComponent(Entity& entity) : Component(entity)
 {
 	XMStoreFloat4x4(&m_viewMatrix, XMMatrixIdentity());
 }
 
-Camera::~Camera()
+CameraComponent::~CameraComponent()
 {
 }
 
-DirectX::XMMATRIX Camera::getViewMatrix() const
+void CameraComponent::lateUpdate(float deltaTime, float totalTime)
+{
+	updateViewMatrix();
+}
+
+DirectX::XMMATRIX CameraComponent::getViewMatrix() const
 {
 	return XMLoadFloat4x4(&m_viewMatrix);
 }
 
-void Camera::updateViewMatrix()
+void CameraComponent::updateViewMatrix()
 {
-	Transform* transform = scene->getComponentOfEntity<Transform>(entity);
+	Transform* transform = entity.getComponent<Transform>();
 	if (!transform) return;
 
 	XMFLOAT3 cameraPosition = transform->getPosition();

@@ -2,7 +2,7 @@
 
 using namespace DirectX;
 
-GUITransform::GUITransform(Scene* scene, Entity entity) : Component(scene, entity)
+GUITransform::GUITransform(Entity& entity) : Component(entity)
 {
 	m_position = XMFLOAT2();
 	m_rotation = 0.0f;

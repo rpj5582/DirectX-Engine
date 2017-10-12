@@ -2,7 +2,7 @@
 
 using namespace DirectX;
 
-LightComponent::LightComponent(Scene* scene, Entity entity) : Component(scene, entity)
+LightComponent::LightComponent(Entity& entity) : Component(entity)
 {
 }
 

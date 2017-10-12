@@ -1,11 +1,7 @@
 #include "Component.h"
 
-Component::Component(Scene* scene, Entity entity)
+Component::Component(Entity& entity) : entity(entity), enabled(true)
 {
-	this->scene = scene;
-	this->entity = entity;
-
-	enabled = true;
 }
 
 Component::~Component()
@@ -36,7 +32,20 @@ void Component::update(float deltaTime, float totalTime)
 {
 }
 
-Entity Component::getEntity() const
+void Component::lateUpdate(float deltaTime, float totalTime)
+{
+}
+
+void Component::loadFromJSON(rapidjson::Value& dataObject)
+{
+	rapidjson::Value::MemberIterator componentEnabled = dataObject.FindMember("enabled");
+	if (componentEnabled != dataObject.MemberEnd())
+	{
+		enabled = componentEnabled->value.GetBool();
+	}
+}
+
+Entity& Component::getEntity() const
 {
 	return entity;
 }

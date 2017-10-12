@@ -1,13 +1,11 @@
 #include "FreeCamControls.h"
 
-#include "Scene.h"
+#include "Transform.h"
 
 using namespace DirectX;
 
-FreeCamControls::FreeCamControls(Scene* scene, Entity entity) : Component(scene, entity)
+FreeCamControls::FreeCamControls(Entity& entity) : Component(entity)
 {
-	transform = nullptr;
-
 	moveSpeedSlow = 1.0f;
 	moveSpeedNormal = 5.0f;
 	moveSpeedFast = 20.0f;
@@ -19,18 +17,16 @@ FreeCamControls::FreeCamControls(Scene* scene, Entity entity) : Component(scene,
 
 FreeCamControls::~FreeCamControls()
 {
-	scene->unsubscribeMouseDown(this);
-	scene->unsubscribeMouseUp(this);
-	scene->unsubscribeMouseMove(this);
+	entity.unsubscribeMouseDown(this);
+	entity.unsubscribeMouseUp(this);
+	entity.unsubscribeMouseMove(this);
 }
 
 void FreeCamControls::init()
 {
-	transform = scene->getComponentOfEntity<Transform>(entity);
-
-	scene->subscribeMouseDown(this);
-	scene->subscribeMouseUp(this);
-	scene->subscribeMouseMove(this);
+	entity.subscribeMouseDown(this);
+	entity.subscribeMouseUp(this);
+	entity.subscribeMouseMove(this);
 }
 
 void FreeCamControls::update(float deltaTime, float totalTime)
@@ -47,6 +43,8 @@ void FreeCamControls::update(float deltaTime, float totalTime)
 	{
 		moveSpeed = moveSpeedNormal;
 	}
+
+	Transform* transform = entity.getComponent<Transform>();
 
 	if (GetAsyncKeyState('W') && 0x8000)
 	{
@@ -79,6 +77,30 @@ void FreeCamControls::update(float deltaTime, float totalTime)
 	}
 }
 
+void FreeCamControls::loadFromJSON(rapidjson::Value& dataObject)
+{
+	Component::loadFromJSON(dataObject);
+
+	rapidjson::Value::MemberIterator speedFast = dataObject.FindMember("moveSpeedFast");
+	rapidjson::Value::MemberIterator speedNormal = dataObject.FindMember("moveSpeedNormal");
+	rapidjson::Value::MemberIterator speedSlow = dataObject.FindMember("moveSpeedSlow");
+
+	if (speedFast != dataObject.MemberEnd())
+	{
+		moveSpeedFast = speedFast->value.GetFloat();
+	}
+
+	if (speedNormal != dataObject.MemberEnd())
+	{
+		moveSpeedNormal = speedNormal->value.GetFloat();
+	}
+
+	if (speedSlow != dataObject.MemberEnd())
+	{
+		moveSpeedSlow = speedSlow->value.GetFloat();
+	}
+}
+
 void FreeCamControls::onMouseDown(WPARAM buttonState, int x, int y)
 {
 	if (buttonState == MK_LBUTTON)
@@ -102,6 +124,7 @@ void FreeCamControls::onMouseMove(WPARAM buttonState, int x, int y)
 		float mouseDeltaX = x - (float)prevMousePos.x;
 		float mouseDeltaY = y - (float)prevMousePos.y;
 
+		Transform* transform = entity.getComponent<Transform>();
 		transform->rotateLocal(XMFLOAT3(mouseDeltaY / 10.0f, mouseDeltaX / 10.0f, 0.0f));
 
 		prevMousePos.x = x;

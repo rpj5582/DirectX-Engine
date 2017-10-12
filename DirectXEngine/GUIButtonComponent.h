@@ -6,11 +6,12 @@
 class GUIButtonComponent : public GUISpriteComponent
 {
 public:
-	GUIButtonComponent(Scene* scene, Entity entity);
+	GUIButtonComponent(Entity& entity);
 	~GUIButtonComponent();
 
 	virtual void init() override;
-	virtual void draw(Scene* scene, DirectX::SpriteBatch* spriteBatch) const override;
+	virtual void draw(DirectX::SpriteBatch& spriteBatch) const override;
+	virtual void loadFromJSON(rapidjson::Value& dataObject) override;
 
 	template<typename T>
 	void setOnClickCallback(T& onClick);

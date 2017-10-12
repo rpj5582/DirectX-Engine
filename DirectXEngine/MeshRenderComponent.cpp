@@ -1,12 +1,23 @@
 #include "MeshRenderComponent.h"
 
-MeshRenderComponent::MeshRenderComponent(Scene* scene, Entity entity) : RenderComponent(scene, entity)
+MeshRenderComponent::MeshRenderComponent(Entity& entity) : RenderComponent(entity)
 {
 	m_mesh = nullptr;
 }
 
 MeshRenderComponent::~MeshRenderComponent()
 {
+}
+
+void MeshRenderComponent::loadFromJSON(rapidjson::Value& dataObject)
+{
+	RenderComponent::loadFromJSON(dataObject);
+
+	rapidjson::Value::MemberIterator mesh = dataObject.FindMember("mesh");
+	if (mesh != dataObject.MemberEnd())
+	{
+		m_mesh = AssetManager::getMesh(mesh->value.GetString());
+	}
 }
 
 Mesh* MeshRenderComponent::getMesh() const

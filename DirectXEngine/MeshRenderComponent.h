@@ -4,8 +4,10 @@
 class MeshRenderComponent : public RenderComponent
 {
 public:
-	MeshRenderComponent(Scene* scene, Entity entity);
+	MeshRenderComponent(Entity& entity);
 	~MeshRenderComponent();
+
+	virtual void loadFromJSON(rapidjson::Value& dataObject) override;
 
 	Mesh* getMesh() const;
 	void setMesh(Mesh* mesh);

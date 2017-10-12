@@ -2,7 +2,7 @@
 
 using namespace DirectX;
 
-Transform::Transform(Scene* scene, Entity entity) : Component(scene, entity)
+Transform::Transform(Entity& entity) : Component(entity)
 {
 	m_position = XMFLOAT3(0.0f, 0.0f, 0.0f);
 	m_rotation = XMFLOAT3(0.0f, 0.0f, 0.0f);
@@ -16,6 +16,28 @@ Transform::Transform(Scene* scene, Entity entity) : Component(scene, entity)
 
 Transform::~Transform()
 {
+}
+
+void Transform::loadFromJSON(rapidjson::Value& dataObject)
+{
+	rapidjson::Value::MemberIterator position = dataObject.FindMember("position");
+	rapidjson::Value::MemberIterator rotation = dataObject.FindMember("rotation");
+	rapidjson::Value::MemberIterator scale = dataObject.FindMember("scale");
+
+	if (position != dataObject.MemberEnd())
+	{
+		setPosition(XMFLOAT3(position->value["x"].GetFloat(), position->value["y"].GetFloat(), position->value["z"].GetFloat()));
+	}
+
+	if (rotation != dataObject.MemberEnd())
+	{
+		setRotation(XMFLOAT3(rotation->value["x"].GetFloat(), rotation->value["y"].GetFloat(), rotation->value["z"].GetFloat()));
+	}
+
+	if (scale != dataObject.MemberEnd())
+	{
+		setScale(XMFLOAT3(scale->value["x"].GetFloat(), scale->value["y"].GetFloat(), scale->value["z"].GetFloat()));
+	}
 }
 
 const XMFLOAT3 Transform::getPosition() const

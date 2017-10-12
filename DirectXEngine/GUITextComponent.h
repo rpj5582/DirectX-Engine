@@ -4,11 +4,11 @@
 class GUITextComponent: public GUIComponent
 {
 public:
-	GUITextComponent(Scene* scene, Entity entity);
+	GUITextComponent(Entity& entity);
 	~GUITextComponent();
 
 	virtual void init() override;
-	virtual void draw(Scene* scene, DirectX::SpriteBatch* spriteBatch) const override;
+	virtual void draw(DirectX::SpriteBatch& spriteBatch) const override;
 
 	DirectX::SpriteFont* getFont() const;
 	void setFont(DirectX::SpriteFont* font);

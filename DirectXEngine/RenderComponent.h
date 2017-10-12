@@ -1,8 +1,6 @@
 #pragma once
 #include "Component.h"
 
-#include "AssetManager.h"
-
 enum RenderStyle
 {
 	SOLID,
@@ -13,10 +11,11 @@ enum RenderStyle
 class RenderComponent : public Component
 {
 public:
-	RenderComponent(Scene* scene, Entity entity);
+	RenderComponent(Entity& entity);
 	virtual ~RenderComponent();
 
 	virtual void init() override;
+	virtual void loadFromJSON(rapidjson::Value& dataObject) override;
 
 	Material* getMaterial() const;
 	void setMaterial(Material* material);

@@ -18,11 +18,12 @@ bool Renderer::init()
 	return true;
 }
 
-void Renderer::render(Scene* scene, const GPU_LIGHT_DATA* lightData, unsigned int lightCount)
+void Renderer::render(Scene* scene, const GPU_LIGHT_DATA* lightData)
 {
 	// Only use the main camera when rendering to the screen.
-	Camera* mainCamera = scene->getMainCamera();
-	Transform* mainCameraTransform = scene->getComponentOfEntity<Transform>(mainCamera->getEntity());
+	CameraComponent* mainCamera = scene->getMainCamera();
+	if (!mainCamera) return;
+	Transform* mainCameraTransform = mainCamera->getEntity().getComponent<Transform>();
 	if (!mainCameraTransform) return;
 
 	XMMATRIX viewMatrix = XMMatrixTranspose(mainCamera->getViewMatrix());
@@ -33,14 +34,14 @@ void Renderer::render(Scene* scene, const GPU_LIGHT_DATA* lightData, unsigned in
 	XMFLOAT4X4 projectionMatrix4x4;
 	XMStoreFloat4x4(&projectionMatrix4x4, projectionMatrix);
 
-	Entity* entities;
+	Entity** entities;
 	unsigned int entityCount;
 	scene->getAllEntities(&entities, &entityCount);
 
 	for (unsigned int i = 0; i < entityCount; i++)
 	{
-		Transform* transform = scene->getComponentOfEntity<Transform>(entities[i]);
-		RenderComponent* renderComponent = scene->getComponentOfEntity<RenderComponent>(entities[i]);
+		Transform* transform = entities[i]->getComponent<Transform>();
+		RenderComponent* renderComponent = entities[i]->getComponent<RenderComponent>();
 		if (renderComponent && renderComponent->enabled && transform)
 		{
 			Material* material = renderComponent->getMaterial();
@@ -63,7 +64,7 @@ void Renderer::render(Scene* scene, const GPU_LIGHT_DATA* lightData, unsigned in
 			vertexShader->CopyBufferData("matrices");
 
 			// Don't draw the entity if it can't be seen anyway
-			MeshRenderComponent* meshRenderComponent = scene->getComponentOfEntity<MeshRenderComponent>(entities[i]);
+			MeshRenderComponent* meshRenderComponent = entities[i]->getComponent<MeshRenderComponent>();
 			if (meshRenderComponent)
 			{
 				pixelShader->SetFloat3("cameraWorldPosition", mainCameraTransform->getPosition());
@@ -77,22 +78,22 @@ void Renderer::render(Scene* scene, const GPU_LIGHT_DATA* lightData, unsigned in
 					{
 					case RenderStyle::SOLID:
 						scene->drawInWireframeMode(false);
-						renderMesh(pixelShader, mesh, lightData, lightCount);
+						renderMesh(*pixelShader, *mesh, lightData);
 						break;
 
 					case RenderStyle::WIREFRAME:
 						scene->drawInWireframeMode(true);
-						renderMeshWithoutLighting(pixelShader, mesh);
+						renderMeshWithoutLighting(*pixelShader, *mesh);
 						break;
 
 					case RenderStyle::SOLID_WIREFRAME:
 						// Only render in solid wireframe if in debug mode, since it requires rendering the mesh twice.
 					#if defined(DEBUG) || defined(_DEBUG)
 					 	scene->drawInWireframeMode(false);
-						renderMesh(pixelShader, mesh, lightData, lightCount);
+						renderMesh(*pixelShader, *mesh, lightData);
 					#endif
 						scene->drawInWireframeMode(true);
-						renderMeshWithoutLighting(pixelShader, mesh);
+						renderMeshWithoutLighting(*pixelShader, *mesh);
 						break;
 
 					default:
@@ -104,7 +105,7 @@ void Renderer::render(Scene* scene, const GPU_LIGHT_DATA* lightData, unsigned in
 	}
 }
 
-void Renderer::renderMesh(SimplePixelShader* pixelShader, const Mesh* mesh, const GPU_LIGHT_DATA* lightData, unsigned int lightCount)
+void Renderer::renderMesh(SimplePixelShader& pixelShader, const Mesh& mesh, const GPU_LIGHT_DATA* lightData)
 {
 	unsigned int stride = sizeof(Vertex);
 	unsigned int offset = 0;
@@ -115,12 +116,11 @@ void Renderer::renderMesh(SimplePixelShader* pixelShader, const Mesh* mesh, cons
 		return;
 	}
 
-	pixelShader->SetInt("lightCount", lightCount);
-	pixelShader->SetData("lights", lightData, sizeof(GPU_LIGHT_DATA) * MAX_LIGHTS);
-	pixelShader->CopyBufferData("lighting");
+	pixelShader.SetData("lights", lightData, sizeof(GPU_LIGHT_DATA) * MAX_LIGHTS);
+	pixelShader.CopyBufferData("lighting");
 
-	ID3D11Buffer* vertexBuffer = mesh->getVertexBuffer();
-	ID3D11Buffer* indexBuffer = mesh->getIndexBuffer();
+	ID3D11Buffer* vertexBuffer = mesh.getVertexBuffer();
+	ID3D11Buffer* indexBuffer = mesh.getIndexBuffer();
 
 	m_context->IASetVertexBuffers(0, 1, &vertexBuffer, &stride, &offset);
 	m_context->IASetIndexBuffer(indexBuffer, DXGI_FORMAT_R32_UINT, 0);
@@ -131,22 +131,19 @@ void Renderer::renderMesh(SimplePixelShader* pixelShader, const Mesh* mesh, cons
 	//  - DrawIndexed() uses the currently set INDEX BUFFER to look up corresponding
 	//     vertices in the currently set VERTEX BUFFER
 	m_context->DrawIndexed(
-		mesh->getIndexCount(),			// The number of indices to use (we could draw a subset if we wanted)
+		mesh.getIndexCount(),			// The number of indices to use (we could draw a subset if we wanted)
 		0,								// Offset to the first index we want to use
 		0);								// Offset to add to each index when looking up vertices
 }
 
-void Renderer::renderMeshWithoutLighting(SimplePixelShader* pixelShader, const Mesh* mesh)
+void Renderer::renderMeshWithoutLighting(SimplePixelShader& pixelShader, const Mesh& mesh)
 {
 
 	unsigned int stride = sizeof(Vertex);
 	unsigned int offset = 0;
 
-	pixelShader->SetInt("lightCount", 0);
-	pixelShader->CopyBufferData("lighting");
-
-	ID3D11Buffer* vertexBuffer = mesh->getVertexBuffer();
-	ID3D11Buffer* indexBuffer = mesh->getIndexBuffer();
+	ID3D11Buffer* vertexBuffer = mesh.getVertexBuffer();
+	ID3D11Buffer* indexBuffer = mesh.getIndexBuffer();
 
 	m_context->IASetVertexBuffers(0, 1, &vertexBuffer, &stride, &offset);
 	m_context->IASetIndexBuffer(indexBuffer, DXGI_FORMAT_R32_UINT, 0);
@@ -157,7 +154,7 @@ void Renderer::renderMeshWithoutLighting(SimplePixelShader* pixelShader, const M
 	//  - DrawIndexed() uses the currently set INDEX BUFFER to look up corresponding
 	//     vertices in the currently set VERTEX BUFFER
 	m_context->DrawIndexed(
-		mesh->getIndexCount(),			// The number of indices to use (we could draw a subset if we wanted)
+		mesh.getIndexCount(),			// The number of indices to use (we could draw a subset if we wanted)
 		0,								// Offset to the first index we want to use
 		0);								// Offset to add to each index when looking up vertices
 }

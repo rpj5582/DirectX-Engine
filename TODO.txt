@@ -1,9 +1,11 @@
 TODO:
-Make Entity a class so that parenting is easier and not as many classes need a reference to the Scene.
-Add json parsing for loading (and saving?) levels
-Load LightComponent properly
-FIX HACK
 Look up wireframe geometry shaders to avoid rendering scene "without lighting"
+Load LightComponent properly
+Load GUI components properly
+Add json parsing for saving? levels
+Make Input class
+Parenting
+Tagging?
 
 BUGS:
 if window is not focused input can still be accessed

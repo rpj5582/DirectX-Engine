@@ -1,20 +1,10 @@
 #include "Scene.h"
 
-#include "rapidjson\document.h"
 #include "rapidjson\error\en.h"
 #include <fstream>
 #include <string>
 
 using namespace DirectX;
-
-// Function taken from here: http://rextester.com/YJB48513
-static constexpr unsigned int fnv1aBasis = 0x811C9DC5;
-static constexpr unsigned int fnv1aPrime = 0x01000193;
-
-constexpr unsigned int stringHash(const char* string, unsigned int h = fnv1aBasis)
-{
-	return !*string ? h : stringHash(string + 1, static_cast<unsigned int>((h ^ *string) * static_cast<unsigned long long>(fnv1aPrime)));
-}
 
 Scene::Scene(ID3D11Device* device, ID3D11DeviceContext* context)
 {
@@ -31,27 +21,18 @@ Scene::Scene(ID3D11Device* device, ID3D11DeviceContext* context)
 	m_near = 0;
 	m_far = 0;
 
-	m_entities = std::vector<Entity>();
-	m_components = std::unordered_map<Entity, std::vector<Component*>>();
-	m_entityCounter = 0;
-
-	m_lights = std::vector<LightComponent*>();
-	m_cameras = std::vector<Camera*>();
-	m_guis = std::vector<GUIComponent*>();
+	m_entities = std::vector<Entity*>();
 
 	m_mainCamera = nullptr;
 }
 
 Scene::~Scene()
 {
-	m_lights.clear();
-	m_cameras.clear();
-	m_guis.clear();
-
-	while (m_entities.size() > 0)
+	for (unsigned int i = 0; i < m_entities.size(); i++)
 	{
-		deleteEntity(m_entities.back());
+		delete m_entities[i];
 	}
+	m_entities.clear();
 
 	if (m_rasterizerState) m_rasterizerState->Release();
 
@@ -64,8 +45,7 @@ bool Scene::init()
 	m_renderer = new Renderer(m_context);
 	if (!m_renderer->init()) return false;
 
-	m_guiRenderer = new GUIRenderer(m_device, m_context);
-	if (!m_guiRenderer->init()) return false;
+	m_guiRenderer = new GUIRenderer(m_context);
 
 	// Add a rasterizer state so that we can control whether wireframe is on or off.
 	D3D11_RASTERIZER_DESC rastDesc = {};
@@ -82,8 +62,6 @@ bool Scene::init()
 
 	m_context->RSSetState(m_rasterizerState);
 
-	if (!loadFromJSON("scene1.json")) return false;
-
 	return true;
 }
 
@@ -92,19 +70,15 @@ void Scene::update(float deltaTime, float totalTime)
 	// Update all entities in the scene
 	for (unsigned int i = 0; i < m_entities.size(); i++)
 	{
-		std::vector<Component*>* components = getComponentsOfEntity(m_entities[i]);
-		for (unsigned int j = 0; j < components->size(); j++)
-		{
-			if(components->at(j)->enabled)
-				components->at(j)->update(deltaTime, totalTime);
-		}
+		if (m_entities[i]->enabled)
+			m_entities[i]->update(deltaTime, totalTime);
 	}
 
-	// Preprocess each camera by updating it's view matrix
-	for (unsigned int i = 0; i < m_cameras.size(); i++)
+	// LateUpdate for all entities in the scene
+	for (unsigned int i = 0; i < m_entities.size(); i++)
 	{
-		if(m_cameras[i]->enabled)
-			m_cameras[i]->updateViewMatrix();
+		if(m_entities[i]->enabled)
+			m_entities[i]->lateUpdate(deltaTime, totalTime);
 	}
 }
 
@@ -409,150 +383,49 @@ bool Scene::loadFromJSON(std::string filepath)
 	{
 		rapidjson::Value& entity = entities[i];
 
-		Entity e = createEntity();
-
 		rapidjson::Value& entityName = entity["name"];
 		rapidjson::Value& components = entity["components"];
+
+		Entity* e = createEntity(entityName.GetString());
+
+		rapidjson::Value::MemberIterator entityEnabled = entity.FindMember("enabled");
+		if (entityEnabled != entity.MemberEnd())
+		{
+			e->enabled = entityEnabled->value.GetBool();
+		}
 
 		for (rapidjson::SizeType j = 0; j < components.Size(); j++)
 		{
 			rapidjson::Value& component = components[j];
 
 			rapidjson::Value& componentType = component["type"];
-			rapidjson::Value& dataArray = component["data"];
+			rapidjson::Value& dataObject = component["data"];
 			
-			switch(stringHash(componentType.GetString()))
-			{
-			case stringHash("Transform"):
-			{
-				XMFLOAT3 position = XMFLOAT3();
-				XMFLOAT3 rotation = XMFLOAT3();
-				XMFLOAT3 scale = XMFLOAT3(1.0f, 1.0f, 1.0f);
-
-				Transform* transform = addComponentToEntity<Transform>(e);
-
-				for (rapidjson::SizeType k = 0; k < dataArray.Size(); k++)
-				{
-					rapidjson::Value& data = dataArray[k];
-
-					rapidjson::Value::MemberIterator positionIter = data.FindMember("position");
-					rapidjson::Value::MemberIterator rotationIter = data.FindMember("rotation");
-					rapidjson::Value::MemberIterator scaleIter = data.FindMember("scale");
-
-					if (positionIter != data.MemberEnd())
-					{
-						position = XMFLOAT3(positionIter->value["x"].GetFloat(), positionIter->value["y"].GetFloat(), positionIter->value["z"].GetFloat());
-					}
-
-					if (rotationIter != data.MemberEnd())
-					{
-						rotation = XMFLOAT3(rotationIter->value["x"].GetFloat(), rotationIter->value["y"].GetFloat(), rotationIter->value["z"].GetFloat());
-					}
-
-					if (scaleIter != data.MemberEnd())
-					{
-						scale = XMFLOAT3(scaleIter->value["x"].GetFloat(), scaleIter->value["y"].GetFloat(), scaleIter->value["z"].GetFloat());
-					}
-				}
-
-				transform->setPosition(position);
-				transform->setRotation(rotation);
-				transform->setScale(scale);
-
-				break;
-			}
-
-			case stringHash("MeshRenderComponent"):
-			{
-				std::string materialString = "default";
-				std::string meshString = "";
-				std::string renderStyleString = "solid";
-
-				MeshRenderComponent* meshRenderComponent = addComponentToEntity<MeshRenderComponent>(e);
-
-				for (rapidjson::SizeType k = 0; k < dataArray.Size(); k++)
-				{
-					rapidjson::Value& data = dataArray[k];	
-
-					rapidjson::Value::MemberIterator materialIter = data.FindMember("material");
-					rapidjson::Value::MemberIterator meshIter = data.FindMember("mesh");
-					rapidjson::Value::MemberIterator renderStyleIter = data.FindMember("renderStyle");
-
-					if (materialIter != data.MemberEnd())
-					{
-						materialString = materialIter->value.GetString();
-					}
-
-					if (meshIter != data.MemberEnd())
-					{
-						meshString = meshIter->value.GetString();
-					}
-
-					if (renderStyleIter != data.MemberEnd())
-					{
-						renderStyleString = renderStyleIter->value.GetString();
-					}
-				}
-
-				Material* material = AssetManager::getMaterial(materialString);
-				Mesh* mesh = AssetManager::getMesh(meshString);
-				RenderStyle renderStyle = SOLID;
-				switch (stringHash(renderStyleString.c_str()))
-				{
-				case stringHash("solid"):
-					break;
-
-				case stringHash("wireframe"):
-					renderStyle = WIREFRAME;
-					break;
-
-				case stringHash("solid-wireframe"):
-					renderStyle = SOLID_WIREFRAME;
-					break;
-
-				default:
-					Output::Warning("Invalid render style for component " + std::string(componentType.GetString()) + " on entity " + std::string(entityName.GetString()) + ", using SOLID.");
-					break;
-				}
-
-				meshRenderComponent->setMaterial(material);
-				meshRenderComponent->setMesh(mesh);
-				meshRenderComponent->setRenderStyle(renderStyle);
-
-				break;
-			}
-
-			case stringHash("Camera"):
-			{
-				addComponentToEntity<Camera>(e);
-				break;
-			}
-
-			case stringHash("LightComponent"):
-			{
-				addComponentToEntity<LightComponent>(e);
-				break;
-			}
-
-			case stringHash("FreeCamControls"):
-			{
-				addComponentToEntity<FreeCamControls>(e);
-				break;
-			}
-
-			default:
-				Output::Warning("Invalid component type " + std::string(componentType.GetString()) + ", skipping.");
-				break;
-			}
+			Component* c = e->addComponentByStringType(componentType.GetString());
+			if (c)
+				c->loadFromJSON(dataObject);
+			else
+				Output::Warning("Skipping component of type " + std::string(componentType.GetString()) + " - either an invalid type or the component was not registered.");
 		}
 	}
 
 	rapidjson::Value& mainCamera = dom["mainCamera"];
 
-	// --------HACK---------
-	m_mainCamera = getComponentOfEntity<Camera>(2);
-	// --------HACK---------
+	Entity* cameraEntity = getEntityByName(mainCamera.GetString());
+	if (cameraEntity)
+	{
+		m_mainCamera = cameraEntity->getComponent<CameraComponent>();
 
+		if (!m_mainCamera)
+		{
+			Output::Warning("Could not set main camera because given entity " + std::string(mainCamera.GetString()) + " does not have a Camera component.");
+		}
+	}
+	else
+	{
+		Output::Warning("Could not set main camera because entity with name " + std::string(mainCamera.GetString()) + " does not exist.");
+	}
+	
 	return true;
 }
 
@@ -579,12 +452,12 @@ float Scene::getFarZ() const
 	return m_far;
 }
 
-Camera* Scene::getMainCamera() const
+CameraComponent* Scene::getMainCamera() const
 {
 	return m_mainCamera;
 }
 
-void Scene::setMainCamera(Camera* camera)
+void Scene::setMainCamera(CameraComponent* camera)
 {
 	m_mainCamera = camera;
 }
@@ -618,188 +491,88 @@ void Scene::drawInWireframeMode(bool wireframe)
 	m_prevUseWireframe = wireframe;
 }
 
-void Scene::subscribeMouseDown(Component* component)
-{
-	for (unsigned int i = 0; i < m_mouseDownCallbacks.size(); i++)
-	{
-		if (m_mouseDownCallbacks[i] == component)
-		{
-			Output::Warning("Component not subscribed because callback already exists.");
-			return;
-		}
-	}
-
-	m_mouseDownCallbacks.push_back(component);
-}
-
-void Scene::unsubscribeMouseDown(Component* component)
-{
-	for (unsigned int i = 0; i < m_mouseDownCallbacks.size(); i++)
-	{
-		if (m_mouseDownCallbacks[i] == component)
-		{
-			m_mouseDownCallbacks.erase(m_mouseDownCallbacks.begin() + i);
-			return;
-		}
-	}
-
-	Output::Warning("Component not unsubscribed because callback could not be found.");
-}
-
-void Scene::subscribeMouseUp(Component* component)
-{
-	for (unsigned int i = 0; i < m_mouseUpCallbacks.size(); i++)
-	{
-		if (m_mouseUpCallbacks[i] == component)
-		{
-			Output::Warning("Component not subscribed because callback already exists.");
-			return;
-		}
-	}
-
-	m_mouseUpCallbacks.push_back(component);
-}
-
-void Scene::unsubscribeMouseUp(Component* component)
-{
-	for (unsigned int i = 0; i < m_mouseUpCallbacks.size(); i++)
-	{
-		if (m_mouseUpCallbacks[i] == component)
-		{
-			m_mouseUpCallbacks.erase(m_mouseUpCallbacks.begin() + i);
-			return;
-		}
-	}
-
-	Output::Warning("Component not unsubscribed because callback could not be found.");
-}
-
-void Scene::subscribeMouseMove(Component* component)
-{
-	for (unsigned int i = 0; i < m_mouseMoveCallbacks.size(); i++)
-	{
-		if (m_mouseMoveCallbacks[i] == component)
-		{
-			Output::Warning("Component not subscribed because callback already exists.");
-			return;
-		}
-	}
-
-	m_mouseMoveCallbacks.push_back(component);
-}
-
-void Scene::unsubscribeMouseMove(Component* component)
-{
-	for (unsigned int i = 0; i < m_mouseMoveCallbacks.size(); i++)
-	{
-		if (m_mouseMoveCallbacks[i] == component)
-		{
-			m_mouseMoveCallbacks.erase(m_mouseMoveCallbacks.begin() + i);
-			return;
-		}
-	}
-
-	Output::Warning("Component not unsubscribed because callback could not be found.");
-}
-
-void Scene::subscribeMouseWheel(Component* component)
-{
-	for (unsigned int i = 0; i < m_mouseWheelCallbacks.size(); i++)
-	{
-		if (m_mouseWheelCallbacks[i] == component)
-		{
-			Output::Warning("Component not subscribed because callback already exists.");
-			return;
-		}
-	}
-
-	m_mouseWheelCallbacks.push_back(component);
-}
-
-void Scene::unsubscribeMouseWheel(Component* component)
-{
-	for (unsigned int i = 0; i < m_mouseWheelCallbacks.size(); i++)
-	{
-		if (m_mouseWheelCallbacks[i] == component)
-		{
-			m_mouseWheelCallbacks.erase(m_mouseWheelCallbacks.begin() + i);
-			return;
-		}
-	}
-
-	Output::Warning("Component not unsubscribed because callback could not be found.");
-}
-
 void Scene::onMouseDown(WPARAM buttonState, int x, int y)
 {
-	for (unsigned int i = 0; i < m_mouseDownCallbacks.size(); i++)
+	for (unsigned int i = 0; i < m_entities.size(); i++)
 	{
-		m_mouseDownCallbacks[i]->onMouseDown(buttonState, x, y);
+		m_entities[i]->onMouseDown(buttonState, x, y);
 	}
 }
 
 void Scene::onMouseUp(WPARAM buttonState, int x, int y)
 {
-	for (unsigned int i = 0; i < m_mouseUpCallbacks.size(); i++)
+	for (unsigned int i = 0; i < m_entities.size(); i++)
 	{
-		m_mouseUpCallbacks[i]->onMouseUp(buttonState, x, y);
+		m_entities[i]->onMouseUp(buttonState, x, y);
 	}
 }
 
 void Scene::onMouseMove(WPARAM buttonState, int x, int y)
 {
-	for (unsigned int i = 0; i < m_mouseMoveCallbacks.size(); i++)
+	for (unsigned int i = 0; i < m_entities.size(); i++)
 	{
-		m_mouseMoveCallbacks[i]->onMouseMove(buttonState, x, y);
+		m_entities[i]->onMouseMove(buttonState, x, y);
 	}
 }
 
 void Scene::onMouseWheel(float wheelDelta, int x, int y)
 {
-	for (unsigned int i = 0; i < m_mouseWheelCallbacks.size(); i++)
+	for (unsigned int i = 0; i < m_entities.size(); i++)
 	{
-		m_mouseWheelCallbacks[i]->onMouseWheel(wheelDelta, x, y);
+		m_entities[i]->onMouseWheel(wheelDelta, x, y);
 	}
 }
 
 void Scene::renderGeometry(ID3D11BlendState* blendState, ID3D11DepthStencilState* depthStencilState)
 {
 	// Preprocess each light entity to get it's position and direction (for forward rendering).
-	std::vector<GPU_LIGHT_DATA> lightData = std::vector<GPU_LIGHT_DATA>();
+	std::vector<GPU_LIGHT_DATA> lightData = std::vector<GPU_LIGHT_DATA>(MAX_LIGHTS);
 
 	// Only loop through the lights if there is a main camera, since we need its view matrix.
 	if (m_mainCamera)
 	{
-		for (unsigned int i = 0; i < m_lights.size(); i++)
+		unsigned int lightCount = 0;
+		for (unsigned int i = 0; i < m_entities.size(); i++)
 		{
-			//  Don't use disabled components
-			if (!m_lights[i]->enabled) continue;
+			//  Don't use disabled entities
+			if (!m_entities[i]->enabled) continue;
 
-			const LightSettings lightSettings = m_lights[i]->getLightSettings();
+			LightComponent* lightComponent = nullptr;
+			std::vector<Component*>& components = m_entities[i]->getComponents();
+			for (unsigned int j = 0; j < components.size(); j++)
+			{
+				lightComponent = dynamic_cast<LightComponent*>(components[j]);
+				if (lightComponent)
+					break;
+			}
+
+			if (!lightComponent) continue;
+
+			const LightSettings lightSettings = lightComponent->getLightSettings();
 
 			// Get position, direction, and type of each light
-			Transform* lightTransform = getComponentOfEntity<Transform>(m_lights[i]->getEntity());
-			if (lightTransform)
+			Transform* lightTransform = m_entities[i]->getComponent<Transform>();
+			if (!lightTransform) continue;
+
+			XMFLOAT3 lightPosition = lightTransform->getPosition();
+			XMFLOAT3 lightDirection = lightTransform->getForward();
+
+			unsigned int lightType = (unsigned int)lightComponent->getLightType();
+
+			// Creates the final memory-aligned struct that is sent to the GPU
+			lightCount = (lightCount + 1) % MAX_LIGHTS;
+			lightData[lightCount] = 
 			{
-				XMFLOAT3 lightPosition = lightTransform->getPosition();
-				XMFLOAT3 lightDirection = lightTransform->getForward();
-
-				unsigned int lightType = (unsigned int)m_lights[i]->getLightType();
-
-				// Creates the final memory-aligned struct that is sent to the GPU
-				lightData.push_back(
-				{
-					lightSettings.color,
-					lightDirection,
-					lightSettings.brightness,
-					lightPosition,
-					lightSettings.specularity,
-					lightSettings.radius,
-					lightSettings.spotAngle,
-					m_lights[i]->enabled,
-					lightType,
-				});
-			}
+				lightSettings.color,
+				lightDirection,
+				lightSettings.brightness,
+				lightPosition,
+				lightSettings.specularity,
+				lightSettings.radius,
+				lightSettings.spotAngle,
+				lightComponent->enabled,
+				lightType,
+			};
 		}
 	}
 
@@ -807,9 +580,9 @@ void Scene::renderGeometry(ID3D11BlendState* blendState, ID3D11DepthStencilState
 	m_context->OMSetDepthStencilState(depthStencilState, 0);
 
 	if (lightData.size() > 0)
-		m_renderer->render(this, &lightData[0], lightData.size());
+		m_renderer->render(this, &lightData[0]);
 	else
-		m_renderer->render(this, nullptr, 0);
+		m_renderer->render(this, nullptr);
 }
 
 void Scene::renderGUI(ID3D11BlendState* blendState, ID3D11DepthStencilState* depthStencilState)
@@ -817,48 +590,57 @@ void Scene::renderGUI(ID3D11BlendState* blendState, ID3D11DepthStencilState* dep
 	m_context->OMSetBlendState(blendState, nullptr, 0xffffffff);
 	m_context->OMSetDepthStencilState(depthStencilState, 0);
 
+	std::vector<GUIComponent*> guis;
+
+	for (unsigned int i = 0; i < m_entities.size(); i++)
+	{
+		GUIComponent* guiComponent = nullptr;
+		std::vector<Component*>& components = m_entities[i]->getComponents();
+		for (unsigned int j = 0; j < components.size(); j++)
+		{
+			guiComponent = dynamic_cast<GUIComponent*>(components[j]);
+			if (guiComponent)
+				break;
+		}
+
+		if (!guiComponent) continue;
+
+		guis.push_back(guiComponent);
+	}
+
 	m_guiRenderer->begin(blendState, depthStencilState);
 
-	if (m_guis.size() > 0)
+	if (guis.size() > 0)
 	{
-		m_guiRenderer->render(this, &m_guis[0], m_guis.size());
+		m_guiRenderer->render(&guis[0], guis.size());
 	}
 
 	m_guiRenderer->end();
 }
 
-Entity Scene::createEntity()
+Entity* Scene::createEntity(std::string name)
 {
-	Entity entity = m_entityCounter++;
-
+	Entity* entity = new Entity(name);
 	m_entities.push_back(entity);
-	m_components[entity] = std::vector<Component*>();
 
 	return entity;
 }
 
-void Scene::deleteEntity(Entity entity)
+void Scene::deleteEntity(Entity* entity)
 {
 	for (unsigned int i = 0; i < m_entities.size(); i++)
 	{
 		if (m_entities[i] == entity)
 		{
+			delete m_entities[i];
 			m_entities.erase(m_entities.begin() + i);
 
-			for (unsigned int j = 0; j < m_components.size(); j++)
-			{
-				for (unsigned int k = 0; k < m_components[entity].size(); k++)
-				{
-					delete m_components[entity][k];
-				}
-				m_components.erase(entity);
-			}
-			break;
+			return;
 		}
 	}
 }
 
-void Scene::getAllEntities(Entity** entities, unsigned int* entityCount)
+void Scene::getAllEntities(Entity*** entities, unsigned int* entityCount)
 {
 	*entityCount = m_entities.size();
 
@@ -868,15 +650,16 @@ void Scene::getAllEntities(Entity** entities, unsigned int* entityCount)
 		*entities = nullptr;
 }
 
-std::vector<Component*>* Scene::getComponentsOfEntity(Entity entity)
+Entity* Scene::getEntityByName(std::string name)
 {
 	for (unsigned int i = 0; i < m_entities.size(); i++)
 	{
-		if (m_entities[i] == entity)
+		if (m_entities[i]->getName() == name)
 		{
-			return &m_components.at(entity);
+			return m_entities[i];
 		}
 	}
 
+	Output::Warning("Failed to find entity with name " + name);
 	return nullptr;
 }

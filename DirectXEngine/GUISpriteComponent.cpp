@@ -1,10 +1,10 @@
 #include "GUISpriteComponent.h"
 
-#include "Scene.h"
+#include "GUITransform.h"
 
 using namespace DirectX;
 
-GUISpriteComponent::GUISpriteComponent(Scene* scene, Entity entity) : GUIComponent(scene, entity)
+GUISpriteComponent::GUISpriteComponent(Entity& entity) : GUIComponent(entity)
 {
 	m_textureSRV = nullptr;
 }
@@ -20,9 +20,9 @@ void GUISpriteComponent::init()
 	m_textureSRV = AssetManager::getTexture("defaultGUI");
 }
 
-void GUISpriteComponent::draw(Scene* scene, DirectX::SpriteBatch* spriteBatch) const
+void GUISpriteComponent::draw(DirectX::SpriteBatch& spriteBatch) const
 {
-	GUITransform* guiTransform = scene->getComponentOfEntity<GUITransform>(entity);
+	GUITransform* guiTransform = entity.getComponent<GUITransform>();
 	if (!guiTransform) return;
 
 	if (!m_textureSRV) return;
@@ -32,7 +32,7 @@ void GUISpriteComponent::draw(Scene* scene, DirectX::SpriteBatch* spriteBatch) c
 	XMFLOAT2 size = guiTransform->getSize();
 	XMFLOAT2 origin = guiTransform->getOrigin();
 	XMVECTORF32 color = { m_color.x, m_color.y, m_color.z, m_color.w };
-	spriteBatch->Draw(m_textureSRV, position, nullptr, color, sinf(XMConvertToRadians(rotation)), origin, size);
+	spriteBatch.Draw(m_textureSRV, position, nullptr, color, sinf(XMConvertToRadians(rotation)), origin, size);
 }
 
 ID3D11ShaderResourceView* GUISpriteComponent::getTextureSRV() const

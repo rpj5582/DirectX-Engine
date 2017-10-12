@@ -4,7 +4,6 @@
 cbuffer lighting : register(b0)
 {
 	Light lights[MAX_LIGHTS];
-	unsigned int lightCount;
 }
 
 cbuffer camera : register(b1)
@@ -118,12 +117,12 @@ float4 main(VertexToPixel input) : SV_TARGET
 
 	// Calculates a value - either 1 or 0 - to disable lighting or not.
 	// If there are no lights in the scene, render the scene without shading.
-	float disableShading = 1.0f - min(lightCount, 1.0f);
+	//float disableShading = 1.0f - min(lightCount, 1.0f);
 
 	// Calculates the lighting for each valid light
 	float4 globalAmbient = float4(0.1f, 0.1f, 0.1f, 1.0f);
-	float4 finalLightColor = globalAmbient  * diffuseColor + disableShading * float4(1.0f, 1.0f, 1.0f, 1.0f);
-	for (unsigned int i = 0; i < lightCount; i++)
+	float4 finalLightColor = globalAmbient  * diffuseColor/* + disableShading * float4(1.0f, 1.0f, 1.0f, 1.0f)*/;
+	for (unsigned int i = 0; i < MAX_LIGHTS; i++)
 	{
 		float4 lightColor = calculateLight(lights[i], finalNormal, input.worldPosition, diffuseColor, specularColor);
 		finalLightColor += lightColor;

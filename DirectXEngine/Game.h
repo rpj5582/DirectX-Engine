@@ -1,7 +1,8 @@
 #pragma once
 #include "DXCore.h"
 
-#include "Scene.h"
+#include "ComponentRegistry.h"
+#include "Scene1.h"
 
 class Game : public DXCore
 {

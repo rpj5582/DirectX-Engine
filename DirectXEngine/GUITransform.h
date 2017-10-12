@@ -4,7 +4,7 @@
 class GUITransform : public Component
 {
 public:
-	GUITransform(Scene* scene, Entity entity);
+	GUITransform(Entity& entity);
 	~GUITransform();
 
 	virtual void init() override;

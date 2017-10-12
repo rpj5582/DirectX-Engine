@@ -55,10 +55,13 @@ bool Game::Init()
 	// Essentially: "What kind of shape should the GPU draw with our data?"
 	context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
+	ComponentRegistry registry;
+	registry.registerComponents();
+
 	m_assetManager = new AssetManager(device, context);
 	if (!m_assetManager->init()) return false;
 
-	m_scene = new Scene(device, context);
+	m_scene = new Scene1(device, context);
 	if (!m_scene->init()) return false;
 
 	m_scene->updateProjectionMatrix(width, height, NEAR_Z, FAR_Z);
