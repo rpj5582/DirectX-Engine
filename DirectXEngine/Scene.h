@@ -8,7 +8,6 @@
 #include "Renderer.h"
 #include "GUIRenderer.h"
 
-#include <CommonStates.h>
 #include <DirectXMath.h>
 
 class Scene
@@ -26,8 +25,6 @@ public:
 
 	float getNearZ() const;
 	float getFarZ() const;
-
-	void drawInWireframeMode(bool wireframe);
 
 	void getAllEntities(Entity*** entities, unsigned int* entityCount);
 
@@ -49,8 +46,8 @@ protected:
 	void setMainCamera(CameraComponent* camera);
 
 private:
-	void renderGeometry(ID3D11BlendState* blendState, ID3D11DepthStencilState* depthStencilState);
-	void renderGUI(ID3D11BlendState* blendState, ID3D11DepthStencilState* depthStencilState);
+	void renderGeometry();
+	void renderGUI();
 
 	ID3D11Device* m_device;
 	ID3D11DeviceContext* m_context;
@@ -58,8 +55,9 @@ private:
 	Renderer* m_renderer;
 	GUIRenderer* m_guiRenderer;
 
-	ID3D11RasterizerState* m_rasterizerState;
-	bool m_prevUseWireframe;
+	ID3D11BlendState* m_blendState;
+	ID3D11DepthStencilState* m_depthStencilStateDefault;
+	ID3D11DepthStencilState* m_depthStencilStateRead;
 
 	DirectX::XMFLOAT4X4 m_projectionMatrix;
 	float m_near;

@@ -14,8 +14,9 @@ Scene::Scene(ID3D11Device* device, ID3D11DeviceContext* context)
 	m_renderer = nullptr;
 	m_guiRenderer = nullptr;
 
-	m_rasterizerState = nullptr;
-	m_prevUseWireframe = false;
+	m_blendState = nullptr;
+	m_depthStencilStateDefault = nullptr;
+	m_depthStencilStateRead = nullptr;
 
 	XMStoreFloat4x4(&m_projectionMatrix, XMMatrixIdentity());
 	m_near = 0;
@@ -34,7 +35,9 @@ Scene::~Scene()
 	}
 	m_entities.clear();
 
-	if (m_rasterizerState) m_rasterizerState->Release();
+	if (m_blendState) m_blendState->Release();
+	if (m_depthStencilStateDefault) m_depthStencilStateDefault->Release();
+	if (m_depthStencilStateRead) m_depthStencilStateRead->Release();
 
 	delete m_guiRenderer;
 	delete m_renderer;
@@ -47,20 +50,61 @@ bool Scene::init()
 
 	m_guiRenderer = new GUIRenderer(m_context);
 
-	// Add a rasterizer state so that we can control whether wireframe is on or off.
-	D3D11_RASTERIZER_DESC rastDesc = {};
-	rastDesc.CullMode = D3D11_CULL_BACK;
-	rastDesc.DepthClipEnable = true;
-	rastDesc.FillMode = D3D11_FILL_SOLID;
+	D3D11_BLEND_DESC blendDesc = {};
+	blendDesc.AlphaToCoverageEnable = false;
+	blendDesc.IndependentBlendEnable = false;
+	blendDesc.RenderTarget[0].BlendEnable = TRUE;
+	blendDesc.RenderTarget[0].SrcBlend = D3D11_BLEND_SRC_ALPHA;
+	blendDesc.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND_SRC_ALPHA;
+	blendDesc.RenderTarget[0].DestBlend = D3D11_BLEND_INV_SRC_ALPHA;
+	blendDesc.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_INV_SRC_ALPHA;
+	blendDesc.RenderTarget[0].BlendOp = D3D11_BLEND_OP_ADD;
+	blendDesc.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
+	blendDesc.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
 
-	HRESULT hr = m_device->CreateRasterizerState(&rastDesc, &m_rasterizerState);
+	D3D11_DEPTH_STENCIL_DESC depthStencilDefaultDesc = {};
+	depthStencilDefaultDesc.DepthEnable = true;
+	depthStencilDefaultDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
+	depthStencilDefaultDesc.DepthFunc = D3D11_COMPARISON_LESS;
+	depthStencilDefaultDesc.StencilEnable = false;
+	depthStencilDefaultDesc.StencilReadMask = D3D11_DEFAULT_STENCIL_READ_MASK;
+	depthStencilDefaultDesc.StencilWriteMask = D3D11_DEFAULT_STENCIL_WRITE_MASK;
+	depthStencilDefaultDesc.FrontFace.StencilFunc = D3D11_COMPARISON_ALWAYS;
+	depthStencilDefaultDesc.FrontFace.StencilDepthFailOp = D3D11_STENCIL_OP_KEEP;
+	depthStencilDefaultDesc.FrontFace.StencilPassOp = D3D11_STENCIL_OP_KEEP;
+	depthStencilDefaultDesc.FrontFace.StencilFailOp = D3D11_STENCIL_OP_KEEP;
+	depthStencilDefaultDesc.BackFace.StencilFunc = D3D11_COMPARISON_ALWAYS;
+	depthStencilDefaultDesc.BackFace.StencilDepthFailOp = D3D11_STENCIL_OP_KEEP;
+	depthStencilDefaultDesc.BackFace.StencilPassOp = D3D11_STENCIL_OP_KEEP;
+	depthStencilDefaultDesc.BackFace.StencilFailOp = D3D11_STENCIL_OP_KEEP;
+
+	D3D11_DEPTH_STENCIL_DESC depthStencilReadDesc = depthStencilDefaultDesc;
+	depthStencilReadDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ZERO;
+
+	HRESULT hr = S_OK;
+	hr = m_device->CreateBlendState(&blendDesc, &m_blendState);
 	if (FAILED(hr))
 	{
-		Output::Error("Failed to create rasterizer state.");
+		Output::Error("Failed to create blend state.");
 		return false;
 	}
 
-	m_context->RSSetState(m_rasterizerState);
+	hr = m_device->CreateDepthStencilState(&depthStencilDefaultDesc, &m_depthStencilStateDefault);
+	if (FAILED(hr))
+	{
+		Output::Error("Failed to create default depth stencil state.");
+		return false;
+	}
+
+	hr = m_device->CreateDepthStencilState(&depthStencilReadDesc, &m_depthStencilStateRead);
+	if (FAILED(hr))
+	{
+		Output::Error("Failed to create read depth stencil state.");
+		return false;
+	}
+
+	m_context->OMSetBlendState(m_blendState, nullptr, 0xffffffff);
+	m_context->OMSetDepthStencilState(m_depthStencilStateDefault, 0);
 
 	return true;
 }
@@ -84,16 +128,11 @@ void Scene::update(float deltaTime, float totalTime)
 
 void Scene::render()
 {
-	CommonStates states(m_device);
-	ID3D11BlendState* blendState = states.Opaque();
-	ID3D11DepthStencilState* depthStencilState = states.DepthDefault();
+	m_context->OMSetDepthStencilState(m_depthStencilStateDefault, 0);
+	renderGeometry();
 
-	renderGeometry(blendState, depthStencilState);
-
-	blendState = states.NonPremultiplied();
-	depthStencilState = states.DepthRead();
-
-	renderGUI(blendState, depthStencilState);
+	m_context->OMSetDepthStencilState(m_depthStencilStateRead, 0);
+	renderGUI();
 }
 
 bool Scene::loadFromJSON(std::string filepath)
@@ -462,35 +501,6 @@ void Scene::setMainCamera(CameraComponent* camera)
 	m_mainCamera = camera;
 }
 
-void Scene::drawInWireframeMode(bool wireframe)
-{
-	if (m_prevUseWireframe == wireframe) return;
-
-	// Get the rasterizer state's current settings
-	D3D11_RASTERIZER_DESC rasterizerDesc;
-	m_rasterizerState->GetDesc(&rasterizerDesc);
-
-	if (wireframe)
-	{
-		rasterizerDesc.FillMode = D3D11_FILL_WIREFRAME;
-		rasterizerDesc.DepthBias = -1000;
-		rasterizerDesc.SlopeScaledDepthBias = 1.0f;
-	}
-	else
-	{
-		rasterizerDesc.FillMode = D3D11_FILL_SOLID;
-		rasterizerDesc.DepthBias = 0;
-		rasterizerDesc.SlopeScaledDepthBias = 0.0f;
-	}
-
-	// Recreate the entire rasterizer state
-	m_rasterizerState->Release();
-	m_device->CreateRasterizerState(&rasterizerDesc, &m_rasterizerState);
-	m_context->RSSetState(m_rasterizerState);
-
-	m_prevUseWireframe = wireframe;
-}
-
 void Scene::onMouseDown(WPARAM buttonState, int x, int y)
 {
 	for (unsigned int i = 0; i < m_entities.size(); i++)
@@ -523,7 +533,7 @@ void Scene::onMouseWheel(float wheelDelta, int x, int y)
 	}
 }
 
-void Scene::renderGeometry(ID3D11BlendState* blendState, ID3D11DepthStencilState* depthStencilState)
+void Scene::renderGeometry()
 {
 	// Preprocess each light entity to get it's position and direction (for forward rendering).
 	std::vector<GPU_LIGHT_DATA> lightData = std::vector<GPU_LIGHT_DATA>(MAX_LIGHTS);
@@ -576,20 +586,14 @@ void Scene::renderGeometry(ID3D11BlendState* blendState, ID3D11DepthStencilState
 		}
 	}
 
-	m_context->OMSetBlendState(blendState, nullptr, 0xffffffff);
-	m_context->OMSetDepthStencilState(depthStencilState, 0);
-
 	if (lightData.size() > 0)
 		m_renderer->render(this, &lightData[0]);
 	else
 		m_renderer->render(this, nullptr);
 }
 
-void Scene::renderGUI(ID3D11BlendState* blendState, ID3D11DepthStencilState* depthStencilState)
+void Scene::renderGUI()
 {
-	m_context->OMSetBlendState(blendState, nullptr, 0xffffffff);
-	m_context->OMSetDepthStencilState(depthStencilState, 0);
-
 	std::vector<GUIComponent*> guis;
 
 	for (unsigned int i = 0; i < m_entities.size(); i++)
@@ -608,7 +612,7 @@ void Scene::renderGUI(ID3D11BlendState* blendState, ID3D11DepthStencilState* dep
 		guis.push_back(guiComponent);
 	}
 
-	m_guiRenderer->begin(blendState, depthStencilState);
+	m_guiRenderer->begin(m_blendState, m_depthStencilStateRead);
 
 	if (guis.size() > 0)
 	{

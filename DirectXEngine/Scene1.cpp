@@ -14,9 +14,9 @@ bool Scene1::init()
 {
 	if (!Scene::init()) return false;
 
-	if (!loadFromJSON("scene1.json")) return false;
+	//if (!loadFromJSON("scene1.json")) return false;
 
-	/*AssetManager::loadTexture("cracks", "cracks.png");
+	AssetManager::loadTexture("cracks", "cracks.png");
 	AssetManager::loadTexture("cracks_spec", "cracks_spec.png");
 	AssetManager::loadTexture("cracks_norm", "cracks_norm.png");
 	Material* cracksMaterial = AssetManager::createMaterial("cracks", "cracks", "cracks_spec", "cracks_norm");
@@ -126,7 +126,7 @@ bool Scene1::init()
 	guiButton->setOnClickCallback([guiButton]()
 	{
 		guiButton->setText("Yay!");
-	});*/
+	});
 
 	return true;
 }

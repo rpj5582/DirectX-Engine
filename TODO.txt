@@ -1,5 +1,4 @@
 TODO:
-Look up wireframe geometry shaders to avoid rendering scene "without lighting"
 Load LightComponent properly
 Load GUI components properly
 Add json parsing for saving? levels

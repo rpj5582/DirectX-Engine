@@ -29,6 +29,7 @@ struct VertexShaderInput
 	float2 uv			: TEXCOORD;
 	float3 normal		: NORMAL;
 	float3 tangent		: TANGENT;
+	float3 barycentric	: BARYCENTRIC;
 };
 
 // Struct representing the data we're sending down the pipeline
@@ -48,6 +49,7 @@ struct VertexToPixel
 	float2 uv			: TEXCOORD;
 	float3 normal		: NORMAL;
 	float3 tangent		: TANGENT;
+	float3 barycentric	: BARYCENTRIC;
 };
 
 // --------------------------------------------------------
@@ -89,6 +91,9 @@ VertexToPixel main( VertexShaderInput input )
 	output.normal = mul(input.normal, (float3x3)worldInverseTranspose);
 
 	output.tangent = mul(input.tangent, (float3x3)worldInverseTranspose);
+
+	// The rasterizer will interpolate the value so that each pixel has a barycentric coordinate.
+	output.barycentric = input.barycentric;
 
 	// Whatever we return will make its way through the pipeline to the
 	// next programmable stage we're using (the pixel shader for now)

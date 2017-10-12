@@ -50,8 +50,8 @@ public:
 	static DirectX::SpriteFont* loadFont(std::string id, std::string filepath);
 
 private:
-	// A helper function when loading meshes to calculate tangents for the normal map lighting calculation.
-	void calculateTangents(Vertex* vertices, unsigned int vertexCount, unsigned int* indices);
+	// A helper function when loading meshes to calculate tangents for the normal map lighting calculation and assigns barycentric coordinates for solid wireframe rendering.
+	void calculateTangentsAndBarycentric(Vertex* vertices, unsigned int vertexCount, unsigned int* indices);
 
 	static AssetManager* m_instance;
 

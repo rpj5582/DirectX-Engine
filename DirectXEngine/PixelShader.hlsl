@@ -1,6 +1,10 @@
 #include "UtilityFunctions.hlsli"
 #include "LightingFunctions.hlsli"
 
+#define SOLID 0
+#define WIREFRAME 1
+#define SOLID_WIREFRAME 2
+
 cbuffer lighting : register(b0)
 {
 	Light lights[MAX_LIGHTS];
@@ -9,6 +13,11 @@ cbuffer lighting : register(b0)
 cbuffer camera : register(b1)
 {
 	float3 cameraWorldPosition : CAMERA_POSITION;
+}
+
+cbuffer renderStyle : register(b2)
+{
+	int renderStyle;
 }
 
 Texture2D diffuseTexture : register(t0);
@@ -33,6 +42,7 @@ struct VertexToPixel
 	float2 uv			: TEXCOORD;
 	float3 normal		: NORMAL;
 	float3 tangent		: TANGENT;
+	float3 barycentric	: BARYCENTRIC;
 };
 
 float4 calculateLight(Light light, float3 normal, float3 worldPosition, float4 surfaceColor, float4 specColor)
@@ -87,6 +97,16 @@ float4 calculateLight(Light light, float3 normal, float3 worldPosition, float4 s
 	}
 }
 
+// Calculates the lerp factor when shading wireframes.
+// Based on the following blog post: http://codeflow.org/entries/2012/aug/02/easy-wireframe-display-with-barycentric-coordinates/
+float edgeFactor(float3 barycentric, float width)
+{
+	float3 d = fwidth(barycentric);
+	float3 a3 = smoothstep(float3(0.0f, 0.0f, 0.0f), d * width, barycentric);
+	return min(min(a3.x, a3.y), a3.z);
+
+}
+
 // --------------------------------------------------------
 // The entry point (main method) for our pixel shader
 // 
@@ -115,18 +135,27 @@ float4 main(VertexToPixel input) : SV_TARGET
 	// Convert the normal from the normal map to world space.
 	float3 finalNormal = normalize(mul(unpackedNormal, TBN));
 
-	// Calculates a value - either 1 or 0 - to disable lighting or not.
-	// If there are no lights in the scene, render the scene without shading.
-	//float disableShading = 1.0f - min(lightCount, 1.0f);
-
 	// Calculates the lighting for each valid light
 	float4 globalAmbient = float4(0.1f, 0.1f, 0.1f, 1.0f);
-	float4 finalLightColor = globalAmbient  * diffuseColor/* + disableShading * float4(1.0f, 1.0f, 1.0f, 1.0f)*/;
+	float4 finalLightColor = globalAmbient  * diffuseColor;
 	for (unsigned int i = 0; i < MAX_LIGHTS; i++)
 	{
 		float4 lightColor = calculateLight(lights[i], finalNormal, input.worldPosition, diffuseColor, specularColor);
 		finalLightColor += lightColor;
 	}
-	
-	return finalLightColor;
+
+	switch (renderStyle)
+	{
+	case SOLID:
+		return finalLightColor;
+
+	case WIREFRAME:
+		return float4(1.0f, 1.0f, 1.0f, 1.0f - edgeFactor(input.barycentric, 2.0f));
+
+	case SOLID_WIREFRAME:
+		return lerp(float4(1.0f, 1.0f, 1.0f, 1.0f), finalLightColor, edgeFactor(input.barycentric, 2.0f));
+
+	default: // Invalid render style
+		return float4(1.0f, 0.0f, 1.0f, 1.0f);
+	}
 }

@@ -65,46 +65,6 @@
 				}
 			]
 		},
-		
-		
-		{
-			"name": "Cube2",
-			"components": [
-				{
-					"type": "Transform",
-					"data":
-					{
-						"position": {
-							"x": 5,
-							"y": 0,
-							"z": 0
-						},
-						"rotation": {
-							"x": 0,
-							"y": 45,
-							"z": 0
-						},
-						"scale": {
-							"x": 5,
-							"y": 5,
-							"z": 1
-						}
-					}
-				},
-				{
-					"type": "MeshRenderComponent",
-					"data":
-					{
-						"material": "cracks",
-						"mesh": "cube",
-						"renderStyle": "solid"
-					}
-				}
-			]
-		},
-		
-		
-		
 		{
 			"name": "Directional Light",
 			"components": [

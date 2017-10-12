@@ -80,9 +80,9 @@ bool AssetManager::init()
 	if (!loadShader("default", PixelShader, "PixelShader.cso")) return false;
 
 	// Creates the default textures
-	if (!createSolidColorTexture("defaultDiffuse", 0x808080)) return false;
-	if (!createSolidColorTexture("defaultSpecular", 0xffffff)) return false;
-	if (!createSolidColorTexture("defaultNormal", 0xff8080)) return false;
+	if (!createSolidColorTexture("defaultDiffuse", 0xff808080)) return false;
+	if (!createSolidColorTexture("defaultSpecular", 0xffffffff)) return false;
+	if (!createSolidColorTexture("defaultNormal", 0xffff8080)) return false;
 	if (!createSolidColorTexture("defaultGUI", 0xffffffff)) return false;
 
 	// Creates the default sampler
@@ -379,7 +379,7 @@ Mesh* AssetManager::loadMesh(std::string id, Vertex* vertices, unsigned int vert
 		return meshIterator->second;
 	}
 
-	m_instance->calculateTangents(vertices, vertexCount, indices);
+	m_instance->calculateTangentsAndBarycentric(vertices, vertexCount, indices);
 
 	Mesh* m = new Mesh(m_instance->m_device, vertices, vertexCount, indices, indexCount);
 	m_instance->m_meshes[id] = m;
@@ -388,7 +388,7 @@ Mesh* AssetManager::loadMesh(std::string id, Vertex* vertices, unsigned int vert
 }
 
 // Code adapted from: http://www.terathon.com/code/tangent.html
-void AssetManager::calculateTangents(Vertex* vertices, unsigned int vertexCount, unsigned int* indices)
+void AssetManager::calculateTangentsAndBarycentric(Vertex* vertices, unsigned int vertexCount, unsigned int* indices)
 {
 	for (unsigned int i = 0; i < vertexCount;)
 	{
@@ -431,6 +431,10 @@ void AssetManager::calculateTangents(Vertex* vertices, unsigned int vertexCount,
 		v3->tangent.x += tx;
 		v3->tangent.y += ty;
 		v3->tangent.z += tz;
+
+		v1->barycentric = XMFLOAT3(1.0f, 0.0f, 0.0f);
+		v2->barycentric = XMFLOAT3(0.0f, 1.0f, 0.0f);
+		v3->barycentric = XMFLOAT3(0.0f, 0.0f, 1.0f);
 	}
 }
 

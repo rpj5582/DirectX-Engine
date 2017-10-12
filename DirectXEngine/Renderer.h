@@ -21,8 +21,5 @@ public:
 	void render(Scene* scene, const GPU_LIGHT_DATA* lightData);
 
 private:
-	void renderMesh(SimplePixelShader& pixelShader, const Mesh& mesh, const GPU_LIGHT_DATA* lightData);
-	void renderMeshWithoutLighting(SimplePixelShader& pixelShader, const Mesh& mesh);
-
 	ID3D11DeviceContext* m_context;
 };
