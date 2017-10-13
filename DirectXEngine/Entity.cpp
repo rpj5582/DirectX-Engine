@@ -46,6 +46,42 @@ void Entity::lateUpdate(float deltaTime, float totalTime)
 	}
 }
 
+void Entity::saveToJSON(rapidjson::Writer<rapidjson::StringBuffer>& writer) const
+{
+	writer.StartObject();
+
+	writer.Key("name");
+	writer.String(m_name.c_str());
+
+	writer.Key("enabled");
+	writer.Bool(enabled);
+
+	writer.Key("components");
+	writer.StartArray();
+
+	for (unsigned int i = 0; i < m_components.size(); i++)
+	{
+		writer.StartObject();
+
+		std::string typeName = ComponentRegistry::getTypeName(typeid(*m_components[i]));
+		writer.Key("type");
+		writer.Key(typeName.c_str());
+
+		writer.Key("data");
+		writer.StartObject();
+		m_components[i]->saveToJSON(writer);
+		writer.EndObject();
+		
+
+		writer.EndObject();
+	}
+
+	writer.EndArray();
+	writer.EndObject();
+
+	
+}
+
 std::string Entity::getName() const
 {
 	return m_name;

@@ -22,8 +22,7 @@ void GUIRenderer::render(const GUIComponent* const* guiComponents, unsigned int 
 {
 	for (unsigned int i = 0; i < guiCount; i++)
 	{
-		if(guiComponents[i]->enabled)
-			guiComponents[i]->draw(*m_spriteBatch);
+		guiComponents[i]->draw(*m_spriteBatch);
 	}
 }
 

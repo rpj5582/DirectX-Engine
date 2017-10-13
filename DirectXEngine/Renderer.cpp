@@ -33,6 +33,9 @@ void Renderer::render(const CameraComponent& mainCamera, XMMATRIX projectionMatr
 
 	for (unsigned int i = 0; i < entityCount; i++)
 	{
+		//  Don't use disabled entities
+		if (!entities[i]->enabled) continue;
+
 		Transform* transform = entities[i]->getComponent<Transform>();
 		RenderComponent* renderComponent = entities[i]->getComponent<RenderComponent>();
 		if (renderComponent && renderComponent->enabled && transform)

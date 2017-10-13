@@ -10,6 +10,7 @@ public:
 	virtual void init() override;
 	virtual void update(float deltaTime, float totalTime) override;
 	virtual void loadFromJSON(rapidjson::Value& dataObject) override;
+	virtual void saveToJSON(rapidjson::Writer<rapidjson::StringBuffer>& writer) override;
 
 	virtual void onMouseDown(WPARAM buttonState, int x, int y) override;
 	virtual void onMouseUp(WPARAM buttonState, int x, int y) override;

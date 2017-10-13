@@ -49,6 +49,47 @@ void GUITransform::loadFromJSON(rapidjson::Value& dataObject)
 	}
 }
 
+void GUITransform::saveToJSON(rapidjson::Writer<rapidjson::StringBuffer>& writer)
+{
+	Component::saveToJSON(writer);
+
+	writer.Key("position");
+	writer.StartObject();
+
+	writer.Key("x");
+	writer.Double(m_position.x);
+
+	writer.Key("y");
+	writer.Double(m_position.y);
+
+	writer.EndObject();
+
+	writer.Key("rotation");
+	writer.Double(m_rotation);
+
+	writer.Key("size");
+	writer.StartObject();
+
+	writer.Key("x");
+	writer.Double(m_size.x);
+
+	writer.Key("y");
+	writer.Double(m_size.y);
+
+	writer.EndObject();
+
+	writer.Key("origin");
+	writer.StartObject();
+
+	writer.Key("x");
+	writer.Double(m_origin.x);
+
+	writer.Key("y");
+	writer.Double(m_origin.y);
+
+	writer.EndObject();
+}
+
 bool GUITransform::containsPoint(int x, int y) const
 {
 	if (x >= m_position.x && x <= m_position.x + m_size.x &&

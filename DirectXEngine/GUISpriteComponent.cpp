@@ -7,6 +7,7 @@ using namespace DirectX;
 GUISpriteComponent::GUISpriteComponent(Entity& entity) : GUIComponent(entity)
 {
 	m_textureSRV = nullptr;
+	m_textureID = "";
 }
 
 GUISpriteComponent::~GUISpriteComponent()
@@ -17,7 +18,7 @@ void GUISpriteComponent::init()
 {
 	GUIComponent::init();
 
-	m_textureSRV = AssetManager::getTexture("defaultGUI");
+	setTexture("defaultGUI");
 }
 
 void GUISpriteComponent::loadFromJSON(rapidjson::Value& dataObject)
@@ -27,8 +28,16 @@ void GUISpriteComponent::loadFromJSON(rapidjson::Value& dataObject)
 	rapidjson::Value::MemberIterator texture = dataObject.FindMember("texture");
 	if (texture != dataObject.MemberEnd())
 	{
-		m_textureSRV = AssetManager::getTexture(texture->value.GetString());
+		setTexture(texture->value.GetString());
 	}
+}
+
+void GUISpriteComponent::saveToJSON(rapidjson::Writer<rapidjson::StringBuffer>& writer)
+{
+	Component::saveToJSON(writer);
+
+	writer.Key("texture");
+	writer.String(m_textureID.c_str());
 }
 
 void GUISpriteComponent::draw(DirectX::SpriteBatch& spriteBatch) const
@@ -51,7 +60,16 @@ ID3D11ShaderResourceView* GUISpriteComponent::getTextureSRV() const
 	return m_textureSRV;
 }
 
-void GUISpriteComponent::setTextureSRV(ID3D11ShaderResourceView* textureSRV)
+void GUISpriteComponent::setTexture(std::string textureID)
 {
-	m_textureSRV = textureSRV;
+	m_textureSRV = AssetManager::getTexture(textureID);
+	if (m_textureSRV)
+	{
+		m_textureID = textureID;
+	}
+	else
+	{
+		m_textureID = "";
+		m_textureSRV = nullptr;
+	}
 }

@@ -8,10 +8,12 @@ public:
 	~MeshRenderComponent();
 
 	virtual void loadFromJSON(rapidjson::Value& dataObject) override;
+	virtual void saveToJSON(rapidjson::Writer<rapidjson::StringBuffer>& writer) override;
 
 	Mesh* getMesh() const;
-	void setMesh(Mesh* mesh);
+	void setMesh(std::string meshID);
 
 private:
+	std::string m_meshID;
 	Mesh* m_mesh;
 };

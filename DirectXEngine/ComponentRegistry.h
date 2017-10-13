@@ -1,5 +1,9 @@
 #pragma once
 
+#include <string>
+#include <unordered_map>
+#include <typeindex>
+
 #include "CameraComponent.h"
 #include "GUIButtonComponent.h"
 #include "GUIComponent.h"
@@ -13,6 +17,9 @@
 
 #include "FreeCamControls.h"
 
+class Component;
+class Entity;
+
 typedef Component*(Entity::*CreateComponentFunc)();
 
 class ComponentRegistry
@@ -20,6 +27,8 @@ class ComponentRegistry
 public:
 	static Component* addComponentToEntity(Entity& entity, std::string componentType);
 	void registerComponents();
+
+	static std::string getTypeName(std::type_index type);
 
 private:
 	template<typename T>
@@ -29,6 +38,7 @@ private:
 	void registerCustomComponents();
 
 	static std::unordered_map<std::string, CreateComponentFunc> m_componentRegistry;
+	static std::unordered_map<std::type_index, std::string> m_componentRegistryReverse;
 };
 
 template<typename T>
@@ -38,9 +48,10 @@ inline bool ComponentRegistry::registerComponent(std::string componentType)
 
 	if (m_componentRegistry.find(componentType) == m_componentRegistry.end())
 	{
-		auto test = &Entity::addComponent<T>;
-		auto test2 = reinterpret_cast<CreateComponentFunc>(test);
-		m_componentRegistry[componentType] = test2;
+		CreateComponentFunc func = reinterpret_cast<CreateComponentFunc>(&Entity::addComponent<T>);
+		m_componentRegistry[componentType] = func;
+
+		m_componentRegistryReverse[typeid(T)] = componentType;
 		return true;
 	}
 	else

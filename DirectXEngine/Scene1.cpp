@@ -16,14 +16,22 @@ bool Scene1::init()
 
 	if (!loadFromJSON("scene1.json")) return false;
 
+	// The onclick callback can't be saved to a json file, so set the callback here
+	Entity* guiButtonEntity = getEntityByName("Button");
+	GUIButtonComponent* guiButton = guiButtonEntity->getComponent<GUIButtonComponent>();
+	guiButton->setOnClickCallback([guiButton]()
+	{
+		guiButton->setText("Yay!");
+	});
+
 	//AssetManager::loadTexture("cracks", "cracks.png");
 	//AssetManager::loadTexture("cracks_spec", "cracks_spec.png");
 	//AssetManager::loadTexture("cracks_norm", "cracks_norm.png");
-	//Material* cracksMaterial = AssetManager::createMaterial("cracks", "cracks", "cracks_spec", "cracks_norm");
-	//Mesh* cube = AssetManager::loadMesh("cube", "cube.obj");
-	//Mesh* torus = AssetManager::loadMesh("torus", "torus.obj");
-	//Mesh* cone = AssetManager::loadMesh("cone", "cone.obj");
-	//SpriteFont* arial_12pt = AssetManager::loadFont("Arial_12pt", "Arial_12pt.spritefont");
+	//AssetManager::createMaterial("cracks", "cracks", "cracks_spec", "cracks_norm");
+	//AssetManager::loadMesh("cube", "cube.obj");
+	//AssetManager::loadMesh("torus", "torus.obj");
+	//AssetManager::loadMesh("cone", "cone.obj");
+	//AssetManager::loadFont("Arial_12pt", "Arial_12pt.spritefont");
 
 	//Entity* cameraEnt = createEntity("Camera");
 	//Transform* cameraTransform = cameraEnt->addComponent<Transform>();
@@ -76,15 +84,15 @@ bool Scene1::init()
 	//cubeTransform->scale(XMFLOAT3(9.0f, 9.0f, 0.0f));
 
 	//MeshRenderComponent* cubeMeshRenderComponent = cubeEnt->addComponent<MeshRenderComponent>();
-	//cubeMeshRenderComponent->setMaterial(cracksMaterial);
-	//cubeMeshRenderComponent->setMesh(cube);
+	//cubeMeshRenderComponent->setMaterial("cracks");
+	//cubeMeshRenderComponent->setMesh("cube");
 	//
 	//Entity* torusEnt = createEntity("Torus");
 	//Transform* torusTransform = torusEnt->addComponent<Transform>();
 	//torusTransform->moveX(5.0f);
 
 	//MeshRenderComponent* torusMeshRenderComponent = torusEnt->addComponent<MeshRenderComponent>();
-	//torusMeshRenderComponent->setMesh(torus);
+	//torusMeshRenderComponent->setMesh("torus");
 	//torusMeshRenderComponent->setRenderStyle(RenderStyle::WIREFRAME);
 	//
 	//Entity* coneEnt = createEntity("Cone");
@@ -93,7 +101,7 @@ bool Scene1::init()
 	//coneTransform->scaleY(4.0f);
 
 	//MeshRenderComponent* coneMeshRenderComponent = coneEnt->addComponent<MeshRenderComponent>();
-	//coneMeshRenderComponent->setMesh(cone);
+	//coneMeshRenderComponent->setMesh("cone");
 	//coneMeshRenderComponent->setRenderStyle(RenderStyle::SOLID_WIREFRAME);
 
 	//Entity* guiSpriteEntity = createEntity("Sprite");
@@ -121,12 +129,14 @@ bool Scene1::init()
 	//GUITransform* guiButtonTransform = guiButtonEntity->addComponent<GUITransform>();
 	//guiButtonTransform->setSize(XMFLOAT2(80.0f, 30.0f));
 	//GUIButtonComponent* guiButton = guiButtonEntity->addComponent<GUIButtonComponent>();
-	//guiButton->setFont(arial_12pt);
+	//guiButton->setFont("Arial_12pt");
 	//guiButton->setText("Click me");
 	//guiButton->setOnClickCallback([guiButton]()
 	//{
 	//	guiButton->setText("Yay!");
 	//});
+
+	//saveToJSON("scene1.json");
 
 	return true;
 }

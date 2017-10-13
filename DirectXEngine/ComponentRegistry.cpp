@@ -1,6 +1,7 @@
 #include "ComponentRegistry.h"
 
 std::unordered_map<std::string, CreateComponentFunc> ComponentRegistry::m_componentRegistry = std::unordered_map<std::string, CreateComponentFunc>();
+std::unordered_map<std::type_index, std::string> ComponentRegistry::m_componentRegistryReverse = std::unordered_map<std::type_index, std::string>();
 
 Component* ComponentRegistry::addComponentToEntity(Entity& entity, std::string componentType)
 {
@@ -18,6 +19,20 @@ void ComponentRegistry::registerComponents()
 {
 	registerEngineComponents();
 	registerCustomComponents();
+}
+
+std::string ComponentRegistry::getTypeName(std::type_index type)
+{
+	//static_assert(std::is_base_of<Component, type>::value, "Given type is not a Component.");
+
+	auto it = m_componentRegistryReverse.find(type);
+	if (it != m_componentRegistryReverse.end())
+	{
+		return it->second;
+	}
+
+	Output::Error("Failed to get component type because it wasn't registered. Make sure the component is registered and you're using a fully implemented class!");
+	return "";
 }
 
 void ComponentRegistry::registerEngineComponents()

@@ -19,56 +19,56 @@ AssetManager::AssetManager(ID3D11Device* device, ID3D11DeviceContext* context)
 	m_device = device;
 	m_context = context;
 
-	m_meshes = std::unordered_map<std::string, Mesh*>();
-	m_materials = std::unordered_map<std::string, Material*>();
-	m_vertexShaders = std::unordered_map<std::string, SimpleVertexShader*>();
-	m_pixelShaders = std::unordered_map<std::string, SimplePixelShader*>();
-	m_textures = std::unordered_map<std::string, ID3D11ShaderResourceView*>();
-	m_samplers = std::unordered_map<std::string, ID3D11SamplerState*>();
-	m_fonts = std::unordered_map<std::string, SpriteFont*>();
+	m_meshes = std::unordered_map<std::string, std::pair<std::string, Mesh*>>();
+	m_materials = std::unordered_map<std::string, std::pair<std::string, Material*>>();
+	m_vertexShaders = std::unordered_map<std::string, std::pair<std::string, SimpleVertexShader*>>();
+	m_pixelShaders = std::unordered_map<std::string, std::pair<std::string, SimplePixelShader*>>();
+	m_textures = std::unordered_map<std::string, std::pair<std::string, ID3D11ShaderResourceView*>>();
+	m_samplers = std::unordered_map<std::string, std::pair<std::string, ID3D11SamplerState*>>();
+	m_fonts = std::unordered_map<std::string, std::pair<std::string, SpriteFont*>>();
 }
 
 AssetManager::~AssetManager()
 {
 	for (auto it = m_fonts.begin(); it != m_fonts.end(); it++)
 	{
-		delete it->second;
+		delete it->second.second;
 	}
 	m_fonts.clear();
 
 	for (auto it = m_samplers.begin(); it != m_samplers.end(); it++)
 	{
-		it->second->Release();
+		it->second.second->Release();
 	}
 	m_samplers.clear();
 
 	for (auto it = m_textures.begin(); it != m_textures.end(); it++)
 	{
-		it->second->Release();
+		it->second.second->Release();
 	}
 	m_textures.clear();
 
 	for (auto it = m_meshes.begin(); it != m_meshes.end(); it++)
 	{
-		delete it->second;
+		delete it->second.second;
 	}
 	m_meshes.clear();
 
 	for (auto it = m_materials.begin(); it != m_materials.end(); it++)
 	{
-		delete it->second;
+		delete it->second.second;
 	}
 	m_materials.clear();
 
 	for (auto it = m_vertexShaders.begin(); it != m_vertexShaders.end(); it++)
 	{
-		delete it->second;
+		delete it->second.second;
 	}
 	m_vertexShaders.clear();
 
 	for (auto it = m_pixelShaders.begin(); it != m_pixelShaders.end(); it++)
 	{
-		delete it->second;
+		delete it->second.second;
 	}
 	m_pixelShaders.clear();
 }
@@ -101,25 +101,533 @@ bool AssetManager::init()
 	if (!defaultMaterial) return false;
 	
 	// Load Arial font
-	SpriteFont* arial = loadFont("Arial_16pt", "Arial_16pt.spritefont");
-
-	// Create primitive meshes
-	//Vertex quadVertices[4] = 
-	//{
-	//	XMFLOAT3(-1.0f, 1.0f, 0.0f), XMFLOAT2(0.0f, 0.0f), XMFLOAT3(0.0f, 0.0f, -1.0f), XMFLOAT3(1.0f, 0.0f, 0.0f), // Top left
-	//	XMFLOAT3(1.0f, 1.0f, 0.0f), XMFLOAT2(1.0f, 0.0f), XMFLOAT3(0.0f, 0.0f, -1.0f), XMFLOAT3(1.0f, 0.0f, 0.0f), // Top right
-	//	XMFLOAT3(-1.0f, -1.0f, 0.0f), XMFLOAT2(0.0f, 1.0f), XMFLOAT3(0.0f, 0.0f, -1.0f), XMFLOAT3(1.0f, 0.0f, 0.0f), // Bottom left
-	//	XMFLOAT3(1.0f, -1.0f, 0.0f), XMFLOAT2(1.0f, 1.0f), XMFLOAT3(0.0f, 0.0f, -1.0f), XMFLOAT3(1.0f, 0.0f, 0.0f), // Bottom right
-	//};
-
-	//unsigned int quadIndices[6] =
-	//{
-	//	0, 1, 2, 1, 3, 2
-	//};
-
-	//if (!loadMesh("quad", quadVertices, 4, quadIndices, 6)) return false;
+	SpriteFont* arial = loadFont("default", "Arial_16pt.spritefont");
 
 	return true;
+}
+
+void AssetManager::loadFromJSON(rapidjson::Value& assetsArray)
+{
+	for (rapidjson::SizeType i = 0; i < assetsArray.Size(); i++)
+	{
+		rapidjson::Value& asset = assetsArray[i];
+		rapidjson::Value& assetType = asset["type"];
+
+		rapidjson::Value& idRef = asset["id"];
+		std::string id = idRef.GetString();
+
+		rapidjson::Value::MemberIterator pathIter = asset.FindMember("path");
+		std::string path = "";
+		if (pathIter != asset.MemberEnd())
+		{
+			path = pathIter->value.GetString();
+		}
+
+		switch (stringHash(assetType.GetString()))
+		{
+		case stringHash("texture"):
+		{
+			loadTexture(id, path);
+			break;
+		}
+
+		case stringHash("model"):
+		{
+			loadMesh(id, path);
+			break;
+		}
+
+		case stringHash("font"):
+		{
+			loadFont(id, path);
+			break;
+		}
+
+		case stringHash("vertexShader"):
+		{
+			loadShader(id, VertexShader, path);
+			break;
+		}
+
+		case stringHash("pixelShader"):
+		{
+			loadShader(id, PixelShader, path);
+			break;
+		}
+
+		case stringHash("material"):
+		{
+			rapidjson::Value::MemberIterator diffuseIter = asset.FindMember("diffuse");
+			rapidjson::Value::MemberIterator specularIter = asset.FindMember("specular");
+			rapidjson::Value::MemberIterator normalIter = asset.FindMember("normal");
+			rapidjson::Value::MemberIterator samplerIter = asset.FindMember("sampler");
+			rapidjson::Value::MemberIterator vertexShaderIter = asset.FindMember("vertexShader");
+			rapidjson::Value::MemberIterator pixelShaderIter = asset.FindMember("pixelShader");
+
+			std::string diffuse = "defaultDiffuse";
+			std::string specular = "defaultSpecular";
+			std::string normal = "defaultNormal";
+			std::string sampler = "default";
+			std::string vertexShader = "default";
+			std::string pixelShader = "default";
+
+			if (diffuseIter != asset.MemberEnd())
+			{
+				diffuse = diffuseIter->value.GetString();
+			}
+
+			if (specularIter != asset.MemberEnd())
+			{
+				specular = specularIter->value.GetString();
+			}
+
+			if (normalIter != asset.MemberEnd())
+			{
+				normal = normalIter->value.GetString();
+			}
+
+			if (samplerIter != asset.MemberEnd())
+			{
+				sampler = samplerIter->value.GetString();
+			}
+
+			if (vertexShaderIter != asset.MemberEnd())
+			{
+				vertexShader = vertexShaderIter->value.GetString();
+			}
+
+			if (pixelShaderIter != asset.MemberEnd())
+			{
+				pixelShader = pixelShaderIter->value.GetString();
+			}
+
+			createMaterial(id, diffuse, specular, normal, sampler, vertexShader, pixelShader);
+			break;
+		}
+
+		case stringHash("sampler"):
+		{
+			rapidjson::Value::MemberIterator addressUIter = asset.FindMember("addressU");
+			rapidjson::Value::MemberIterator addressVIter = asset.FindMember("addressV");
+			rapidjson::Value::MemberIterator addressWIter = asset.FindMember("addressW");
+			rapidjson::Value::MemberIterator filterIter = asset.FindMember("filter");
+			rapidjson::Value::MemberIterator maxLODIter = asset.FindMember("maxLOD");
+
+			std::string addressUString = "wrap";
+			std::string addressVString = "wrap";
+			std::string addressWString = "wrap";
+			std::string filterString = "min_mag_mip_linear";
+			float maxLOD = D3D11_FLOAT32_MAX;
+
+			if (addressUIter != asset.MemberEnd())
+			{
+				addressUString = addressUIter->value.GetString();
+			}
+
+			if (addressVIter != asset.MemberEnd())
+			{
+				addressVString = addressVIter->value.GetString();
+			}
+
+			if (addressWIter != asset.MemberEnd())
+			{
+				addressWString = addressWIter->value.GetString();
+			}
+
+			if (filterIter != asset.MemberEnd())
+			{
+				filterString = filterIter->value.GetString();
+			}
+
+			if (maxLODIter != asset.MemberEnd())
+			{
+				if(maxLODIter->value.IsFloat())
+					maxLOD = maxLODIter->value.GetFloat();
+				else
+				{
+					maxLOD = D3D11_FLOAT32_MAX;
+				}
+			}
+
+			D3D11_TEXTURE_ADDRESS_MODE addressU = D3D11_TEXTURE_ADDRESS_WRAP;
+			D3D11_TEXTURE_ADDRESS_MODE addressV = D3D11_TEXTURE_ADDRESS_WRAP;
+			D3D11_TEXTURE_ADDRESS_MODE addressW = D3D11_TEXTURE_ADDRESS_WRAP;
+			D3D11_FILTER filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
+
+			switch (stringHash(addressUString.c_str()))
+			{
+			case stringHash("wrap"):
+				break;
+
+			case stringHash("border"):
+				addressU = D3D11_TEXTURE_ADDRESS_BORDER;
+					break;
+
+			case stringHash("clamp"):
+				addressU = D3D11_TEXTURE_ADDRESS_CLAMP;
+				break;
+
+			case stringHash("mirror"):
+				addressU = D3D11_TEXTURE_ADDRESS_MIRROR;
+				break;
+
+			case stringHash("mirror_once"):
+				addressU = D3D11_TEXTURE_ADDRESS_MIRROR_ONCE;
+				break;
+
+			default:
+				Output::Warning("Invalid sampler address mode " + addressUString + " for sampler " + id);
+				break;
+			}
+
+			switch (stringHash(addressVString.c_str()))
+			{
+			case stringHash("wrap"):
+				break;
+
+			case stringHash("border"):
+				addressV = D3D11_TEXTURE_ADDRESS_BORDER;
+				break;
+
+			case stringHash("clamp"):
+				addressV = D3D11_TEXTURE_ADDRESS_CLAMP;
+				break;
+
+			case stringHash("mirror"):
+				addressV = D3D11_TEXTURE_ADDRESS_MIRROR;
+				break;
+
+			case stringHash("mirror_once"):
+				addressV = D3D11_TEXTURE_ADDRESS_MIRROR_ONCE;
+				break;
+
+			default:
+				Output::Warning("Invalid sampler address mode " + addressVString + " for sampler " + id);
+				break;
+			}
+
+			switch (stringHash(addressWString.c_str()))
+			{
+			case stringHash("wrap"):
+				break;
+
+			case stringHash("border"):
+				addressW = D3D11_TEXTURE_ADDRESS_BORDER;
+				break;
+
+			case stringHash("clamp"):
+				addressW = D3D11_TEXTURE_ADDRESS_CLAMP;
+				break;
+
+			case stringHash("mirror"):
+				addressW = D3D11_TEXTURE_ADDRESS_MIRROR;
+				break;
+
+			case stringHash("mirror_once"):
+				addressW = D3D11_TEXTURE_ADDRESS_MIRROR_ONCE;
+				break;
+
+			default:
+				Output::Warning("Invalid sampler address mode " + addressWString + " for sampler " + id);
+				break;
+			}
+
+			// Don't support different sampler filters yet because there are too many options
+
+
+			D3D11_SAMPLER_DESC samplerDesc = {};
+			samplerDesc.AddressU = addressU;
+			samplerDesc.AddressV = addressV;
+			samplerDesc.AddressW = addressW;
+			samplerDesc.Filter = filter;
+			samplerDesc.MaxLOD = maxLOD;
+
+			createSampler(id, samplerDesc);
+			break;
+		}
+
+		default:
+			Output::Warning("Invalid asset type " + std::string(assetType.GetString()) + ", skipping.");
+			break;
+		}
+	}
+}
+
+void AssetManager::saveToJSON(rapidjson::Writer<rapidjson::StringBuffer>& writer)
+{
+	for (auto it = m_instance->m_textures.begin(); it != m_instance->m_textures.end(); it++)
+	{
+		std::string assetID = it->first;
+		std::string assetPath = it->second.first;
+
+		// Don't save generated textures
+		if (assetPath.empty()) continue;
+
+		writer.StartObject();
+
+		writer.Key("id");
+		writer.String(assetID.c_str());
+
+		writer.Key("path");
+		writer.String(assetPath.c_str());
+
+		writer.Key("type");
+		writer.String("texture");
+
+		writer.EndObject();
+	}
+
+	for (auto it = m_instance->m_meshes.begin(); it != m_instance->m_meshes.end(); it++)
+	{
+		std::string assetID = it->first;
+		std::string assetPath = it->second.first;
+
+		// Don't save generated meshes
+		if (assetPath.empty()) continue;
+
+		writer.StartObject();
+
+		writer.Key("id");
+		writer.String(assetID.c_str());
+
+		writer.Key("path");
+		writer.String(assetPath.c_str());
+
+		writer.Key("type");
+		writer.String("model");
+
+		writer.EndObject();
+	}
+
+	for (auto it = m_instance->m_vertexShaders.begin(); it != m_instance->m_vertexShaders.end(); it++)
+	{
+		std::string assetID = it->first;
+		std::string assetPath = it->second.first;
+
+		// Don't save default or generated shaders
+		if (assetID == "default" || assetPath.empty()) continue;
+
+		writer.StartObject();
+
+		writer.Key("id");
+		writer.String(assetID.c_str());
+
+		writer.Key("path");
+		writer.String(assetPath.c_str());
+
+		writer.Key("type");
+		writer.String("vertexShader");
+
+		writer.EndObject();
+	}
+
+	for (auto it = m_instance->m_pixelShaders.begin(); it != m_instance->m_pixelShaders.end(); it++)
+	{
+		std::string assetID = it->first;
+		std::string assetPath = it->second.first;
+
+		// Don't save default or generated shaders
+		if (assetID == "default" || assetPath.empty()) continue;
+
+		writer.StartObject();
+
+		writer.Key("id");
+		writer.String(assetID.c_str());
+
+		writer.Key("path");
+		writer.String(assetPath.c_str());
+
+		writer.Key("type");
+		writer.String("pixelShader");
+
+		writer.EndObject();
+	}
+
+	for (auto it = m_instance->m_fonts.begin(); it != m_instance->m_fonts.end(); it++)
+	{
+		std::string assetID = it->first;
+		std::string assetPath = it->second.first;
+
+		// Don't save default or generated fonts
+		if (assetID == "default" || assetPath.empty()) continue;
+
+		writer.StartObject();
+
+		writer.Key("id");
+		writer.String(assetID.c_str());
+
+		writer.Key("path");
+		writer.String(assetPath.c_str());
+
+		writer.Key("type");
+		writer.String("font");
+
+		writer.EndObject();
+	}
+
+	for (auto it = m_instance->m_materials.begin(); it != m_instance->m_materials.end(); it++)
+	{
+		std::string assetID = it->first;
+		std::string assetPath = it->second.first;
+
+		// Don't save the default material
+		if (assetID == "default") continue;
+
+		writer.StartObject();
+
+		std::string vertexShaderID = it->second.second->getVertexShaderID();
+		std::string pixelShaderID = it->second.second->getPixelShaderID();
+		std::string diffuseID = it->second.second->getDiffuseTextureID();
+		std::string specularID = it->second.second->getSpecularTextureID();
+		std::string normalID = it->second.second->getNormalTextureID();
+		std::string samplerID = it->second.second->getSamplerID();
+
+		writer.Key("id");
+		writer.String(assetID.c_str());
+
+		writer.Key("path");
+		writer.String(assetPath.c_str());
+
+		writer.Key("type");
+		writer.String("material");
+
+		writer.Key("vertexShader");
+		writer.String(vertexShaderID.c_str());
+
+		writer.Key("pixelShader");
+		writer.String(pixelShaderID.c_str());
+
+		writer.Key("diffuse");
+		writer.String(diffuseID.c_str());
+
+		writer.Key("specular");
+		writer.String(specularID.c_str());
+
+		writer.Key("normal");
+		writer.String(normalID.c_str());
+
+		writer.Key("sampler");
+		writer.String(samplerID.c_str());
+
+		writer.EndObject();
+	}
+
+	for (auto it = m_instance->m_samplers.begin(); it != m_instance->m_samplers.end(); it++)
+	{
+		std::string assetID = it->first;
+		std::string assetPath = it->second.first;
+
+		// Don't save default or generated samplers
+		if (assetID == "default" || assetPath.empty()) continue;
+
+		writer.StartObject();
+		
+		writer.Key("id");
+		writer.String(assetID.c_str());
+
+		writer.Key("path");
+		writer.String(assetPath.c_str());
+
+		writer.Key("type");
+		writer.String("sampler");
+
+		D3D11_SAMPLER_DESC desc;
+		it->second.second->GetDesc(&desc);
+
+		std::string addressUString = "wrap";
+		std::string addressVString = "wrap";
+		std::string addressWString = "wrap";
+
+		switch (desc.AddressU)
+		{
+		case D3D11_TEXTURE_ADDRESS_BORDER:
+			addressUString = "border";
+			break;
+
+		case D3D11_TEXTURE_ADDRESS_CLAMP:
+			addressUString = "clamp";
+			break;
+
+		case D3D11_TEXTURE_ADDRESS_MIRROR:
+			addressUString = "mirror";
+			break;
+
+		case D3D11_TEXTURE_ADDRESS_MIRROR_ONCE:
+			addressUString = "mirror_once";
+			break;
+
+		default:
+			break;
+		}
+
+		switch (desc.AddressV)
+		{
+		case D3D11_TEXTURE_ADDRESS_BORDER:
+			addressVString = "border";
+			break;
+
+		case D3D11_TEXTURE_ADDRESS_CLAMP:
+			addressVString = "clamp";
+			break;
+
+		case D3D11_TEXTURE_ADDRESS_MIRROR:
+			addressVString = "mirror";
+			break;
+
+		case D3D11_TEXTURE_ADDRESS_MIRROR_ONCE:
+			addressVString = "mirror_once";
+			break;
+
+		default:
+			break;
+		}
+
+		switch (desc.AddressW)
+		{
+		case D3D11_TEXTURE_ADDRESS_BORDER:
+			addressWString = "border";
+			break;
+
+		case D3D11_TEXTURE_ADDRESS_CLAMP:
+			addressWString = "clamp";
+			break;
+
+		case D3D11_TEXTURE_ADDRESS_MIRROR:
+			addressWString = "mirror";
+			break;
+
+		case D3D11_TEXTURE_ADDRESS_MIRROR_ONCE:
+			addressWString = "mirror_once";
+			break;
+
+		default:
+			break;
+		}
+
+		writer.Key("addressU");
+		writer.String(addressUString.c_str());
+
+		writer.Key("addressV");
+		writer.String(addressVString.c_str());
+
+		writer.Key("addressW");
+		writer.String(addressWString.c_str());
+
+		writer.Key("filter");
+		writer.String("min_mag_mip_linear"); // Only this filter type is supported right now
+
+		writer.Key("maxLOD");
+		if (desc.MaxLOD == D3D11_FLOAT32_MAX)
+		{
+			writer.String("float_max");
+		}
+		else
+		{
+			writer.Double((double)desc.MaxLOD);
+		}
+
+		writer.EndObject();
+	}
 }
 
 Mesh* AssetManager::getMesh(std::string id)
@@ -130,7 +638,7 @@ Mesh* AssetManager::getMesh(std::string id)
 		return nullptr;
 	}
 
-	return m_instance->m_meshes.at(id);
+	return m_instance->m_meshes.at(id).second;
 }
 
 Material* AssetManager::getMaterial(std::string id)
@@ -141,7 +649,7 @@ Material* AssetManager::getMaterial(std::string id)
 		return nullptr;
 	}
 
-	return m_instance->m_materials.at(id);
+	return m_instance->m_materials.at(id).second;
 }
 
 ID3D11ShaderResourceView* AssetManager::getTexture(std::string id)
@@ -152,7 +660,7 @@ ID3D11ShaderResourceView* AssetManager::getTexture(std::string id)
 		return nullptr;
 	}
 
-	return m_instance->m_textures.at(id);
+	return m_instance->m_textures.at(id).second;
 }
 
 ID3D11SamplerState* AssetManager::getSampler(std::string id)
@@ -163,7 +671,7 @@ ID3D11SamplerState* AssetManager::getSampler(std::string id)
 		return nullptr;
 	}
 
-	return m_instance->m_samplers.at(id);
+	return m_instance->m_samplers.at(id).second;
 }
 
 SimpleVertexShader* AssetManager::getVertexShader(std::string id)
@@ -174,7 +682,7 @@ SimpleVertexShader* AssetManager::getVertexShader(std::string id)
 		return nullptr;
 	}
 
-	return m_instance->m_vertexShaders.at(id);
+	return m_instance->m_vertexShaders.at(id).second;
 }
 
 SimplePixelShader* AssetManager::getPixelShader(std::string id)
@@ -185,7 +693,7 @@ SimplePixelShader* AssetManager::getPixelShader(std::string id)
 		return nullptr;
 	}
 
-	return m_instance->m_pixelShaders.at(id);
+	return m_instance->m_pixelShaders.at(id).second;
 }
 
 SpriteFont* AssetManager::getFont(std::string id)
@@ -196,7 +704,7 @@ SpriteFont* AssetManager::getFont(std::string id)
 		return nullptr;
 	}
 
-	return m_instance->m_fonts.at(id);
+	return m_instance->m_fonts.at(id).second;
 }
 
 Mesh* AssetManager::loadMesh(std::string id, std::string filepath)
@@ -367,22 +875,22 @@ Mesh* AssetManager::loadMesh(std::string id, std::string filepath)
 	// Close the file and create the actual buffers
 	obj.close();
 
-	return loadMesh(id, &vertices[0], vertices.size(), &indices[0], indices.size());
+	return loadMesh(id, filepath, &vertices[0], vertices.size(), &indices[0], indices.size());
 }
 
-Mesh* AssetManager::loadMesh(std::string id, Vertex* vertices, unsigned int vertexCount, unsigned int* indices, unsigned int indexCount)
+Mesh* AssetManager::loadMesh(std::string id, std::string filepath, Vertex* vertices, unsigned int vertexCount, unsigned int* indices, unsigned int indexCount)
 {
 	auto meshIterator = m_instance->m_meshes.find(id);
 	if (meshIterator != m_instance->m_meshes.end())
 	{
-		Output::Warning("Mesh with ID " + id + " already exists, consider getting the mesh instead of attempting to load it again.");
-		return meshIterator->second;
+		Output::Warning("Mesh with ID " + id + " already exists, consider getting the mesh instead of loading it again.");
+		return meshIterator->second.second;
 	}
 
 	m_instance->calculateTangentsAndBarycentric(vertices, vertexCount, indices);
 
 	Mesh* m = new Mesh(m_instance->m_device, vertices, vertexCount, indices, indexCount);
-	m_instance->m_meshes[id] = m;
+	m_instance->m_meshes[id] = std::pair<std::string, Mesh*>(filepath, m);
 
 	return m;
 }
@@ -468,8 +976,8 @@ Material* AssetManager::createMaterial(std::string id, std::string diffuseTextur
 	auto materialIterator = m_instance->m_materials.find(id);
 	if (materialIterator != m_instance->m_materials.end())
 	{
-		Output::Warning("Material with ID " + id + " already exists, consider getting the material instead of attempting to load it again.");
-		return materialIterator->second;
+		Output::Warning("Material with ID " + id + " already exists, consider getting the material instead of loading it again.");
+		return materialIterator->second.second;
 	}
 
 	if (m_instance->m_vertexShaders.find(vertexShaderID) == m_instance->m_vertexShaders.end())
@@ -508,10 +1016,9 @@ Material* AssetManager::createMaterial(std::string id, std::string diffuseTextur
 		return nullptr;
 	}
 
-	Material* m = new Material(m_instance->m_vertexShaders[vertexShaderID], m_instance->m_pixelShaders[pixelShaderID],
-		m_instance->m_textures[diffuseTextureID], m_instance->m_textures[specularTextureID], m_instance->m_textures[normalTextureID], m_instance->m_samplers[samplerID]);
+	Material* m = new Material(vertexShaderID, pixelShaderID, diffuseTextureID, specularTextureID, normalTextureID, samplerID);
 
-	m_instance->m_materials[id] = m;
+	m_instance->m_materials[id] = std::pair<std::string, Material*>("", m);
 	return m;
 }
 
@@ -524,8 +1031,8 @@ bool AssetManager::loadShader(std::string id, ShaderType type, std::string filep
 			auto vertexInterator = m_instance->m_vertexShaders.find(id);
 			if (vertexInterator != m_instance->m_vertexShaders.end())
 			{
-				Output::Warning("Vertex shader with ID " + id + " already exists, consider getting the vertex shader instead of attempting to load it again.");
-				return vertexInterator->second;
+				Output::Warning("Vertex shader with ID " + id + " already exists, consider getting the vertex shader instead of loading it again.");
+				return vertexInterator->second.second;
 			}
 
 			SimpleVertexShader* vs = new SimpleVertexShader(m_instance->m_device, m_instance->m_context);
@@ -537,7 +1044,7 @@ bool AssetManager::loadShader(std::string id, ShaderType type, std::string filep
 				return false;
 			}
 
-			m_instance->m_vertexShaders[id] = vs;
+			m_instance->m_vertexShaders[id] = std::pair<std::string, SimpleVertexShader*>(filepath, vs);
 			break;
 		}
 
@@ -546,8 +1053,8 @@ bool AssetManager::loadShader(std::string id, ShaderType type, std::string filep
 			auto pixelIterator = m_instance->m_pixelShaders.find(id);
 			if (pixelIterator != m_instance->m_pixelShaders.end())
 			{
-				Output::Warning("Pixel shader with ID " + id + " already exists, consider getting the pixel shader instead of attempting to load it again.");
-				return pixelIterator->second;
+				Output::Warning("Pixel shader with ID " + id + " already exists, consider getting the pixel shader instead of loading it again.");
+				return pixelIterator->second.second;
 			}
 
 			std::wstring filePathStr = L"Assets/Shaders/" + std::wstring(filepath.begin(), filepath.end());
@@ -558,7 +1065,7 @@ bool AssetManager::loadShader(std::string id, ShaderType type, std::string filep
 				delete ps;
 				return false;
 			}
-			m_instance->m_pixelShaders[id] = ps;
+			m_instance->m_pixelShaders[id] = std::pair<std::string, SimplePixelShader*>(filepath, ps);
 			break;
 		}
 		default:
@@ -577,8 +1084,8 @@ ID3D11ShaderResourceView* AssetManager::loadTexture(std::string id, std::string 
 	auto textureIterator = m_instance->m_textures.find(id);
 	if (textureIterator != m_instance->m_textures.end())
 	{
-		Output::Warning("Texture with ID " + id + " already exists, consider getting the texture instead of attempting to load it again.");
-		return textureIterator->second;
+		Output::Warning("Texture with ID " + id + " already exists, consider getting the texture instead of loading it again.");
+		return textureIterator->second.second;
 	}
 	
 	ID3D11ShaderResourceView* textureSRV;
@@ -601,7 +1108,7 @@ ID3D11ShaderResourceView* AssetManager::loadTexture(std::string id, std::string 
 		return nullptr;
 	}
 
-	m_instance->m_textures[id] = textureSRV;
+	m_instance->m_textures[id] = std::pair<std::string, ID3D11ShaderResourceView*>(filepath, textureSRV);
 	return textureSRV;
 }
 
@@ -650,7 +1157,7 @@ ID3D11ShaderResourceView* AssetManager::createSolidColorTexture(std::string id, 
 		return nullptr;
 	}
 
-	m_instance->m_textures[id] = textureSRV;
+	m_instance->m_textures[id] = std::pair<std::string, ID3D11ShaderResourceView*>("", textureSRV);
 	texture->Release();
 
 	return textureSRV;
@@ -664,8 +1171,8 @@ DirectX::SpriteFont* AssetManager::loadFont(std::string id, std::string filepath
 	auto fontIterator = m_instance->m_fonts.find(id);
 	if (fontIterator != m_instance->m_fonts.end())
 	{
-		Output::Warning("Font with ID " + id + " already exists, consider getting the font instead of attempting to load it again.");
-		return fontIterator->second;
+		Output::Warning("Font with ID " + id + " already exists, consider getting the font instead of loading it again.");
+		return fontIterator->second.second;
 	}
 
 	SpriteFont* font = new SpriteFont(m_instance->m_device, filePath.c_str());
@@ -675,7 +1182,7 @@ DirectX::SpriteFont* AssetManager::loadFont(std::string id, std::string filepath
 		return nullptr;
 	}
 
-	m_instance->m_fonts[id] = font;
+	m_instance->m_fonts[id] = std::pair<std::string, SpriteFont*>(filepath, font);
 	return font;
 }
 
@@ -684,8 +1191,8 @@ ID3D11SamplerState* AssetManager::createSampler(std::string id, const D3D11_SAMP
 	auto samplerIterator = m_instance->m_samplers.find(id);
 	if (samplerIterator != m_instance->m_samplers.end())
 	{
-		Output::Warning("Sampler with ID " + id + " already exists, consider getting the sampler instead of attempting to create it again.");
-		return samplerIterator->second;
+		Output::Warning("Sampler with ID " + id + " already exists, consider getting the sampler instead of creating it again.");
+		return samplerIterator->second.second;
 	}
 
 	ID3D11SamplerState* sampler;
@@ -707,6 +1214,6 @@ ID3D11SamplerState* AssetManager::createSampler(std::string id, const D3D11_SAMP
 		return nullptr;
 	}
 
-	m_instance->m_samplers[id] = sampler;
+	m_instance->m_samplers[id] = std::pair<std::string, ID3D11SamplerState*>("", sampler);
 	return sampler;
 }

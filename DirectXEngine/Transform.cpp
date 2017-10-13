@@ -42,6 +42,53 @@ void Transform::loadFromJSON(rapidjson::Value& dataObject)
 	}
 }
 
+void Transform::saveToJSON(rapidjson::Writer<rapidjson::StringBuffer>& writer)
+{
+	Component::saveToJSON(writer);
+
+	writer.Key("position");
+	writer.StartObject();
+
+	writer.Key("x");
+	writer.Double(m_position.x);
+
+	writer.Key("y");
+	writer.Double(m_position.y);
+
+	writer.Key("z");
+	writer.Double(m_position.z);
+
+	writer.EndObject();
+
+	writer.Key("rotation");
+	writer.StartObject();
+
+	writer.Key("x");
+	writer.Double(m_rotation.x);
+
+	writer.Key("y");
+	writer.Double(m_rotation.y);
+
+	writer.Key("z");
+	writer.Double(m_rotation.z);
+
+	writer.EndObject();
+
+	writer.Key("scale");
+	writer.StartObject();
+
+	writer.Key("x");
+	writer.Double(m_scale.x);
+
+	writer.Key("y");
+	writer.Double(m_scale.y);
+
+	writer.Key("z");
+	writer.Double(m_scale.z);
+
+	writer.EndObject();
+}
+
 const XMFLOAT3 Transform::getPosition() const
 {
 	return m_position;

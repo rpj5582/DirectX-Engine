@@ -135,9 +135,10 @@ void Scene::render()
 	renderGUI();
 }
 
-bool Scene::loadFromJSON(std::string filepath)
+bool Scene::loadFromJSON(std::string filename)
 {
-	std::string filePath = "Assets/Scenes/" + filepath;
+	// Load the json file
+	std::string filePath = "Assets/Scenes/" + filename;
 
 	std::ifstream ifs(filePath, std::ios::in | std::ios::binary);
 
@@ -172,251 +173,13 @@ bool Scene::loadFromJSON(std::string filepath)
 
 	delete jsonStringBuffer;
 
+	ifs.close();
+
+	// Load the scene's dependent assets.
 	rapidjson::Value& assets = dom["assets"];
-	for (rapidjson::SizeType i = 0; i < assets.Size(); i++)
-	{
-		rapidjson::Value& asset = assets[i];
-		rapidjson::Value& assetType = asset["type"];
-		
-		switch (stringHash(assetType.GetString()))
-		{
-		case stringHash("texture"):
-		{
-			rapidjson::Value& idRef = asset["id"];
-			rapidjson::Value& pathRef = asset["path"];
+	AssetManager::loadFromJSON(assets);
 
-			std::string id = idRef.GetString();
-			std::string path = pathRef.GetString();
-
-			AssetManager::loadTexture(id, path);
-			break;
-		}
-
-		case stringHash("model"):
-		{
-			rapidjson::Value& idRef = asset["id"];
-			rapidjson::Value& pathRef = asset["path"];
-
-			std::string id = idRef.GetString();
-			std::string path = pathRef.GetString();
-
-			AssetManager::loadMesh(id, path);
-			break;
-		}
-
-		case stringHash("font"):
-		{
-			rapidjson::Value& idRef = asset["id"];
-			rapidjson::Value& pathRef = asset["path"];
-
-			std::string id = idRef.GetString();
-			std::string path = pathRef.GetString();
-
-			AssetManager::loadFont(id, path);
-			break;
-		}
-
-		case stringHash("shader"):
-		{
-			rapidjson::Value& idRef = asset["id"];
-			rapidjson::Value& pathRef = asset["path"];
-			rapidjson::Value::MemberIterator shaderTypeIter = asset.FindMember("shaderType");
-
-			std::string id = idRef.GetString();
-			std::string path = pathRef.GetString();
-
-			std::string shaderTypeString = "default";
-			if (shaderTypeIter != asset.MemberEnd())
-			{
-				shaderTypeString = shaderTypeIter->value.GetString();
-			}
-
-			ShaderType shaderType = VertexShader;
-			if (shaderTypeString == "pixelShader")
-			{
-				shaderType = PixelShader;
-			}
-
-			AssetManager::loadShader(id, shaderType, path);
-			break;
-		}
-
-		case stringHash("material"):
-		{
-			rapidjson::Value& idRef = asset["id"];
-
-			rapidjson::Value::MemberIterator diffuseIter = asset.FindMember("diffuse");
-			rapidjson::Value::MemberIterator specularIter = asset.FindMember("specular");
-			rapidjson::Value::MemberIterator normalIter = asset.FindMember("normal");
-			rapidjson::Value::MemberIterator samplerIter = asset.FindMember("sampler");
-			rapidjson::Value::MemberIterator vertexShaderIter = asset.FindMember("vertexShader");
-			rapidjson::Value::MemberIterator pixelShaderIter = asset.FindMember("pixelShader");
-
-			std::string id = idRef.GetString();
-			std::string diffuse = "defaultDiffuse";
-			std::string specular = "defaultSpecular";
-			std::string normal = "defaultNormal";
-			std::string sampler = "default";
-			std::string vertexShader = "default";
-			std::string pixelShader = "default";
-
-			if (diffuseIter != asset.MemberEnd())
-			{
-				diffuse = diffuseIter->value.GetString();
-			}
-
-			if (specularIter != asset.MemberEnd())
-			{
-				specular = specularIter->value.GetString();
-			}
-
-			if (normalIter != asset.MemberEnd())
-			{
-				normal = normalIter->value.GetString();
-			}
-
-			if (samplerIter != asset.MemberEnd())
-			{
-				sampler = samplerIter->value.GetString();
-			}
-
-			if (vertexShaderIter != asset.MemberEnd())
-			{
-				vertexShader = vertexShaderIter->value.GetString();
-			}
-
-			if (pixelShaderIter != asset.MemberEnd())
-			{
-				pixelShader = pixelShaderIter->value.GetString();
-			}
-
-			AssetManager::createMaterial(id, diffuse, specular, normal, sampler, vertexShader, pixelShader);
-			break;
-		}
-
-		case stringHash("sampler"):
-		{
-			rapidjson::Value& idRef = asset["id"];
-			rapidjson::Value::MemberIterator addressUIter = asset.FindMember("addressU");
-			rapidjson::Value::MemberIterator addressVIter = asset.FindMember("addressV");
-			rapidjson::Value::MemberIterator addressWIter = asset.FindMember("addressW");
-			rapidjson::Value::MemberIterator filterIter = asset.FindMember("filter");
-			rapidjson::Value::MemberIterator maxLODIter = asset.FindMember("maxLOD");
-
-			std::string id = idRef.GetString();
-			std::string addressUString = "wrap";
-			std::string addressVString = "wrap";
-			std::string addressWString = "wrap";
-			std::string filterString = "min_mag_mip_linear";
-			std::string maxLODString = "float_max";
-
-			if (addressUIter != asset.MemberEnd())
-			{
-				addressUString = addressUIter->value.GetString();
-			}
-
-			if (addressVIter != asset.MemberEnd())
-			{
-				addressVString = addressVIter->value.GetString();
-			}
-
-			if (addressWIter != asset.MemberEnd())
-			{
-				addressWString = addressWIter->value.GetString();
-			}
-
-			if (filterIter != asset.MemberEnd())
-			{
-				filterString = filterIter->value.GetString();
-			}
-
-			if (maxLODIter != asset.MemberEnd())
-			{
-				maxLODString = maxLODIter->value.GetString();
-			}
-
-			D3D11_TEXTURE_ADDRESS_MODE addressU = D3D11_TEXTURE_ADDRESS_WRAP;
-			D3D11_TEXTURE_ADDRESS_MODE addressV = D3D11_TEXTURE_ADDRESS_WRAP;
-			D3D11_TEXTURE_ADDRESS_MODE addressW = D3D11_TEXTURE_ADDRESS_WRAP;
-			D3D11_FILTER filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
-			float maxLOD = D3D11_FLOAT32_MAX;
-
-			if (addressUString == "border")
-			{
-				addressU = D3D11_TEXTURE_ADDRESS_BORDER;
-			}
-			else if (addressUString == "clamp")
-			{
-				addressU = D3D11_TEXTURE_ADDRESS_CLAMP;
-			}
-			else if (addressUString == "mirror")
-			{
-				addressU = D3D11_TEXTURE_ADDRESS_MIRROR;
-			}
-			else if (addressUString == "mirror_once")
-			{
-				addressU = D3D11_TEXTURE_ADDRESS_MIRROR_ONCE;
-			}
-
-			if (addressVString == "border")
-			{
-				addressV = D3D11_TEXTURE_ADDRESS_BORDER;
-			}
-			else if (addressVString == "clamp")
-			{
-				addressV = D3D11_TEXTURE_ADDRESS_CLAMP;
-			}
-			else if (addressVString == "mirror")
-			{
-				addressV = D3D11_TEXTURE_ADDRESS_MIRROR;
-			}
-			else if (addressVString == "mirror_once")
-			{
-				addressV = D3D11_TEXTURE_ADDRESS_MIRROR_ONCE;
-			}
-
-			if (addressWString == "border")
-			{
-				addressW = D3D11_TEXTURE_ADDRESS_BORDER;
-			}
-			else if (addressWString == "clamp")
-			{
-				addressW = D3D11_TEXTURE_ADDRESS_CLAMP;
-			}
-			else if (addressWString == "mirror")
-			{
-				addressW = D3D11_TEXTURE_ADDRESS_MIRROR;
-			}
-			else if (addressWString == "mirror_once")
-			{
-				addressW = D3D11_TEXTURE_ADDRESS_MIRROR_ONCE;
-			}
-
-			// Don't support different sampler filters yet because there are too many options
-
-			try
-			{
-				maxLOD = (float)stoi(maxLODString);
-			}
-			catch (std::invalid_argument&) {}
-
-			D3D11_SAMPLER_DESC samplerDesc = {};
-			samplerDesc.AddressU = addressU;
-			samplerDesc.AddressV = addressV;
-			samplerDesc.AddressW = addressW;
-			samplerDesc.Filter = filter;
-			samplerDesc.MaxLOD = maxLOD;
-
-			AssetManager::createSampler(id, samplerDesc);
-			break;
-		}
-
-		default:
-			Output::Warning("Invalid asset type " + std::string(assetType.GetString()) + ", skipping.");
-			break;
-		}
-	}
-
+	// Load the scene's entities.
 	rapidjson::Value& entities = dom["entities"];
 	for (rapidjson::SizeType i = 0; i < entities.Size(); i++)
 	{
@@ -448,6 +211,7 @@ bool Scene::loadFromJSON(std::string filepath)
 		}
 	}
 
+	// Loads the scene's main camera
 	rapidjson::Value& mainCamera = dom["mainCamera"];
 
 	Entity* cameraEntity = getEntityByName(mainCamera.GetString());
@@ -465,7 +229,68 @@ bool Scene::loadFromJSON(std::string filepath)
 		Output::Warning("Could not set main camera because entity with name " + std::string(mainCamera.GetString()) + " does not exist.");
 	}
 	
+	Output::Message("Loaded scene from " + filePath);
 	return true;
+}
+
+void Scene::saveToJSON(std::string filename)
+{
+	std::string filePath = "Assets/Scenes/" + filename;
+
+	rapidjson::StringBuffer s;
+	rapidjson::Writer<rapidjson::StringBuffer> writer(s);
+
+	writer.StartObject();
+
+	// Save 3 major components: The main camera, the dependent assets, and the entities.
+
+	// 1. Camera
+	if (m_mainCamera)
+	{
+		std::string mainCameraName = m_mainCamera->getEntity().getName();
+		writer.Key("mainCamera");
+		writer.String(mainCameraName.c_str());
+	}
+	else
+	{
+		writer.String("undefined");
+	}
+
+	// 2. Assets
+	writer.Key("assets");
+	writer.StartArray();
+	AssetManager::saveToJSON(writer);
+	writer.EndArray();
+
+	// 3. Entities
+	writer.Key("entities");
+	writer.StartArray();
+	for (unsigned int i = 0; i < m_entities.size(); i++)
+	{
+		m_entities[i]->saveToJSON(writer);
+	}
+	writer.EndArray();
+
+	writer.EndObject();
+
+	// Now stringify the DOM and save it to a file
+	std::ofstream ofs(filePath, std::ios::out);
+
+	if (!ofs.is_open())
+	{
+		Output::Error("Failed to create file " + filename);
+
+		char errorMessage[512];
+		strerror_s(errorMessage, 512, errno);
+		std::string errString = std::string(errorMessage);
+		Output::Error("Failed to create file at " + filePath + ": " + errString);
+		return;
+	}
+
+	ofs.write(s.GetString(), s.GetSize());
+	ofs.close();
+
+	Output::Message("Saved scene to " + filePath);
 }
 
 DirectX::XMMATRIX Scene::getProjectionMatrix() const
@@ -543,7 +368,6 @@ void Scene::renderGeometry()
 	unsigned int lightCount = 0;
 	for (unsigned int i = 0; i < m_entities.size(); i++)
 	{
-		//  Don't use disabled entities
 		if (!m_entities[i]->enabled) continue;
 
 		LightComponent* lightComponent = nullptr;
@@ -555,7 +379,7 @@ void Scene::renderGeometry()
 				break;
 		}
 
-		if (!lightComponent) continue;
+		if (!lightComponent || !lightComponent->enabled) continue;
 
 		const LightSettings lightSettings = lightComponent->getLightSettings();
 
@@ -600,6 +424,8 @@ void Scene::renderGUI()
 
 	for (unsigned int i = 0; i < m_entities.size(); i++)
 	{
+		if (!m_entities[i]->enabled) continue;
+
 		GUIComponent* guiComponent = nullptr;
 		std::vector<Component*>& components = m_entities[i]->getComponents();
 		for (unsigned int j = 0; j < components.size(); j++)
@@ -607,9 +433,10 @@ void Scene::renderGUI()
 			guiComponent = dynamic_cast<GUIComponent*>(components[j]);
 			if (guiComponent)
 				break;
+				
 		}
 
-		if (!guiComponent) continue;
+		if (!guiComponent || !guiComponent->enabled) continue;
 
 		guis.push_back(guiComponent);
 	}

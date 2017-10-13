@@ -12,7 +12,7 @@ RenderComponent::~RenderComponent()
 
 void RenderComponent::init()
 {
-	m_material = AssetManager::getMaterial("default");
+	setMaterial("default");
 }
 
 void RenderComponent::loadFromJSON(rapidjson::Value& dataObject)
@@ -22,7 +22,7 @@ void RenderComponent::loadFromJSON(rapidjson::Value& dataObject)
 	rapidjson::Value::MemberIterator material = dataObject.FindMember("material");
 	if (material != dataObject.MemberEnd())
 	{
-		m_material = AssetManager::getMaterial(material->value.GetString());
+		setMaterial(material->value.GetString());
 	}
 
 	rapidjson::Value::MemberIterator renderStyle = dataObject.FindMember("renderStyle");
@@ -56,14 +56,54 @@ void RenderComponent::loadFromJSON(rapidjson::Value& dataObject)
 	}
 }
 
+void RenderComponent::saveToJSON(rapidjson::Writer<rapidjson::StringBuffer>& writer)
+{
+	Component::saveToJSON(writer);
+
+	writer.Key("material");
+	writer.String(m_materialID.c_str());
+
+	writer.Key("renderStyle");
+	switch (m_renderStyle)
+	{
+	case SOLID:
+		writer.String("solid");
+		break;
+
+	case WIREFRAME:
+		writer.String("wireframe");
+		break;
+
+	case SOLID_WIREFRAME:
+		writer.String("solid-wireframe");
+		break;
+
+	default:
+		Output::Warning("Invalid render style " + std::to_string(m_renderStyle) + " on RenderComponent of entity " + entity.getName() + ". Saving default of SOLID.");
+		writer.String("solid");
+		break;
+	}
+}
+
 Material* RenderComponent::getMaterial() const
 {
 	return m_material;
 }
 
-void RenderComponent::setMaterial(Material* material)
+void RenderComponent::setMaterial(std::string materialID)
 {
-	m_material = material;
+	m_material = AssetManager::getMaterial(materialID);
+	if (m_material)
+	{
+		m_materialID = materialID;
+	}
+	else
+	{
+		m_materialID = "";
+		m_material = nullptr;
+	}
+	
+	
 }
 
 RenderStyle RenderComponent::getRenderStyle() const

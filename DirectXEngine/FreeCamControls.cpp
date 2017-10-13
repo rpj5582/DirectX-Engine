@@ -101,6 +101,20 @@ void FreeCamControls::loadFromJSON(rapidjson::Value& dataObject)
 	}
 }
 
+void FreeCamControls::saveToJSON(rapidjson::Writer<rapidjson::StringBuffer>& writer)
+{
+	Component::saveToJSON(writer);
+
+	writer.Key("moveSpeedFast");
+	writer.Double(moveSpeedFast);
+
+	writer.Key("moveSpeedNormal");
+	writer.Double(moveSpeedNormal);
+
+	writer.Key("moveSpeedSlow");
+	writer.Double(moveSpeedSlow);
+}
+
 void FreeCamControls::onMouseDown(WPARAM buttonState, int x, int y)
 {
 	if (buttonState == MK_LBUTTON)

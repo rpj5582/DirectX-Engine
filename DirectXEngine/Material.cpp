@@ -1,19 +1,58 @@
 #include "Material.h"
 
-Material::Material(SimpleVertexShader* vertexShader, SimplePixelShader* pixelShader,
-	ID3D11ShaderResourceView* diffuseTextureSRV, ID3D11ShaderResourceView* specularTextureSRV, ID3D11ShaderResourceView* normalTextureSRV, ID3D11SamplerState* sampler)
-{
-	m_vertexShader = vertexShader;
-	m_pixelShader = pixelShader;
+#include "AssetManager.h"
 
-	m_diffuseTextureSRV = diffuseTextureSRV;
-	m_specularTextureSRV = specularTextureSRV;
-	m_normalTextureSRV = normalTextureSRV;
-	m_sampler = sampler;
+Material::Material(std::string vertexShaderID, std::string pixelShaderID, std::string diffuseTextureID,
+	std::string specularTextureID, std::string normalTextureID, std::string samplerID)
+{
+	m_vertexShaderID = vertexShaderID;
+	m_pixelShaderID = pixelShaderID;
+	m_diffuseTextureID = diffuseTextureID;
+	m_specularTextureID = specularTextureID;
+	m_normalTextureID = normalTextureID;
+	m_samplerID = samplerID;
+
+	m_vertexShader = AssetManager::getVertexShader(vertexShaderID);
+	m_pixelShader = AssetManager::getPixelShader(pixelShaderID);
+
+	m_diffuseTextureSRV = AssetManager::getTexture(diffuseTextureID);
+	m_specularTextureSRV = AssetManager::getTexture(specularTextureID);
+	m_normalTextureSRV = AssetManager::getTexture(normalTextureID);
+	m_sampler = AssetManager::getSampler(samplerID);
 }
 
 Material::~Material()
 {
+}
+
+std::string Material::getVertexShaderID() const
+{
+	return m_vertexShaderID;
+}
+
+std::string Material::getPixelShaderID() const
+{
+	return m_pixelShaderID;
+}
+
+std::string Material::getDiffuseTextureID() const
+{
+	return m_diffuseTextureID;
+}
+
+std::string Material::getSpecularTextureID() const
+{
+	return m_specularTextureID;
+}
+
+std::string Material::getNormalTextureID() const
+{
+	return m_normalTextureID;
+}
+
+std::string Material::getSamplerID() const
+{
+	return m_samplerID;
 }
 
 SimpleVertexShader* Material::getVertexShader() const

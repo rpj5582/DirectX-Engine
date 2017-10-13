@@ -40,7 +40,7 @@ void LightComponent::loadFromJSON(rapidjson::Value& dataObject)
 			break;
 
 		default:
-			Output::Warning("Invalid light type " + lightTypeString + " on LightComponent of entity " + entity.getName() + ", treating as directional light.");
+			Output::Warning("Invalid light type " + lightTypeString + " on LightComponent of entity " + entity.getName() + ", treating as a directional light.");
 			break;
 		}
 	}
@@ -75,6 +75,61 @@ void LightComponent::loadFromJSON(rapidjson::Value& dataObject)
 		{
 			m_light.spotAngle = spotAngle->value.GetFloat();
 		}
+}
+
+void LightComponent::saveToJSON(rapidjson::Writer<rapidjson::StringBuffer>& writer)
+{
+	Component::saveToJSON(writer);
+
+	writer.Key("type");
+	switch (m_lightType)
+	{
+	case POINT_LIGHT:
+		writer.String("point");
+		break;
+
+	case DIRECTIONAL_LIGHT:
+		writer.String("directional");
+		break;
+
+	case SPOT_LIGHT:
+		writer.String("spot");
+		break;
+
+	default:
+		Output::Warning("Invalid light type " + std::to_string(m_lightType) + " on LightComponent of entity " + entity.getName() + ", saving as a directional light.");
+		writer.String("directional");
+		break;
+	}
+
+	writer.Key("color");
+	writer.StartObject();
+
+	writer.Key("r");
+	writer.Double(m_light.color.x);
+
+	writer.Key("g");
+	writer.Double(m_light.color.y);
+
+	writer.Key("b");
+	writer.Double(m_light.color.z);
+
+	writer.Key("a");
+	writer.Double(m_light.color.w);
+
+	writer.EndObject();
+
+	writer.Key("brightness");
+	writer.Double(m_light.brightness);
+
+	writer.Key("specularity");
+	writer.Double(m_light.specularity);
+
+	writer.Key("radius");
+	writer.Double(m_light.radius);
+
+	writer.Key("spotAngle");
+	writer.Double(m_light.spotAngle);
 }
 
 LightType LightComponent::getLightType() const

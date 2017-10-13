@@ -9,6 +9,7 @@ public:
 
 	virtual void init() override;
 	virtual void loadFromJSON(rapidjson::Value& dataObject) override;
+	virtual void saveToJSON(rapidjson::Writer<rapidjson::StringBuffer>& writer) override;
 
 	bool containsPoint(int x, int y) const;
 

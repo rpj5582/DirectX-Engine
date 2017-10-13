@@ -5,6 +5,11 @@
 #include "Mesh.h"
 #include "Material.h"
 
+#include "rapidjson\document.h"
+#include "rapidjson\writer.h"
+
+#include "Util.h"
+
 #include <SpriteFont.h>
 #include <unordered_map>
 
@@ -21,6 +26,9 @@ public:
 	~AssetManager();
 
 	bool init();
+
+	static void loadFromJSON(rapidjson::Value& assetsArray);
+	static void saveToJSON(rapidjson::Writer<rapidjson::StringBuffer>& writer);
 
 	static Mesh* getMesh(std::string id);
 	static Material* getMaterial(std::string id);
@@ -42,7 +50,7 @@ public:
 	static bool loadShader(std::string id, ShaderType type, std::string filepath);
 
 	static Mesh* loadMesh(std::string id, std::string filepath);
-	static Mesh* loadMesh(std::string id, Vertex* vertices, unsigned int vertexCount, unsigned int* indices, unsigned int indexCount);
+	static Mesh* loadMesh(std::string id, std::string filepath, Vertex* vertices, unsigned int vertexCount, unsigned int* indices, unsigned int indexCount);
 
 	static ID3D11ShaderResourceView* loadTexture(std::string id, std::string filepath);
 	static ID3D11ShaderResourceView* createSolidColorTexture(std::string id, unsigned int hexColor);
@@ -58,14 +66,14 @@ private:
 	ID3D11Device* m_device;
 	ID3D11DeviceContext* m_context;
 
-	std::unordered_map<std::string, Mesh*> m_meshes;
-	std::unordered_map<std::string, Material*> m_materials;
+	std::unordered_map<std::string, std::pair<std::string, Mesh*>> m_meshes;
+	std::unordered_map<std::string, std::pair<std::string, Material*>> m_materials;
 
-	std::unordered_map<std::string, SimpleVertexShader*> m_vertexShaders;
-	std::unordered_map<std::string, SimplePixelShader*> m_pixelShaders;
+	std::unordered_map<std::string, std::pair<std::string, SimpleVertexShader*>> m_vertexShaders;
+	std::unordered_map<std::string, std::pair<std::string, SimplePixelShader*>> m_pixelShaders;
 
-	std::unordered_map<std::string, ID3D11ShaderResourceView*> m_textures;
-	std::unordered_map<std::string, ID3D11SamplerState*> m_samplers;
+	std::unordered_map<std::string, std::pair<std::string, ID3D11ShaderResourceView*>> m_textures;
+	std::unordered_map<std::string, std::pair<std::string, ID3D11SamplerState*>> m_samplers;
 
-	std::unordered_map<std::string, DirectX::SpriteFont*> m_fonts;
+	std::unordered_map<std::string, std::pair<std::string, DirectX::SpriteFont*>> m_fonts;
 };

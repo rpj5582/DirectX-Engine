@@ -5,18 +5,31 @@
 class Material
 {
 public:
-	Material(SimpleVertexShader* vertexShader, SimplePixelShader* pixelShader,
-		ID3D11ShaderResourceView* diffuseTextureSRV, ID3D11ShaderResourceView* specularTextureSRV, ID3D11ShaderResourceView* normalTextureSRV, ID3D11SamplerState* sampler);
+	Material(std::string vertexShaderID, std::string pixelShaderID, std::string diffuseTextureID,
+		std::string specularTextureID, std::string normalTextureID, std::string samplerID);
 	~Material();
+
+	std::string getVertexShaderID() const;
+	std::string getPixelShaderID() const;
+	std::string getDiffuseTextureID() const;
+	std::string getSpecularTextureID() const;
+	std::string getNormalTextureID() const;
+	std::string getSamplerID() const;
 
 	SimpleVertexShader* getVertexShader() const;
 	SimplePixelShader* getPixelShader() const;
+	ID3D11ShaderResourceView* getDiffuseTextureSRV() const;
 
 	void useMaterial();
 
-	ID3D11ShaderResourceView* getDiffuseTextureSRV() const;
-
 private:
+	std::string m_vertexShaderID;
+	std::string m_pixelShaderID;
+	std::string m_diffuseTextureID;
+	std::string m_specularTextureID;
+	std::string m_normalTextureID;
+	std::string m_samplerID;
+
 	SimpleVertexShader* m_vertexShader;
 	SimplePixelShader* m_pixelShader;
 

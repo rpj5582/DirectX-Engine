@@ -8,6 +8,7 @@ public:
 	~Transform();
 
 	virtual void loadFromJSON(rapidjson::Value& dataObject) override;
+	virtual void saveToJSON(rapidjson::Writer<rapidjson::StringBuffer>& writer) override;
 
 	const DirectX::XMFLOAT3 getPosition() const;
 	const DirectX::XMFLOAT3 getRotation() const;

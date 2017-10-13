@@ -1,5 +1,7 @@
 #include "Component.h"
 
+#include "ComponentRegistry.h"
+
 Component::Component(Entity& entity) : entity(entity), enabled(true)
 {
 }
@@ -43,6 +45,12 @@ void Component::loadFromJSON(rapidjson::Value& dataObject)
 	{
 		enabled = componentEnabled->value.GetBool();
 	}
+}
+
+void Component::saveToJSON(rapidjson::Writer<rapidjson::StringBuffer>& writer)
+{
+	writer.Key("enabled");
+	writer.Bool(enabled);
 }
 
 Entity& Component::getEntity() const

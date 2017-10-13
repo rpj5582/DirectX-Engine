@@ -27,6 +27,28 @@ void GUIComponent::loadFromJSON(rapidjson::Value& dataObject)
 	}
 }
 
+void GUIComponent::saveToJSON(rapidjson::Writer<rapidjson::StringBuffer>& writer)
+{
+	Component::saveToJSON(writer);
+
+	writer.Key("color");
+	writer.StartObject();
+
+	writer.Key("r");
+	writer.Double(m_color.x);
+
+	writer.Key("g");
+	writer.Double(m_color.y);
+
+	writer.Key("b");
+	writer.Double(m_color.z);
+
+	writer.Key("a");
+	writer.Double(m_color.w);
+
+	writer.EndObject();
+}
+
 DirectX::XMFLOAT4 GUIComponent::getColor() const
 {
 	return m_color;

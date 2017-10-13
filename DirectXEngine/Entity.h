@@ -1,5 +1,8 @@
 #pragma once
 
+#include "rapidjson\document.h"
+#include "rapidjson\writer.h"
+
 #include <string>
 #include <vector>
 #include <Windows.h>
@@ -13,6 +16,8 @@ public:
 
 	void update(float deltaTime, float totalTime);
 	void lateUpdate(float deltaTime, float totalTime);
+
+	void saveToJSON(rapidjson::Writer<rapidjson::StringBuffer>& writer) const;
 
 	std::string getName() const;
 

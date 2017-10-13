@@ -10,6 +10,7 @@ GUIButtonComponent::GUIButtonComponent(Entity& entity) : GUISpriteComponent(enti
 	m_isClicking = false;
 
 	m_font = nullptr;
+	m_fontID = "";
 	m_text = "";
 	m_textColor = XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f);
 }
@@ -27,7 +28,7 @@ void GUIButtonComponent::init()
 	entity.subscribeMouseDown(this);
 	entity.subscribeMouseUp(this);
 
-	m_font = AssetManager::getFont("Arial_16pt");
+	setFont("default");
 }
 
 void GUIButtonComponent::loadFromJSON(rapidjson::Value& dataObject)
@@ -37,20 +38,48 @@ void GUIButtonComponent::loadFromJSON(rapidjson::Value& dataObject)
 	rapidjson::Value::MemberIterator font = dataObject.FindMember("font");
 	if (font != dataObject.MemberEnd())
 	{
-		m_font = AssetManager::getFont(font->value.GetString());
+		setFont(font->value.GetString());
 	}
 
 	rapidjson::Value::MemberIterator text = dataObject.FindMember("text");
 	if (text != dataObject.MemberEnd())
 	{
-		m_text = text->value.GetString();
+		setText(text->value.GetString());
 	}
 
 	rapidjson::Value::MemberIterator textColor = dataObject.FindMember("textColor");
 	if (textColor != dataObject.MemberEnd())
 	{
-		m_textColor = XMFLOAT4(textColor->value["r"].GetFloat(), textColor->value["g"].GetFloat(), textColor->value["b"].GetFloat(), textColor->value["a"].GetFloat());
+		setTextColor(XMFLOAT4(textColor->value["r"].GetFloat(), textColor->value["g"].GetFloat(), textColor->value["b"].GetFloat(), textColor->value["a"].GetFloat()));
 	}
+}
+
+void GUIButtonComponent::saveToJSON(rapidjson::Writer<rapidjson::StringBuffer>& writer)
+{
+	Component::saveToJSON(writer);
+
+	writer.Key("font");
+	writer.String(m_fontID.c_str());
+
+	writer.Key("text");
+	writer.String(m_text.c_str());
+
+	writer.Key("textColor");
+	writer.StartObject();
+
+	writer.Key("r");
+	writer.Double(m_textColor.x);
+
+	writer.Key("g");
+	writer.Double(m_textColor.y);
+
+	writer.Key("b");
+	writer.Double(m_textColor.z);
+
+	writer.Key("a");
+	writer.Double(m_textColor.w);
+
+	writer.EndObject();
 }
 
 void GUIButtonComponent::draw(DirectX::SpriteBatch& spriteBatch) const
@@ -76,9 +105,18 @@ DirectX::SpriteFont* GUIButtonComponent::getFont() const
 	return m_font;
 }
 
-void GUIButtonComponent::setFont(DirectX::SpriteFont* font)
+void GUIButtonComponent::setFont(std::string fontID)
 {
-	m_font = font;
+	m_font = AssetManager::getFont(fontID);
+	if (m_font)
+	{
+		m_fontID = fontID;
+	}
+	else
+	{
+		m_fontID = "";
+		m_font = nullptr;
+	}
 }
 
 std::string GUIButtonComponent::getText() const

@@ -21,10 +21,14 @@
 			"pixelShader": ...
 		},
 		{
-			"type": "shader",
+			"type": "vertexShader",
 			"id": ...,
-			"path": ...,
-			"shaderType": ...
+			"path": ...
+		},
+		{
+			"type": "pixelShader",
+			"id": ...,
+			"path": ...
 		},
 		{
 			"type": "font",
@@ -45,6 +49,7 @@
 	"entities": [
 		{
 			"name": "Cube",
+			"enabled": true,
 			"components": [
 				{
 					"type": "Transform",
@@ -71,5 +76,7 @@
 				}
 			]
 		}
-	]
+	],
+	
+	"mainCamera": ...
 }

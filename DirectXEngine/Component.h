@@ -4,19 +4,12 @@
 #include "AssetManager.h"
 
 #include "rapidjson\document.h"
+#include "rapidjson\writer.h"
+
+#include "Util.h"
 
 #include <Windows.h>
 #include <DirectXMath.h>
-
-
-// Function taken from here: http://rextester.com/YJB48513
-static constexpr unsigned int fnv1aBasis = 0x811C9DC5;
-static constexpr unsigned int fnv1aPrime = 0x01000193;
-
-constexpr unsigned int stringHash(const char* string, unsigned int h = fnv1aBasis)
-{
-	return !*string ? h : stringHash(string + 1, static_cast<unsigned int>((h ^ *string) * static_cast<unsigned long long>(fnv1aPrime)));
-}
 
 class Component
 {
@@ -27,6 +20,7 @@ public:
 	virtual void update(float deltaTime, float totalTime);
 	virtual void lateUpdate(float deltaTime, float totalTime);
 	virtual void loadFromJSON(rapidjson::Value& dataObject);
+	virtual void saveToJSON(rapidjson::Writer<rapidjson::StringBuffer>& writer);
 
 	Entity& getEntity() const;
 
@@ -41,5 +35,5 @@ protected:
 	virtual void onMouseMove(WPARAM buttonState, int x, int y);
 	virtual void onMouseWheel(float wheelDelta, int x, int y);
 
-	Entity& entity;
+	Entity& entity;	
 };

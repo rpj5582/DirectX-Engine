@@ -34,7 +34,8 @@ public:
 	void onMouseWheel(float wheelDelta, int x, int y);
 
 protected:
-	bool loadFromJSON(std::string filepath);
+	bool loadFromJSON(std::string filename);
+	void saveToJSON(std::string filename);
 
 	Entity* createEntity(std::string name = "Entity");
 	void deleteEntity(Entity* entity);

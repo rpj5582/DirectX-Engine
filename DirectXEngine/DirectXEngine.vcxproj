@@ -165,6 +165,7 @@
     <ClInclude Include="Scene1.h" />
     <ClInclude Include="SimpleShader.h" />
     <ClInclude Include="Transform.h" />
+    <ClInclude Include="Util.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="LightingFunctions.hlsli" />

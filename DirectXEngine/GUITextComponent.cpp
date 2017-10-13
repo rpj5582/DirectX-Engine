@@ -18,7 +18,7 @@ void GUITextComponent::init()
 {
 	GUIComponent::init();
 
-	m_font = AssetManager::getFont("Arial_16pt");
+	setFont("default");
 }
 
 void GUITextComponent::loadFromJSON(rapidjson::Value& dataObject)
@@ -28,7 +28,7 @@ void GUITextComponent::loadFromJSON(rapidjson::Value& dataObject)
 	rapidjson::Value::MemberIterator font = dataObject.FindMember("font");
 	if (font != dataObject.MemberEnd())
 	{
-		m_font = AssetManager::getFont(font->value.GetString());
+		setFont(font->value.GetString());
 	}
 
 	rapidjson::Value::MemberIterator text = dataObject.FindMember("text");
@@ -36,6 +36,17 @@ void GUITextComponent::loadFromJSON(rapidjson::Value& dataObject)
 	{
 		m_text = text->value.GetString();
 	}
+}
+
+void GUITextComponent::saveToJSON(rapidjson::Writer<rapidjson::StringBuffer>& writer)
+{
+	GUIComponent::saveToJSON(writer);
+
+	writer.Key("font");
+	writer.String(m_fontID.c_str());
+
+	writer.Key("text");
+	writer.String(m_text.c_str());
 }
 
 void GUITextComponent::draw(DirectX::SpriteBatch& spriteBatch) const
@@ -61,9 +72,18 @@ SpriteFont* GUITextComponent::getFont() const
 	return m_font;
 }
 
-void GUITextComponent::setFont(SpriteFont* font)
+void GUITextComponent::setFont(std::string fontID)
 {
-	m_font = font;
+	m_font = AssetManager::getFont(fontID);
+	if (m_font)
+	{
+		m_fontID = fontID;
+	}
+	else
+	{
+		m_fontID = "";
+		m_font = nullptr;
+	}
 }
 
 std::string GUITextComponent::getText() const
