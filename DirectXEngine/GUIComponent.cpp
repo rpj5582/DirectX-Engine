@@ -13,7 +13,11 @@ GUIComponent::~GUIComponent()
 
 void GUIComponent::init()
 {
+	Component::init();
+
 	m_color = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
+
+	Debug::entityDebugWindow->addVariable(&m_color, TW_TYPE_COLOR4F, "Color", typeName, entity.getName());
 }
 
 void GUIComponent::loadFromJSON(rapidjson::Value& dataObject)

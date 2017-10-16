@@ -14,15 +14,15 @@ bool Scene1::init()
 {
 	if (!Scene::init()) return false;
 
-	if (!loadFromJSON("scene1.json")) return false;
+	//if (!loadFromJSON("scene1.json")) return false;
 
-	// The onclick callback can't be saved to a json file, so set the callback here
-	Entity* guiButtonEntity = getEntityByName("Button");
-	GUIButtonComponent* guiButton = guiButtonEntity->getComponent<GUIButtonComponent>();
-	guiButton->setOnClickCallback([guiButton]()
-	{
-		guiButton->setText("Yay!");
-	});
+	//// The onclick callback can't be saved to a json file, so set the callback here
+	//Entity* guiButtonEntity = getEntityByName("Button");
+	//GUIButtonComponent* guiButton = guiButtonEntity->getComponent<GUIButtonComponent>();
+	//guiButton->setOnClickCallback([guiButton]()
+	//{
+	//	guiButton->setText("Yay!");
+	//});
 
 	//AssetManager::loadTexture("cracks", "cracks.png");
 	//AssetManager::loadTexture("cracks_spec", "cracks_spec.png");
@@ -127,6 +127,8 @@ bool Scene1::init()
 
 	//Entity* guiButtonEntity = createEntity("Button");
 	//GUITransform* guiButtonTransform = guiButtonEntity->addComponent<GUITransform>();
+	//guiButtonTransform->setPosition(XMFLOAT2(640.0f, 50.0f));
+	//guiButtonTransform->setOrigin(XMFLOAT2(0.5f, 0.5f));
 	//guiButtonTransform->setSize(XMFLOAT2(80.0f, 30.0f));
 	//GUIButtonComponent* guiButton = guiButtonEntity->addComponent<GUIButtonComponent>();
 	//guiButton->setFont("Arial_12pt");

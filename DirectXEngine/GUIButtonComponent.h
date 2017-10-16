@@ -18,6 +18,7 @@ public:
 	void setOnClickCallback(T& onClick);
 
 	DirectX::SpriteFont* getFont() const;
+	std::string getFontID() const;
 	void setFont(std::string fontID);
 
 	std::string getText() const;
@@ -46,3 +47,6 @@ inline void GUIButtonComponent::setOnClickCallback(T& onClick)
 {
 	m_onClick = onClick;
 }
+
+void TW_CALL getGUIButtonComponentFontDebugEditor(void* value, void* clientData);
+void TW_CALL setGUIButtonComponentFontDebugEditor(const void* value, void* clientData);

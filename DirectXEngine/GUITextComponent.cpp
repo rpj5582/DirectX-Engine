@@ -19,6 +19,9 @@ void GUITextComponent::init()
 	GUIComponent::init();
 
 	setFont("default");
+
+	Debug::entityDebugWindow->addVariableWithCallbacks(TW_TYPE_STDSTRING, "Font", typeName, entity.getName(), &getGUITextComponentFontDebugEditor, &setGUITextComponentFontDebugEditor, this);
+	Debug::entityDebugWindow->addVariable(&m_text, TW_TYPE_STDSTRING, "Text", typeName, entity.getName());
 }
 
 void GUITextComponent::loadFromJSON(rapidjson::Value& dataObject)
@@ -72,6 +75,11 @@ SpriteFont* GUITextComponent::getFont() const
 	return m_font;
 }
 
+std::string GUITextComponent::getFontID() const
+{
+	return m_fontID;
+}
+
 void GUITextComponent::setFont(std::string fontID)
 {
 	m_font = AssetManager::getFont(fontID);
@@ -94,4 +102,16 @@ std::string GUITextComponent::getText() const
 void GUITextComponent::setText(std::string text)
 {
 	m_text = text;
+}
+
+void TW_CALL getGUITextComponentFontDebugEditor(void* value, void* clientData)
+{
+	GUITextComponent* component = static_cast<GUITextComponent*>(clientData);
+	TwCopyStdStringToLibrary(*static_cast<std::string*>(value), component->getFontID());
+}
+
+void TW_CALL setGUITextComponentFontDebugEditor(const void* value, void* clientData)
+{
+	GUITextComponent* component = static_cast<GUITextComponent*>(clientData);
+	component->setFont(*static_cast<const std::string*>(value));
 }

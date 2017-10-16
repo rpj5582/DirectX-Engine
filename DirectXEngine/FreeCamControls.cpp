@@ -24,9 +24,15 @@ FreeCamControls::~FreeCamControls()
 
 void FreeCamControls::init()
 {
+	Component::init();
+
 	entity.subscribeMouseDown(this);
 	entity.subscribeMouseUp(this);
 	entity.subscribeMouseMove(this);
+
+	Debug::entityDebugWindow->addVariable(&moveSpeedFast, TW_TYPE_FLOAT, "Fast Move Speed", typeName, entity.getName(), " min=0 step=0.1 ");
+	Debug::entityDebugWindow->addVariable(&moveSpeedNormal, TW_TYPE_FLOAT, "Move Speed", typeName, entity.getName(), " min=0 step=0.1 ");
+	Debug::entityDebugWindow->addVariable(&moveSpeedSlow, TW_TYPE_FLOAT, "Slow Move Speed", typeName, entity.getName(), " min=0 step=0.1 ");
 }
 
 void FreeCamControls::update(float deltaTime, float totalTime)

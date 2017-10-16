@@ -57,4 +57,10 @@ private:
 
 	LightSettings m_light;
 	LightType m_lightType;
+
+	static TwStructMember d_lightStructMembers[5];
+	static TwType TW_TYPE_LIGHT_SETTINGS;
+
+	static TwEnumVal d_lightTypeMembers[3];
+	static TwType TW_TYPE_LIGHT_TYPE;
 };

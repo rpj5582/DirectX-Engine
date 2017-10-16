@@ -56,7 +56,7 @@ inline bool ComponentRegistry::registerComponent(std::string componentType)
 	}
 	else
 	{
-		Output::Warning("Did not register component " + componentType + " because it has already been registered.");
+		Debug::warning("Did not register component " + componentType + " because it has already been registered.");
 		return false;
 	}
 }

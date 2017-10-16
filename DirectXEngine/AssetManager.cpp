@@ -276,7 +276,7 @@ void AssetManager::loadFromJSON(rapidjson::Value& assetsArray)
 				break;
 
 			default:
-				Output::Warning("Invalid sampler address mode " + addressUString + " for sampler " + id);
+				Debug::warning("Invalid sampler address mode " + addressUString + " for sampler " + id);
 				break;
 			}
 
@@ -302,7 +302,7 @@ void AssetManager::loadFromJSON(rapidjson::Value& assetsArray)
 				break;
 
 			default:
-				Output::Warning("Invalid sampler address mode " + addressVString + " for sampler " + id);
+				Debug::warning("Invalid sampler address mode " + addressVString + " for sampler " + id);
 				break;
 			}
 
@@ -328,7 +328,7 @@ void AssetManager::loadFromJSON(rapidjson::Value& assetsArray)
 				break;
 
 			default:
-				Output::Warning("Invalid sampler address mode " + addressWString + " for sampler " + id);
+				Debug::warning("Invalid sampler address mode " + addressWString + " for sampler " + id);
 				break;
 			}
 
@@ -347,7 +347,7 @@ void AssetManager::loadFromJSON(rapidjson::Value& assetsArray)
 		}
 
 		default:
-			Output::Warning("Invalid asset type " + std::string(assetType.GetString()) + ", skipping.");
+			Debug::warning("Invalid asset type " + std::string(assetType.GetString()) + ", skipping.");
 			break;
 		}
 	}
@@ -634,7 +634,7 @@ Mesh* AssetManager::getMesh(std::string id)
 {
 	if (m_instance->m_meshes.find(id) == m_instance->m_meshes.end())
 	{
-		Output::Error("Could not find mesh with ID " + id + ".");
+		Debug::warning("Could not find mesh with ID " + id + ".");
 		return nullptr;
 	}
 
@@ -645,7 +645,7 @@ Material* AssetManager::getMaterial(std::string id)
 {
 	if (m_instance->m_materials.find(id) == m_instance->m_materials.end())
 	{
-		Output::Error("Could not find material with ID " + id + ".");
+		Debug::warning("Could not find material with ID " + id + ".");
 		return nullptr;
 	}
 
@@ -656,7 +656,7 @@ ID3D11ShaderResourceView* AssetManager::getTexture(std::string id)
 {
 	if (m_instance->m_textures.find(id) == m_instance->m_textures.end())
 	{
-		Output::Error("Could not find texture with ID " + id + ".");
+		Debug::warning("Could not find texture with ID " + id + ".");
 		return nullptr;
 	}
 
@@ -667,7 +667,7 @@ ID3D11SamplerState* AssetManager::getSampler(std::string id)
 {
 	if (m_instance->m_samplers.find(id) == m_instance->m_samplers.end())
 	{
-		Output::Error("Could not find sampler with ID " + id + ".");
+		Debug::warning("Could not find sampler with ID " + id + ".");
 		return nullptr;
 	}
 
@@ -678,7 +678,7 @@ SimpleVertexShader* AssetManager::getVertexShader(std::string id)
 {
 	if (m_instance->m_vertexShaders.find(id) == m_instance->m_vertexShaders.end())
 	{
-		Output::Error("Could not find vertex shader with ID " + id + ".");
+		Debug::warning("Could not find vertex shader with ID " + id + ".");
 		return nullptr;
 	}
 
@@ -689,7 +689,7 @@ SimplePixelShader* AssetManager::getPixelShader(std::string id)
 {
 	if (m_instance->m_pixelShaders.find(id) == m_instance->m_pixelShaders.end())
 	{
-		Output::Error("Could not find pixel shader with ID " + id + ".");
+		Debug::warning("Could not find pixel shader with ID " + id + ".");
 		return nullptr;
 	}
 
@@ -700,7 +700,7 @@ SpriteFont* AssetManager::getFont(std::string id)
 {
 	if (m_instance->m_fonts.find(id) == m_instance->m_fonts.end())
 	{
-		Output::Error("Could not find font with ID " + id + ".");
+		Debug::warning("Could not find font with ID " + id + ".");
 		return nullptr;
 	}
 
@@ -719,7 +719,7 @@ Mesh* AssetManager::loadMesh(std::string id, std::string filepath)
 		char errorMessage[512];
 		strerror_s(errorMessage, 512, errno);
 		std::string errString = std::string(errorMessage);
-		Output::Error("Failed to load file from " + filePathStr + " when creating mesh with ID " + id + ": " + errString);
+		Debug::error("Failed to load file from " + filePathStr + " when creating mesh with ID " + id + ": " + errString);
 		return nullptr;
 	}
 
@@ -883,7 +883,7 @@ Mesh* AssetManager::loadMesh(std::string id, std::string filepath, Vertex* verti
 	auto meshIterator = m_instance->m_meshes.find(id);
 	if (meshIterator != m_instance->m_meshes.end())
 	{
-		Output::Warning("Mesh with ID " + id + " already exists, consider getting the mesh instead of loading it again.");
+		Debug::warning("Mesh with ID " + id + " already exists, consider getting the mesh instead of loading it again.");
 		return meshIterator->second.second;
 	}
 
@@ -976,43 +976,43 @@ Material* AssetManager::createMaterial(std::string id, std::string diffuseTextur
 	auto materialIterator = m_instance->m_materials.find(id);
 	if (materialIterator != m_instance->m_materials.end())
 	{
-		Output::Warning("Material with ID " + id + " already exists, consider getting the material instead of loading it again.");
+		Debug::warning("Material with ID " + id + " already exists, consider getting the material instead of loading it again.");
 		return materialIterator->second.second;
 	}
 
 	if (m_instance->m_vertexShaders.find(vertexShaderID) == m_instance->m_vertexShaders.end())
 	{
-		Output::Error("Invalid vertex shader ID " + vertexShaderID + " when creating material with ID " + id + ".");
+		Debug::error("Invalid vertex shader ID " + vertexShaderID + " when creating material with ID " + id + ".");
 		return nullptr;
 	}
 
 	if (m_instance->m_pixelShaders.find(pixelShaderID) == m_instance->m_pixelShaders.end())
 	{
-		Output::Error("Invalid pixel shader ID " + pixelShaderID + " when creating material with ID " + id + ".");
+		Debug::error("Invalid pixel shader ID " + pixelShaderID + " when creating material with ID " + id + ".");
 		return nullptr;
 	}
 
 	if (m_instance->m_textures.find(diffuseTextureID) == m_instance->m_textures.end())
 	{
-		Output::Error("Invalid diffuse texture ID " + diffuseTextureID + " when creating material with ID " + id + ".");
+		Debug::error("Invalid diffuse texture ID " + diffuseTextureID + " when creating material with ID " + id + ".");
 		return nullptr;
 	}
 
 	if (m_instance->m_textures.find(specularTextureID) == m_instance->m_textures.end())
 	{
-		Output::Error("Invalid specular texture ID " + specularTextureID + " when creating material with ID " + id + ".");
+		Debug::error("Invalid specular texture ID " + specularTextureID + " when creating material with ID " + id + ".");
 		return nullptr;
 	}
 
 	if (m_instance->m_textures.find(normalTextureID) == m_instance->m_textures.end())
 	{
-		Output::Error("Invalid normal texture ID " + normalTextureID + " when creating material with ID " + id + ".");
+		Debug::error("Invalid normal texture ID " + normalTextureID + " when creating material with ID " + id + ".");
 		return nullptr;
 	}
 
 	if (m_instance->m_samplers.find(samplerID) == m_instance->m_samplers.end())
 	{
-		Output::Error("Invalid sampler ID " + samplerID + " when creating material with ID " + id + ".");
+		Debug::error("Invalid sampler ID " + samplerID + " when creating material with ID " + id + ".");
 		return nullptr;
 	}
 
@@ -1031,7 +1031,7 @@ bool AssetManager::loadShader(std::string id, ShaderType type, std::string filep
 			auto vertexInterator = m_instance->m_vertexShaders.find(id);
 			if (vertexInterator != m_instance->m_vertexShaders.end())
 			{
-				Output::Warning("Vertex shader with ID " + id + " already exists, consider getting the vertex shader instead of loading it again.");
+				Debug::warning("Vertex shader with ID " + id + " already exists, consider getting the vertex shader instead of loading it again.");
 				return vertexInterator->second.second;
 			}
 
@@ -1039,7 +1039,7 @@ bool AssetManager::loadShader(std::string id, ShaderType type, std::string filep
 			std::wstring filePathStr = L"Assets/Shaders/" + std::wstring(filepath.begin(), filepath.end());
 			if (!vs->LoadShaderFile(filePathStr.c_str()))
 			{
-				Output::Error("Failed to load vertex shader with ID " + id + " at file location " + std::string(filePathStr.begin(), filePathStr.end()));
+				Debug::error("Failed to load vertex shader with ID " + id + " at file location " + std::string(filePathStr.begin(), filePathStr.end()));
 				delete vs;
 				return false;
 			}
@@ -1053,7 +1053,7 @@ bool AssetManager::loadShader(std::string id, ShaderType type, std::string filep
 			auto pixelIterator = m_instance->m_pixelShaders.find(id);
 			if (pixelIterator != m_instance->m_pixelShaders.end())
 			{
-				Output::Warning("Pixel shader with ID " + id + " already exists, consider getting the pixel shader instead of loading it again.");
+				Debug::warning("Pixel shader with ID " + id + " already exists, consider getting the pixel shader instead of loading it again.");
 				return pixelIterator->second.second;
 			}
 
@@ -1061,7 +1061,7 @@ bool AssetManager::loadShader(std::string id, ShaderType type, std::string filep
 			SimplePixelShader* ps = new SimplePixelShader(m_instance->m_device, m_instance->m_context);
 			if (!ps->LoadShaderFile(filePathStr.c_str()))
 			{
-				Output::Error("Failed to load pixel shader with ID " + id + " at file location " + std::string(filePathStr.begin(), filePathStr.end()));
+				Debug::error("Failed to load pixel shader with ID " + id + " at file location " + std::string(filePathStr.begin(), filePathStr.end()));
 				delete ps;
 				return false;
 			}
@@ -1070,7 +1070,7 @@ bool AssetManager::loadShader(std::string id, ShaderType type, std::string filep
 		}
 		default:
 		{
-			Output::Error("Invalid shader type " + std::to_string(type) + ".");
+			Debug::error("Invalid shader type " + std::to_string(type) + ".");
 			return false;
 		}
 	}
@@ -1084,7 +1084,7 @@ ID3D11ShaderResourceView* AssetManager::loadTexture(std::string id, std::string 
 	auto textureIterator = m_instance->m_textures.find(id);
 	if (textureIterator != m_instance->m_textures.end())
 	{
-		Output::Warning("Texture with ID " + id + " already exists, consider getting the texture instead of loading it again.");
+		Debug::warning("Texture with ID " + id + " already exists, consider getting the texture instead of loading it again.");
 		return textureIterator->second.second;
 	}
 	
@@ -1100,10 +1100,10 @@ ID3D11ShaderResourceView* AssetManager::loadTexture(std::string id, std::string 
 			std::string errorString = std::string(errorMsg);
 			errorString.pop_back();
 			errorString.pop_back();
-			Output::Error("Failed to load texture with ID " + id + " at Assets/Textures/" + filepath + ": " + errorString);
+			Debug::error("Failed to load texture with ID " + id + " at Assets/Textures/" + filepath + ": " + errorString);
 		}
 		else
-			Output::Error("Failed to load texture with ID " + id + " at Assets/Textures/" + filepath + ": Unable to find error description.");
+			Debug::error("Failed to load texture with ID " + id + " at Assets/Textures/" + filepath + ": Unable to find error description.");
 		
 		return nullptr;
 	}
@@ -1134,7 +1134,7 @@ ID3D11ShaderResourceView* AssetManager::createSolidColorTexture(std::string id, 
 	m_instance->m_device->CreateTexture2D(&desc, &pixelData, &texture);
 	if (FAILED(hr))
 	{
-		Output::Error("Failed to create texture resource for ID " + id + ".");
+		Debug::error("Failed to create texture resource for ID " + id + ".");
 		return nullptr;
 	}
 
@@ -1152,7 +1152,7 @@ ID3D11ShaderResourceView* AssetManager::createSolidColorTexture(std::string id, 
 	hr = m_instance->m_device->CreateShaderResourceView(texture, &srvDesc, &textureSRV);
 	if (FAILED(hr))
 	{
-		Output::Error("Failed to create texture shader resource view for ID " + id + ".");
+		Debug::error("Failed to create texture shader resource view for ID " + id + ".");
 		texture->Release();
 		return nullptr;
 	}
@@ -1171,14 +1171,14 @@ DirectX::SpriteFont* AssetManager::loadFont(std::string id, std::string filepath
 	auto fontIterator = m_instance->m_fonts.find(id);
 	if (fontIterator != m_instance->m_fonts.end())
 	{
-		Output::Warning("Font with ID " + id + " already exists, consider getting the font instead of loading it again.");
+		Debug::warning("Font with ID " + id + " already exists, consider getting the font instead of loading it again.");
 		return fontIterator->second.second;
 	}
 
 	SpriteFont* font = new SpriteFont(m_instance->m_device, filePath.c_str());
 	if (!font)
 	{
-		Output::Error("Failed to load font " + id + " at Assets/Fonts/" + filepath);
+		Debug::error("Failed to load font " + id + " at Assets/Fonts/" + filepath);
 		return nullptr;
 	}
 
@@ -1191,7 +1191,7 @@ ID3D11SamplerState* AssetManager::createSampler(std::string id, const D3D11_SAMP
 	auto samplerIterator = m_instance->m_samplers.find(id);
 	if (samplerIterator != m_instance->m_samplers.end())
 	{
-		Output::Warning("Sampler with ID " + id + " already exists, consider getting the sampler instead of creating it again.");
+		Debug::warning("Sampler with ID " + id + " already exists, consider getting the sampler instead of creating it again.");
 		return samplerIterator->second.second;
 	}
 
@@ -1207,10 +1207,10 @@ ID3D11SamplerState* AssetManager::createSampler(std::string id, const D3D11_SAMP
 			std::string errorString = std::string(errorMsg);
 			errorString.pop_back();
 			errorString.pop_back();
-			Output::Error("Failed to create sampler with ID " + id + ": " + errorString);
+			Debug::error("Failed to create sampler with ID " + id + ": " + errorString);
 		}
 		else
-			Output::Error("Failed to create sampler with ID " + id + ": Unable to find error description.");
+			Debug::error("Failed to create sampler with ID " + id + ": Unable to find error description.");
 		return nullptr;
 	}
 

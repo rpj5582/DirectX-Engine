@@ -3,6 +3,8 @@
 #include "rapidjson\document.h"
 #include "rapidjson\writer.h"
 
+#include "Debug.h"
+
 #include <string>
 #include <vector>
 #include <Windows.h>
@@ -19,12 +21,13 @@ public:
 
 	void saveToJSON(rapidjson::Writer<rapidjson::StringBuffer>& writer) const;
 
-	std::string getName() const;
+	Scene& getScene() const;
 
-	Component* addComponentByStringType(std::string componentType);
+	std::string getName() const;
 
 	template<typename T>
 	T* addComponent();
+	Component* addComponentByStringType(std::string componentType);
 
 	template<typename T>
 	T* getComponent();
@@ -33,6 +36,7 @@ public:
 
 	template<typename T>
 	void removeComponent();
+	void removeComponent(Component* component);
 
 	void subscribeMouseDown(Component* component);
 	void subscribeMouseUp(Component* component);
@@ -50,10 +54,14 @@ public:
 	void onMouseWheel(float wheelDelta, int x, int y);
 
 	bool enabled;
+	
+	std::string d_componentTypeField;
 
 private:
-	Entity(std::string name);
+	Entity(Scene& scene, std::string name);
 	~Entity();
+
+	Scene& m_scene;
 
 	std::string m_name;
 	std::vector<Component*> m_components;
@@ -75,7 +83,7 @@ inline T* Entity::addComponent()
 		T* component = dynamic_cast<T*>(m_components[i]);
 		if (component)
 		{
-			Output::Warning("Did not add component because a component of the same type already exists on entity " + m_name + ".");
+			Debug::warning("Did not add component because a component of the same type already exists on entity " + m_name + ".");
 			return nullptr;
 		}
 	}
@@ -83,6 +91,7 @@ inline T* Entity::addComponent()
 	T* component = new T(*this);
 	m_components.push_back(component);
 	component->init();
+	Debug::entityDebugWindow->addComponent(component);
 	return component;
 }
 
@@ -108,12 +117,11 @@ inline void Entity::removeComponent()
 		T* component = dynamic_cast<T*>(m_components[i]);
 		if (component)
 		{
-			delete component;
-			m_components.erase(m_components.begin() + i);
+			removeComponent(component);
 			return;
 		}
 	}
 
-	Output::Warning("Given component was not removed because it could not be found on entity " + m_name + ".");
+	Debug::warning("Given component was not removed because it could not be found on entity " + m_name + ".");
 	return;
 }

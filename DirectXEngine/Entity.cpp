@@ -2,11 +2,12 @@
 
 #include "ComponentRegistry.h"
 
-Entity::Entity(std::string name)
+Entity::Entity(Scene& scene, std::string name) : m_scene(scene)
 {
 	m_name = name;
 	m_components = std::vector<Component*>();
 	enabled = true;
+	d_componentTypeField = "";
 
 	m_mouseDownCallbacks = std::vector<Component*>();
 	m_mouseUpCallbacks = std::vector<Component*>();
@@ -82,6 +83,11 @@ void Entity::saveToJSON(rapidjson::Writer<rapidjson::StringBuffer>& writer) cons
 	
 }
 
+Scene& Entity::getScene() const
+{
+	return m_scene;
+}
+
 std::string Entity::getName() const
 {
 	return m_name;
@@ -95,6 +101,20 @@ Component* Entity::addComponentByStringType(std::string componentType)
 std::vector<Component*>& Entity::getComponents()
 {
 	return m_components;
+}
+
+void Entity::removeComponent(Component* component)
+{
+	for (unsigned int i = 0; i < m_components.size(); i++)
+	{
+		if (m_components[i] == component)
+		{
+			Debug::entityDebugWindow->removeComponent(component);
+			delete component;
+			m_components.erase(m_components.begin() + i);
+			return;
+		}
+	}
 }
 
 void Entity::subscribeMouseDown(Component* component)
@@ -132,7 +152,7 @@ void Entity::unsubscribeMouseDown(Component* component)
 		}
 	}
 
-	Output::Warning("Component not unsubscribed because callback could not be found.");
+	Debug::warning("Component not unsubscribed because callback could not be found.");
 	return;
 }
 
@@ -147,7 +167,7 @@ void Entity::unsubscribeMouseUp(Component* component)
 		}
 	}
 
-	Output::Warning("Component not unsubscribed because callback could not be found.");
+	Debug::warning("Component not unsubscribed because callback could not be found.");
 	return;
 }
 
@@ -162,7 +182,7 @@ void Entity::unsubscribeMouseMove(Component* component)
 		}
 	}
 
-	Output::Warning("Component not unsubscribed because callback could not be found.");
+	Debug::warning("Component not unsubscribed because callback could not be found.");
 	return;
 }
 
@@ -177,7 +197,7 @@ void Entity::unsubscribeMouseWheel(Component* component)
 		}
 	}
 
-	Output::Warning("Component not unsubscribed because callback could not be found.");
+	Debug::warning("Component not unsubscribed because callback could not be found.");
 	return;
 }
 
@@ -185,7 +205,8 @@ void Entity::onMouseDown(WPARAM buttonState, int x, int y)
 {
 	for (unsigned int i = 0; i < m_mouseDownCallbacks.size(); i++)
 	{
-		m_mouseDownCallbacks[i]->onMouseDown(buttonState, x, y);
+		if(m_mouseDownCallbacks[i]->enabled)
+			m_mouseDownCallbacks[i]->onMouseDown(buttonState, x, y);
 	}
 }
 
@@ -193,7 +214,8 @@ void Entity::onMouseUp(WPARAM buttonState, int x, int y)
 {
 	for (unsigned int i = 0; i < m_mouseUpCallbacks.size(); i++)
 	{
-		m_mouseUpCallbacks[i]->onMouseUp(buttonState, x, y);
+		if (m_mouseUpCallbacks[i]->enabled)
+			m_mouseUpCallbacks[i]->onMouseUp(buttonState, x, y);
 	}
 }
 
@@ -201,7 +223,8 @@ void Entity::onMouseMove(WPARAM buttonState, int x, int y)
 {
 	for (unsigned int i = 0; i < m_mouseMoveCallbacks.size(); i++)
 	{
-		m_mouseMoveCallbacks[i]->onMouseMove(buttonState, x, y);
+		if (m_mouseMoveCallbacks[i]->enabled)
+			m_mouseMoveCallbacks[i]->onMouseMove(buttonState, x, y);
 	}
 }
 
@@ -209,6 +232,7 @@ void Entity::onMouseWheel(float wheelDelta, int x, int y)
 {
 	for (unsigned int i = 0; i < m_mouseWheelCallbacks.size(); i++)
 	{
-		m_mouseWheelCallbacks[i]->onMouseWheel(wheelDelta, x, y);
+		if (m_mouseWheelCallbacks[i]->enabled)
+			m_mouseWheelCallbacks[i]->onMouseWheel(wheelDelta, x, y);
 	}
 }

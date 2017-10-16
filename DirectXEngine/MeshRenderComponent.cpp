@@ -10,6 +10,13 @@ MeshRenderComponent::~MeshRenderComponent()
 {
 }
 
+void MeshRenderComponent::init()
+{
+	RenderComponent::init();
+
+	Debug::entityDebugWindow->addVariableWithCallbacks(TW_TYPE_STDSTRING, "Mesh", typeName, entity.getName(), &getMeshRenderComponentMeshDebugEditor, &setMeshRenderComponentMeshDebugEditor, this);
+}
+
 void MeshRenderComponent::loadFromJSON(rapidjson::Value& dataObject)
 {
 	RenderComponent::loadFromJSON(dataObject);
@@ -34,6 +41,11 @@ Mesh* MeshRenderComponent::getMesh() const
 	return m_mesh;
 }
 
+std::string MeshRenderComponent::getMeshID() const
+{
+	return m_meshID;
+}
+
 void MeshRenderComponent::setMesh(std::string meshID)
 {
 	m_mesh = AssetManager::getMesh(meshID);
@@ -46,4 +58,17 @@ void MeshRenderComponent::setMesh(std::string meshID)
 		m_meshID = "";
 		m_mesh = nullptr;
 	}
+}
+
+void TW_CALL getMeshRenderComponentMeshDebugEditor(void* value, void* clientData)
+{
+	MeshRenderComponent* component = static_cast<MeshRenderComponent*>(clientData);
+	std::string* meshInputField = static_cast<std::string*>(value);
+	TwCopyStdStringToLibrary(*meshInputField, component->getMeshID());
+}
+
+void TW_CALL setMeshRenderComponentMeshDebugEditor(const void* value, void* clientData)
+{
+	MeshRenderComponent* component = static_cast<MeshRenderComponent*>(clientData);
+	component->setMesh(*static_cast<const std::string*>(value));
 }

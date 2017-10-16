@@ -2,6 +2,24 @@
 
 using namespace DirectX;
 
+TwStructMember LightComponent::d_lightStructMembers[5] = {
+	{ "color", TW_TYPE_COLOR3F, 0, " label='Color' " },
+	{ "brightness", TW_TYPE_FLOAT, sizeof(XMFLOAT4), " label='Brightness' min=0 step=0.1 " },
+	{ "specularity", TW_TYPE_FLOAT, sizeof(XMFLOAT4) + sizeof(float), " label='Specularity' min=0 step=0.1 " },
+	{ "radius", TW_TYPE_FLOAT, sizeof(XMFLOAT4) + sizeof(float) * 2, " label='Radius' min=0 step=0.1 " },
+	{ "spotAngle", TW_TYPE_FLOAT, sizeof(XMFLOAT4) + sizeof(float) * 3, " label='Spot Light Angle' min=0 max=90 step=0.1 " }
+};
+
+TwType LightComponent::TW_TYPE_LIGHT_SETTINGS = TW_TYPE_UNDEF;
+
+TwEnumVal LightComponent::d_lightTypeMembers[] = 
+{
+	{ DIRECTIONAL_LIGHT, "Directional Light" },
+	{ POINT_LIGHT, "Point Light" },
+	{ SPOT_LIGHT, "Spot Light" }
+};
+TwType LightComponent::TW_TYPE_LIGHT_TYPE = TW_TYPE_UNDEF;
+
 LightComponent::LightComponent(Entity& entity) : Component(entity)
 {
 }
@@ -12,8 +30,19 @@ LightComponent::~LightComponent()
 
 void LightComponent::init()
 {
+	Component::init();
+
 	setLightType(DIRECTIONAL_LIGHT);
 	setSettingsDefault();
+
+	if(TW_TYPE_LIGHT_SETTINGS == TW_TYPE_UNDEF)
+		TW_TYPE_LIGHT_SETTINGS = TwDefineStruct("TW_TYPE_LIGHT_SETTINGS", d_lightStructMembers, 5, sizeof(LightSettings), nullptr, nullptr);
+
+	if (TW_TYPE_LIGHT_TYPE == TW_TYPE_UNDEF)
+		TW_TYPE_LIGHT_TYPE = TwDefineEnum("TW_TYPE_LIGH_TYPE", d_lightTypeMembers, 3);
+
+	Debug::entityDebugWindow->addVariable(&m_light, TW_TYPE_LIGHT_SETTINGS, "Light Settings", typeName, entity.getName());
+	Debug::entityDebugWindow->addVariable(&m_lightType, TW_TYPE_LIGHT_TYPE, "Light Type", typeName, entity.getName());
 }
 
 void LightComponent::loadFromJSON(rapidjson::Value& dataObject)
@@ -40,7 +69,7 @@ void LightComponent::loadFromJSON(rapidjson::Value& dataObject)
 			break;
 
 		default:
-			Output::Warning("Invalid light type " + lightTypeString + " on LightComponent of entity " + entity.getName() + ", treating as a directional light.");
+			Debug::warning("Invalid light type " + lightTypeString + " on LightComponent of entity " + entity.getName() + ", treating as a directional light.");
 			break;
 		}
 	}
@@ -97,7 +126,7 @@ void LightComponent::saveToJSON(rapidjson::Writer<rapidjson::StringBuffer>& writ
 		break;
 
 	default:
-		Output::Warning("Invalid light type " + std::to_string(m_lightType) + " on LightComponent of entity " + entity.getName() + ", saving as a directional light.");
+		Debug::warning("Invalid light type " + std::to_string(m_lightType) + " on LightComponent of entity " + entity.getName() + ", saving as a directional light.");
 		writer.String("directional");
 		break;
 	}

@@ -1,5 +1,14 @@
 #include "RenderComponent.h"
 
+TwEnumVal RenderComponent::d_renderStyleMembers[3] = 
+{
+	{ SOLID, "Solid" }, 
+	{ WIREFRAME, "Wireframe" }, 
+	{ SOLID_WIREFRAME, "Solid Wireframe" }
+};
+
+TwType RenderComponent::TW_TYPE_RENDER_STLYE = TW_TYPE_UNDEF;
+
 RenderComponent::RenderComponent(Entity& entity) : Component(entity)
 {
 	m_material = nullptr;
@@ -12,7 +21,15 @@ RenderComponent::~RenderComponent()
 
 void RenderComponent::init()
 {
+	Component::init();
+
 	setMaterial("default");
+
+	if(TW_TYPE_RENDER_STLYE == TW_TYPE_UNDEF)
+		TW_TYPE_RENDER_STLYE = TwDefineEnum("TW_TYPE_RENDER_STLYE", d_renderStyleMembers, 3);
+
+	Debug::entityDebugWindow->addVariableWithCallbacks(TW_TYPE_STDSTRING, "Material", typeName, entity.getName(), &getRenderComponentMaterialDebugEditor, &setRenderComponentMaterialDebugEditor, this);
+	Debug::entityDebugWindow->addVariable(&m_renderStyle, TW_TYPE_RENDER_STLYE, "Render Style", typeName, entity.getName());
 }
 
 void RenderComponent::loadFromJSON(rapidjson::Value& dataObject)
@@ -50,7 +67,7 @@ void RenderComponent::loadFromJSON(rapidjson::Value& dataObject)
 		}
 
 		default:
-			Output::Warning("Invalid render style " + std::string(renderStyleString) + " on RenderComponent of entity " + entity.getName() + ". Keeping default of SOLID.");
+			Debug::warning("Invalid render style " + std::string(renderStyleString) + " on RenderComponent of entity " + entity.getName() + ". Keeping default of SOLID.");
 			break;
 		}
 	}
@@ -79,7 +96,7 @@ void RenderComponent::saveToJSON(rapidjson::Writer<rapidjson::StringBuffer>& wri
 		break;
 
 	default:
-		Output::Warning("Invalid render style " + std::to_string(m_renderStyle) + " on RenderComponent of entity " + entity.getName() + ". Saving default of SOLID.");
+		Debug::warning("Invalid render style " + std::to_string(m_renderStyle) + " on RenderComponent of entity " + entity.getName() + ". Saving default of SOLID.");
 		writer.String("solid");
 		break;
 	}
@@ -88,6 +105,11 @@ void RenderComponent::saveToJSON(rapidjson::Writer<rapidjson::StringBuffer>& wri
 Material* RenderComponent::getMaterial() const
 {
 	return m_material;
+}
+
+std::string RenderComponent::getMaterialID() const
+{
+	return m_materialID;
 }
 
 void RenderComponent::setMaterial(std::string materialID)
@@ -114,4 +136,18 @@ RenderStyle RenderComponent::getRenderStyle() const
 void RenderComponent::setRenderStyle(RenderStyle renderStyle)
 {
 	m_renderStyle = renderStyle;
+}
+
+void TW_CALL getRenderComponentMaterialDebugEditor(void* value, void* clientData)
+{
+	RenderComponent* component = static_cast<RenderComponent*>(clientData);
+	std::string* materialInputField = static_cast<std::string*>(value);
+
+	TwCopyStdStringToLibrary(*materialInputField, component->getMaterialID());
+}
+
+void TW_CALL setRenderComponentMaterialDebugEditor(const void* value, void* clientData)
+{
+	RenderComponent* component = static_cast<RenderComponent*>(clientData);
+	component->setMaterial(*static_cast<const std::string*>(value));
 }

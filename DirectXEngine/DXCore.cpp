@@ -1,5 +1,7 @@
 #include "DXCore.h"
 
+#include "Debug.h"
+
 #include <WindowsX.h>
 #include <sstream>
 
@@ -466,48 +468,6 @@ void DXCore::UpdateTitleBarStats()
 }
 
 // --------------------------------------------------------
-// Allocates a console window we can print to for debugging
-// 
-// bufferLines   - Number of lines in the overall console buffer
-// bufferColumns - Numbers of columns in the overall console buffer
-// windowLines   - Number of lines visible at once in the window
-// windowColumns - Number of columns visible at once in the window
-// --------------------------------------------------------
-void DXCore::CreateConsoleWindow(int bufferLines, int bufferColumns, int windowLines, int windowColumns)
-{
-	// Our temp console info struct
-	CONSOLE_SCREEN_BUFFER_INFO coninfo;
-
-	// Get the console info and set the number of lines
-	AllocConsole();
-	GetConsoleScreenBufferInfo(GetStdHandle(STD_OUTPUT_HANDLE), &coninfo);
-	coninfo.dwSize.Y = bufferLines;
-	coninfo.dwSize.X = bufferColumns;
-	SetConsoleScreenBufferSize(GetStdHandle(STD_OUTPUT_HANDLE), coninfo.dwSize);
-
-	SMALL_RECT rect;
-	rect.Left = 0;
-	rect.Top = 0;
-	rect.Right = windowColumns;
-	rect.Bottom = windowLines;
-	SetConsoleWindowInfo(GetStdHandle(STD_OUTPUT_HANDLE), TRUE, &rect);
-
-	FILE *stream;
-	freopen_s(&stream, "CONIN$", "r", stdin);
-	freopen_s(&stream, "CONOUT$", "w", stdout);
-	freopen_s(&stream, "CONOUT$", "w", stderr);
-
-	// Prevent accidental console window close
-	HWND consoleHandle = GetConsoleWindow();
-	HMENU hmenu = GetSystemMenu(consoleHandle, FALSE);
-	EnableMenuItem(hmenu, SC_CLOSE, MF_GRAYED);
-}
-
-
-
-
-
-// --------------------------------------------------------
 // Handles messages that are sent to our window by the
 // operating system.  Ignoring these messages would cause
 // our program to hang and Windows would think it was
@@ -515,6 +475,12 @@ void DXCore::CreateConsoleWindow(int bufferLines, int bufferColumns, int windowL
 // --------------------------------------------------------
 LRESULT DXCore::ProcessMessage(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
+	// Pass the message over to AntTweakBar so the UI can react to user input
+	if (TwEventWin(hWnd, uMsg, wParam, lParam))
+	{
+		return 0;
+	}
+
 	// Check the incoming message and handle any we care about
 	switch (uMsg)
 	{

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Output.h"
+#include "Debug.h"
 
 #include "Mesh.h"
 #include "Material.h"

@@ -23,6 +23,7 @@ public:
 	virtual void saveToJSON(rapidjson::Writer<rapidjson::StringBuffer>& writer);
 
 	Entity& getEntity() const;
+	std::string getName() const;
 
 	bool enabled;
 	
@@ -36,4 +37,5 @@ protected:
 	virtual void onMouseWheel(float wheelDelta, int x, int y);
 
 	Entity& entity;	
+	std::string typeName;
 };

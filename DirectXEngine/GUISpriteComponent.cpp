@@ -19,6 +19,8 @@ void GUISpriteComponent::init()
 	GUIComponent::init();
 
 	setTexture("defaultGUI");
+
+	Debug::entityDebugWindow->addVariableWithCallbacks(TW_TYPE_STDSTRING, "Texture", typeName, entity.getName(), &getGUISpriteComponentTextureDebugEditor, &setGUISpriteComponentTextureDebugEditor, this);
 }
 
 void GUISpriteComponent::loadFromJSON(rapidjson::Value& dataObject)
@@ -60,6 +62,11 @@ ID3D11ShaderResourceView* GUISpriteComponent::getTextureSRV() const
 	return m_textureSRV;
 }
 
+std::string GUISpriteComponent::getTextureID() const
+{
+	return m_textureID;
+}
+
 void GUISpriteComponent::setTexture(std::string textureID)
 {
 	m_textureSRV = AssetManager::getTexture(textureID);
@@ -72,4 +79,17 @@ void GUISpriteComponent::setTexture(std::string textureID)
 		m_textureID = "";
 		m_textureSRV = nullptr;
 	}
+}
+
+void TW_CALL getGUISpriteComponentTextureDebugEditor(void* value, void* clientData)
+{
+	GUISpriteComponent* component = static_cast<GUISpriteComponent*>(clientData);
+	std::string* textureInputField = static_cast<std::string*>(value);
+	TwCopyStdStringToLibrary(*textureInputField, component->getTextureID());
+}
+
+void TW_CALL setGUISpriteComponentTextureDebugEditor(const void* value, void* clientData)
+{
+	GUISpriteComponent* component = static_cast<GUISpriteComponent*>(clientData);
+	component->setTexture(*static_cast<const std::string*>(value));
 }

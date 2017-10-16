@@ -25,6 +25,9 @@ Scene::Scene(ID3D11Device* device, ID3D11DeviceContext* context)
 	m_entities = std::vector<Entity*>();
 
 	m_mainCamera = nullptr;
+
+	d_sceneNameField = "";
+	d_entityNameField = "";
 }
 
 Scene::~Scene()
@@ -45,6 +48,8 @@ Scene::~Scene()
 
 bool Scene::init()
 {
+	Debug::sceneDebugWindow->setupControls(this);
+
 	m_renderer = new Renderer(m_context);
 	if (!m_renderer->init()) return false;
 
@@ -85,21 +90,21 @@ bool Scene::init()
 	hr = m_device->CreateBlendState(&blendDesc, &m_blendState);
 	if (FAILED(hr))
 	{
-		Output::Error("Failed to create blend state.");
+		Debug::error("Failed to create blend state.");
 		return false;
 	}
 
 	hr = m_device->CreateDepthStencilState(&depthStencilDefaultDesc, &m_depthStencilStateDefault);
 	if (FAILED(hr))
 	{
-		Output::Error("Failed to create default depth stencil state.");
+		Debug::error("Failed to create default depth stencil state.");
 		return false;
 	}
 
 	hr = m_device->CreateDepthStencilState(&depthStencilReadDesc, &m_depthStencilStateRead);
 	if (FAILED(hr))
 	{
-		Output::Error("Failed to create read depth stencil state.");
+		Debug::error("Failed to create read depth stencil state.");
 		return false;
 	}
 
@@ -147,7 +152,7 @@ bool Scene::loadFromJSON(std::string filename)
 		char errorMessage[512];
 		strerror_s(errorMessage, 512, errno);
 		std::string errString = std::string(errorMessage);
-		Output::Error("Failed to load scene at " + filePath + ": " + errString);
+		Debug::warning("Failed to load scene at " + filePath + ": " + errString);
 		return false;
 	}
 
@@ -166,12 +171,12 @@ bool Scene::loadFromJSON(std::string filename)
 	{
 		const char* errorMessage = rapidjson::GetParseError_En(result.Code());
 
-		Output::Error("Failed to load scene at " + filePath + " because there was a parse error at character " +  std::to_string(result.Offset()) + ": " + std::string(errorMessage));
-		delete jsonStringBuffer;
+		Debug::error("Failed to load scene at " + filePath + " because there was a parse error at character " +  std::to_string(result.Offset()) + ": " + std::string(errorMessage));
+		delete[] jsonStringBuffer;
 		return false;
 	}
 
-	delete jsonStringBuffer;
+	delete[] jsonStringBuffer;
 
 	ifs.close();
 
@@ -207,7 +212,7 @@ bool Scene::loadFromJSON(std::string filename)
 			if (c)
 				c->loadFromJSON(dataObject);
 			else
-				Output::Warning("Skipping component of type " + std::string(componentType.GetString()) + " - either an invalid type or the component was not registered.");
+				Debug::warning("Skipping component of type " + std::string(componentType.GetString()) + " - either an invalid type or the component was not registered.");
 		}
 	}
 
@@ -221,15 +226,15 @@ bool Scene::loadFromJSON(std::string filename)
 
 		if (!m_mainCamera)
 		{
-			Output::Warning("Could not set main camera because given entity " + std::string(mainCamera.GetString()) + " does not have a Camera component.");
+			Debug::warning("Could not set main camera because given entity " + std::string(mainCamera.GetString()) + " does not have a Camera component.");
 		}
 	}
 	else
 	{
-		Output::Warning("Could not set main camera because entity with name " + std::string(mainCamera.GetString()) + " does not exist.");
+		Debug::warning("Could not set main camera because entity with name " + std::string(mainCamera.GetString()) + " does not exist.");
 	}
 	
-	Output::Message("Loaded scene from " + filePath);
+	Debug::message("Loaded scene from " + filePath);
 	return true;
 }
 
@@ -253,6 +258,7 @@ void Scene::saveToJSON(std::string filename)
 	}
 	else
 	{
+		writer.Key("mainCamera");
 		writer.String("undefined");
 	}
 
@@ -278,19 +284,19 @@ void Scene::saveToJSON(std::string filename)
 
 	if (!ofs.is_open())
 	{
-		Output::Error("Failed to create file " + filename);
+		Debug::error("Failed to create file " + filename);
 
 		char errorMessage[512];
 		strerror_s(errorMessage, 512, errno);
 		std::string errString = std::string(errorMessage);
-		Output::Error("Failed to create file at " + filePath + ": " + errString);
+		Debug::error("Failed to create file at " + filePath + ": " + errString);
 		return;
 	}
 
 	ofs.write(s.GetString(), s.GetSize());
 	ofs.close();
 
-	Output::Message("Saved scene to " + filePath);
+	Debug::message("Saved scene to " + filePath);
 }
 
 DirectX::XMMATRIX Scene::getProjectionMatrix() const
@@ -330,7 +336,8 @@ void Scene::onMouseDown(WPARAM buttonState, int x, int y)
 {
 	for (unsigned int i = 0; i < m_entities.size(); i++)
 	{
-		m_entities[i]->onMouseDown(buttonState, x, y);
+		if(m_entities[i]->enabled)
+			m_entities[i]->onMouseDown(buttonState, x, y);
 	}
 }
 
@@ -338,7 +345,8 @@ void Scene::onMouseUp(WPARAM buttonState, int x, int y)
 {
 	for (unsigned int i = 0; i < m_entities.size(); i++)
 	{
-		m_entities[i]->onMouseUp(buttonState, x, y);
+		if (m_entities[i]->enabled)
+			m_entities[i]->onMouseUp(buttonState, x, y);
 	}
 }
 
@@ -346,7 +354,8 @@ void Scene::onMouseMove(WPARAM buttonState, int x, int y)
 {
 	for (unsigned int i = 0; i < m_entities.size(); i++)
 	{
-		m_entities[i]->onMouseMove(buttonState, x, y);
+		if (m_entities[i]->enabled)
+			m_entities[i]->onMouseMove(buttonState, x, y);
 	}
 }
 
@@ -354,7 +363,8 @@ void Scene::onMouseWheel(float wheelDelta, int x, int y)
 {
 	for (unsigned int i = 0; i < m_entities.size(); i++)
 	{
-		m_entities[i]->onMouseWheel(wheelDelta, x, y);
+		if (m_entities[i]->enabled)
+			m_entities[i]->onMouseWheel(wheelDelta, x, y);
 	}
 }
 
@@ -453,8 +463,19 @@ void Scene::renderGUI()
 
 Entity* Scene::createEntity(std::string name)
 {
-	Entity* entity = new Entity(name);
+	for (unsigned int i = 0; i < m_entities.size(); i++)
+	{
+		if (m_entities[i]->getName() == name)
+		{
+			Debug::warning("Failed to create entity with name " + name + " because an entity with that name already exists.");
+			return nullptr;
+		}
+	}
+
+	Entity* entity = new Entity(*this, name);
 	m_entities.push_back(entity);
+
+	Debug::entityDebugWindow->addEntity(entity);
 
 	return entity;
 }
@@ -473,6 +494,17 @@ void Scene::deleteEntity(Entity* entity)
 	}
 }
 
+void Scene::clear()
+{
+	while (m_entities.size() > 0)
+	{
+		delete m_entities.back();
+		m_entities.pop_back();
+	}
+
+	m_mainCamera = nullptr;
+}
+
 Entity* Scene::getEntityByName(std::string name)
 {
 	for (unsigned int i = 0; i < m_entities.size(); i++)
@@ -483,6 +515,6 @@ Entity* Scene::getEntityByName(std::string name)
 		}
 	}
 
-	Output::Warning("Failed to find entity with name " + name);
+	Debug::warning("Failed to find entity with name " + name);
 	return nullptr;
 }

@@ -7,6 +7,7 @@ public:
 	Transform(Entity& entity);
 	~Transform();
 
+	virtual void init() override;
 	virtual void loadFromJSON(rapidjson::Value& dataObject) override;
 	virtual void saveToJSON(rapidjson::Writer<rapidjson::StringBuffer>& writer) override;
 
@@ -62,3 +63,11 @@ private:
 	DirectX::XMFLOAT4X4 m_scaleMatrix;
 	DirectX::XMFLOAT4X4 m_worldMatrix;
 };
+
+void TW_CALL getTransformPositionDebugEditor(void* value, void* clientData);
+void TW_CALL getTransformRotationDebugEditor(void* value, void* clientData);
+void TW_CALL getTransformScaleDebugEditor(void* value, void* clientData);
+
+void TW_CALL setTransformPositionDebugEditor(const void* value, void* clientData);
+void TW_CALL setTransformRotationDebugEditor(const void* value, void* clientData);
+void TW_CALL setTransformScaleDebugEditor(const void* value, void* clientData);

@@ -1,5 +1,7 @@
 #include "Transform.h"
 
+#include "ComponentRegistry.h"
+
 using namespace DirectX;
 
 Transform::Transform(Entity& entity) : Component(entity)
@@ -16,6 +18,15 @@ Transform::Transform(Entity& entity) : Component(entity)
 
 Transform::~Transform()
 {
+}
+
+void Transform::init()
+{
+	Component::init();
+
+	Debug::entityDebugWindow->addVariableWithCallbacks(Debug::TW_TYPE_VEC3F, "Position", typeName, entity.getName(), &getTransformPositionDebugEditor, &setTransformPositionDebugEditor, this);
+	Debug::entityDebugWindow->addVariableWithCallbacks(Debug::TW_TYPE_VEC3F, "Rotation", typeName, entity.getName(), &getTransformRotationDebugEditor, &setTransformRotationDebugEditor, this);
+	Debug::entityDebugWindow->addVariableWithCallbacks(Debug::TW_TYPE_VEC3F, "Scale", typeName, entity.getName(), &getTransformScaleDebugEditor, &setTransformScaleDebugEditor, this);
 }
 
 void Transform::loadFromJSON(rapidjson::Value& dataObject)
@@ -112,7 +123,7 @@ void Transform::setPosition(DirectX::XMFLOAT3 position)
 
 void Transform::setRotation(DirectX::XMFLOAT3 rotation)
 {
-	m_rotation = rotation;
+	m_rotation = XMFLOAT3(XMConvertToRadians(rotation.x), XMConvertToRadians(rotation.y), XMConvertToRadians(rotation.z));
 	calcRotationMatrix();
 }
 
@@ -369,4 +380,42 @@ void Transform::scaleZ(float delta)
 	XMStoreFloat3(&m_scale, scale);
 
 	calcScaleMatrix();
+}
+
+void TW_CALL getTransformPositionDebugEditor(void* value, void* clientData)
+{
+	Transform* transform = static_cast<Transform*>(clientData);
+	*static_cast<XMFLOAT3*>(value) = transform->getPosition();
+}
+
+void TW_CALL getTransformRotationDebugEditor(void* value, void* clientData)
+{
+	Transform* transform = static_cast<Transform*>(clientData);
+	XMFLOAT3 rotation = transform->getRotation();
+	XMFLOAT3 rotationDegrees = XMFLOAT3(XMConvertToDegrees(rotation.x), XMConvertToDegrees(rotation.y), XMConvertToDegrees(rotation.z));
+	*static_cast<XMFLOAT3*>(value) = rotationDegrees;
+}
+
+void TW_CALL getTransformScaleDebugEditor(void* value, void* clientData)
+{
+	Transform* transform = static_cast<Transform*>(clientData);
+	*static_cast<XMFLOAT3*>(value) = transform->getScale();
+}
+
+void TW_CALL setTransformPositionDebugEditor(const void* value, void* clientData)
+{
+	Transform* transform = static_cast<Transform*>(clientData);
+	transform->setPosition(*static_cast<const XMFLOAT3*>(value));
+}
+
+void TW_CALL setTransformRotationDebugEditor(const void* value, void* clientData)
+{
+	Transform* transform = static_cast<Transform*>(clientData);
+	transform->setRotation(*static_cast<const XMFLOAT3*>(value));
+}
+
+void TW_CALL setTransformScaleDebugEditor(const void* value, void* clientData)
+{
+	Transform* transform = static_cast<Transform*>(clientData);
+	transform->setScale(*static_cast<const XMFLOAT3*>(value));
 }

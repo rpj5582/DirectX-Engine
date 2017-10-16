@@ -7,7 +7,7 @@ Component* ComponentRegistry::addComponentToEntity(Entity& entity, std::string c
 {
 	if (m_componentRegistry.find(componentType) == m_componentRegistry.end())
 	{
-		Output::Warning("Failed to get component function for component type " + componentType + " because the component was not found in the registry.");
+		Debug::warning("Failed to get component function for component type " + componentType + " because the component was not found in the registry.");
 		return false;
 	}
 
@@ -23,15 +23,13 @@ void ComponentRegistry::registerComponents()
 
 std::string ComponentRegistry::getTypeName(std::type_index type)
 {
-	//static_assert(std::is_base_of<Component, type>::value, "Given type is not a Component.");
-
 	auto it = m_componentRegistryReverse.find(type);
 	if (it != m_componentRegistryReverse.end())
 	{
 		return it->second;
 	}
 
-	Output::Error("Failed to get component type because it wasn't registered. Make sure the component is registered and you're using a fully implemented class!");
+	Debug::error("Failed to get component type because it wasn't registered. Make sure the component is registered and you're using a fully implemented class!");
 	return "";
 }
 

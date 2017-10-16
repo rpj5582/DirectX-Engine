@@ -13,9 +13,13 @@ public:
 	virtual void draw(DirectX::SpriteBatch& spriteBatch) const override;
 
 	ID3D11ShaderResourceView* getTextureSRV() const;
+	std::string getTextureID() const;
 	void setTexture(std::string textureID);
 
 protected:
 	ID3D11ShaderResourceView* m_textureSRV;
 	std::string m_textureID;
 };
+
+void TW_CALL getGUISpriteComponentTextureDebugEditor(void* value, void* clientData);
+void TW_CALL setGUISpriteComponentTextureDebugEditor(const void* value, void* clientData);

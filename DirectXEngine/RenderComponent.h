@@ -19,6 +19,7 @@ public:
 	virtual void saveToJSON(rapidjson::Writer<rapidjson::StringBuffer>& writer) override;
 
 	Material* getMaterial() const;
+	std::string getMaterialID() const;
 	void setMaterial(std::string materialID);
 
 	RenderStyle getRenderStyle() const;
@@ -29,4 +30,10 @@ private:
 	Material* m_material;
 
 	RenderStyle m_renderStyle;
+
+	static TwEnumVal d_renderStyleMembers[3];
+	static TwType TW_TYPE_RENDER_STLYE;
 };
+
+void TW_CALL getRenderComponentMaterialDebugEditor(void* value, void* clientData);
+void TW_CALL setRenderComponentMaterialDebugEditor(const void* value, void* clientData);

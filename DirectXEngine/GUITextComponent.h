@@ -13,6 +13,7 @@ public:
 	virtual void draw(DirectX::SpriteBatch& spriteBatch) const override;
 
 	DirectX::SpriteFont* getFont() const;
+	std::string getFontID() const;
 	void setFont(std::string fontID);
 
 	std::string getText() const;
@@ -24,3 +25,6 @@ private:
 
 	std::string m_text;
 };
+
+void TW_CALL getGUITextComponentFontDebugEditor(void* value, void* clientData);
+void TW_CALL setGUITextComponentFontDebugEditor(const void* value, void* clientData);

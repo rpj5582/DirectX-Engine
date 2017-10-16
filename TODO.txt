@@ -1,6 +1,6 @@
 TODO:
-Add AntTweakBar
-Add json parsing for saving levels
+Add assets to AntTweakBar
+Convert pointers to smart pointers
 Make Input class
 Parenting
 Tagging?

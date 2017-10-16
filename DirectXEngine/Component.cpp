@@ -4,6 +4,7 @@
 
 Component::Component(Entity& entity) : entity(entity), enabled(true)
 {
+	typeName = "";
 }
 
 Component::~Component()
@@ -28,6 +29,8 @@ void Component::onMouseWheel(float wheelDelta, int x, int y)
 
 void Component::init()
 {
+	typeName = ComponentRegistry::getTypeName(typeid(*this));
+	Debug::entityDebugWindow->addVariable(&enabled, TW_TYPE_BOOLCPP, "Enabled", typeName, entity.getName());
 }
 
 void Component::update(float deltaTime, float totalTime)
@@ -56,4 +59,9 @@ void Component::saveToJSON(rapidjson::Writer<rapidjson::StringBuffer>& writer)
 Entity& Component::getEntity() const
 {
 	return entity;
+}
+
+std::string Component::getName() const
+{
+	return typeName;
 }

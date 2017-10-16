@@ -16,6 +16,13 @@ GUITransform::~GUITransform()
 
 void GUITransform::init()
 {
+	Component::init();
+
+	Debug::entityDebugWindow->addVariable(&m_position, Debug::TW_TYPE_VEC2F, "Position", typeName, entity.getName());
+	Debug::entityDebugWindow->addVariable(&m_rotation, TW_TYPE_FLOAT, "Rotation", typeName, entity.getName());
+	Debug::entityDebugWindow->addVariable(&m_size, Debug::TW_TYPE_VEC2F, "Size", typeName, entity.getName());
+	Debug::entityDebugWindow->addVariable(&m_origin, Debug::TW_TYPE_VEC2F, "Origin", typeName, entity.getName());
+
 	m_size = XMFLOAT2(1.0f, 1.0f);
 }
 
@@ -92,8 +99,8 @@ void GUITransform::saveToJSON(rapidjson::Writer<rapidjson::StringBuffer>& writer
 
 bool GUITransform::containsPoint(int x, int y) const
 {
-	if (x >= m_position.x && x <= m_position.x + m_size.x &&
-		y >= m_position.y && y <= m_position.y + m_size.y)
+	if (x >= m_position.x - m_origin.x * m_size.x && x <= m_position.x - m_origin.x * m_size.x + m_size.x &&
+		y >= m_position.y - m_origin.y * m_size.y && y <= m_position.y - m_origin.y * m_size.y + m_size.y)
 		return true;
 
 	return false;

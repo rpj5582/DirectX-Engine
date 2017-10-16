@@ -20,6 +20,14 @@ public:
 	void update(float deltaTime, float totalTime);
 	void render();
 
+	bool loadFromJSON(std::string filename);
+	void saveToJSON(std::string filename);
+
+	Entity* createEntity(std::string name);
+	void deleteEntity(Entity* entity);
+
+	void clear();
+
 	DirectX::XMMATRIX getProjectionMatrix() const;
 	void updateProjectionMatrix(int width, int height, float nearZ, float farZ);
 
@@ -33,13 +41,10 @@ public:
 	void onMouseMove(WPARAM buttonState, int x, int y);
 	void onMouseWheel(float wheelDelta, int x, int y);
 
+	std::string d_sceneNameField;
+	std::string d_entityNameField;
+
 protected:
-	bool loadFromJSON(std::string filename);
-	void saveToJSON(std::string filename);
-
-	Entity* createEntity(std::string name = "Entity");
-	void deleteEntity(Entity* entity);
-
 	Entity* getEntityByName(std::string name);
 
 	void setMainCamera(CameraComponent* camera);
@@ -66,3 +71,5 @@ private:
 
 	CameraComponent* m_mainCamera;
 };
+
+

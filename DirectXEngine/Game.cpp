@@ -25,12 +25,7 @@ Game::Game(HINSTANCE hInstance)
 	m_assetManager = nullptr;
 	m_scene = nullptr;
 
-#if defined(DEBUG) || defined(_DEBUG)
-	// Do we want a console window?  Probably only in debug mode
-	CreateConsoleWindow(500, 120, 32, 120);
-	Output::Message("Console window created successfully.");
-#endif
-	
+	Debug::createConsoleWindow();
 }
 
 // --------------------------------------------------------
@@ -40,6 +35,8 @@ Game::Game(HINSTANCE hInstance)
 // --------------------------------------------------------
 Game::~Game()
 {
+	Debug::cleanDebugWindows();
+
 	delete m_assetManager;
 	delete m_scene;
 }
@@ -54,6 +51,8 @@ bool Game::Init()
 	// geometric primitives (points, lines or triangles) we want to draw.  
 	// Essentially: "What kind of shape should the GPU draw with our data?"
 	context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
+	Debug::initDebugWindows(device, width, height);
 
 	ComponentRegistry registry;
 	registry.registerComponents();
@@ -106,6 +105,8 @@ void Game::Draw(float deltaTime, float totalTime)
 	context->ClearDepthStencilView(depthStencilView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 
 	m_scene->render();
+
+	TwDraw();
 
 	// Present the back buffer to the user
 	//  - Puts the final frame we're drawing into the window so the user can see it
