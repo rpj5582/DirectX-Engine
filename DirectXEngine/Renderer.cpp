@@ -18,7 +18,7 @@ bool Renderer::init()
 	return true;
 }
 
-void Renderer::render(const CameraComponent& mainCamera, XMMATRIX projectionMatrix, Entity** entities, unsigned int entityCount, const GPU_LIGHT_DATA* lightData)
+void Renderer::render(const CameraComponent& mainCamera, const XMMATRIX& projectionMatrix, Entity** entities, unsigned int entityCount, const GPU_LIGHT_DATA* lightData)
 {
 	Transform* mainCameraTransform = mainCamera.getEntity().getComponent<Transform>();
 	if (!mainCameraTransform) return;
