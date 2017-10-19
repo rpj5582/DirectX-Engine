@@ -75,13 +75,13 @@ void Transform::saveToJSON(rapidjson::Writer<rapidjson::StringBuffer>& writer)
 	writer.StartObject();
 
 	writer.Key("x");
-	writer.Double(m_rotation.x);
+	writer.Double(XMConvertToDegrees(m_rotation.x));
 
 	writer.Key("y");
-	writer.Double(m_rotation.y);
+	writer.Double(XMConvertToDegrees(m_rotation.y));
 
 	writer.Key("z");
-	writer.Double(m_rotation.z);
+	writer.Double(XMConvertToDegrees(m_rotation.z));
 
 	writer.EndObject();
 
