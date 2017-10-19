@@ -95,6 +95,12 @@ std::string Entity::getName() const
 
 Component* Entity::addComponentByStringType(std::string componentType)
 {
+	if (componentType == "")
+	{
+		Debug::warning("Enter a component type to add.");
+		return nullptr;
+	}
+
 	return ComponentRegistry::addComponentToEntity(*this, componentType);
 }
 

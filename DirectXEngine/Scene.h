@@ -44,6 +44,22 @@ public:
 	std::string d_sceneNameField;
 	std::string d_entityNameField;
 
+	std::string d_textureNameField;
+	std::string d_materialNameField;
+	std::string d_meshNameField;
+	std::string d_fontNameField;
+	std::string d_samplerNameField;
+	std::string d_vertexShaderNameField;
+	std::string d_pixelShaderNameField;
+
+	std::string d_texturePathField;
+	std::string d_materialPathField;
+	std::string d_meshPathField;
+	std::string d_fontPathField;
+	std::string d_samplerPathField;
+	std::string d_vertexShaderPathField;
+	std::string d_pixelShaderPathField;
+
 protected:
 	Entity* getEntityByName(std::string name);
 

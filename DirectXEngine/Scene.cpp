@@ -28,6 +28,22 @@ Scene::Scene(ID3D11Device* device, ID3D11DeviceContext* context)
 
 	d_sceneNameField = "";
 	d_entityNameField = "";
+
+	d_textureNameField = "";
+	d_materialNameField = "";
+	d_meshNameField = "";
+	d_fontNameField = "";
+	d_samplerNameField = "";
+	d_vertexShaderNameField = "";
+	d_pixelShaderNameField = "";
+
+	d_texturePathField = "";
+	d_materialPathField = "";
+	d_meshPathField = "";
+	d_fontPathField = "";
+	d_samplerPathField = "";
+	d_vertexShaderPathField = "";
+	d_pixelShaderPathField = "";
 }
 
 Scene::~Scene()
@@ -49,6 +65,8 @@ Scene::~Scene()
 bool Scene::init()
 {
 	Debug::sceneDebugWindow->setupControls(this);
+	Debug::entityDebugWindow->setupControls(this);
+	Debug::assetDebugWindow->setupControls(this);
 
 	m_renderer = new Renderer(m_context);
 	if (!m_renderer->init()) return false;
@@ -143,16 +161,14 @@ void Scene::render()
 bool Scene::loadFromJSON(std::string filename)
 {
 	// Load the json file
-	std::string filePath = "Assets/Scenes/" + filename;
-
-	std::ifstream ifs(filePath, std::ios::in | std::ios::binary);
+	std::ifstream ifs(filename, std::ios::in | std::ios::binary);
 
 	if (!ifs.is_open())
 	{
 		char errorMessage[512];
 		strerror_s(errorMessage, 512, errno);
 		std::string errString = std::string(errorMessage);
-		Debug::warning("Failed to load scene at " + filePath + ": " + errString);
+		Debug::warning("Failed to load scene at " + filename + ": " + errString);
 		return false;
 	}
 
@@ -171,7 +187,7 @@ bool Scene::loadFromJSON(std::string filename)
 	{
 		const char* errorMessage = rapidjson::GetParseError_En(result.Code());
 
-		Debug::error("Failed to load scene at " + filePath + " because there was a parse error at character " +  std::to_string(result.Offset()) + ": " + std::string(errorMessage));
+		Debug::error("Failed to load scene at " + filename + " because there was a parse error at character " +  std::to_string(result.Offset()) + ": " + std::string(errorMessage));
 		delete[] jsonStringBuffer;
 		return false;
 	}
@@ -234,14 +250,12 @@ bool Scene::loadFromJSON(std::string filename)
 		Debug::warning("Could not set main camera because entity with name " + std::string(mainCamera.GetString()) + " does not exist.");
 	}
 	
-	Debug::message("Loaded scene from " + filePath);
+	Debug::message("Loaded scene from " + filename);
 	return true;
 }
 
 void Scene::saveToJSON(std::string filename)
 {
-	std::string filePath = "Assets/Scenes/" + filename;
-
 	rapidjson::StringBuffer s;
 	rapidjson::Writer<rapidjson::StringBuffer> writer(s);
 
@@ -280,23 +294,23 @@ void Scene::saveToJSON(std::string filename)
 	writer.EndObject();
 
 	// Now stringify the DOM and save it to a file
-	std::ofstream ofs(filePath, std::ios::out);
+	std::ofstream ofs(filename, std::ios::out);
 
 	if (!ofs.is_open())
 	{
-		Debug::error("Failed to create file " + filename);
+		Debug::error("Failed to create file at " + filename);
 
 		char errorMessage[512];
 		strerror_s(errorMessage, 512, errno);
 		std::string errString = std::string(errorMessage);
-		Debug::error("Failed to create file at " + filePath + ": " + errString);
+		Debug::error("Failed to create file at " + filename + ": " + errString);
 		return;
 	}
 
 	ofs.write(s.GetString(), s.GetSize());
 	ofs.close();
 
-	Debug::message("Saved scene to " + filePath);
+	Debug::message("Saved scene to " + filename);
 }
 
 DirectX::XMMATRIX Scene::getProjectionMatrix() const
@@ -488,7 +502,7 @@ void Scene::deleteEntity(Entity* entity)
 		{
 			delete m_entities[i];
 			m_entities.erase(m_entities.begin() + i);
-
+			Debug::entityDebugWindow->removeEntity(entity);
 			return;
 		}
 	}
@@ -503,6 +517,8 @@ void Scene::clear()
 	}
 
 	m_mainCamera = nullptr;
+	
+	AssetManager::unloadAllAssets();
 }
 
 Entity* Scene::getEntityByName(std::string name)

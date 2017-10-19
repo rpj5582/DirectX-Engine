@@ -178,11 +178,7 @@ LightSettings LightComponent::getLightSettings() const
 
 void LightComponent::setLightSettings(const LightSettings& settings)
 {
-	m_light.color = settings.color;
-	m_light.brightness = settings.brightness;
-	m_light.specularity = settings.specularity;
-	m_light.radius = settings.radius;
-	m_light.spotAngle = settings.spotAngle;
+	m_light = settings;
 }
 
 void LightComponent::useDefaultSettings()

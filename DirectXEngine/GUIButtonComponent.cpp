@@ -28,7 +28,7 @@ void GUIButtonComponent::init()
 	entity.subscribeMouseDown(this);
 	entity.subscribeMouseUp(this);
 
-	setFont("default");
+	setFont(DEFAULT_FONT);
 
 	Debug::entityDebugWindow->addVariable(&m_isClicking, TW_TYPE_BOOLCPP, "Clicked", typeName, entity.getName(), "", true);
 	Debug::entityDebugWindow->addVariableWithCallbacks(TW_TYPE_STDSTRING, "Font", typeName, entity.getName(), &getGUIButtonComponentFontDebugEditor, &setGUIButtonComponentFontDebugEditor, this);
@@ -92,7 +92,7 @@ void GUIButtonComponent::draw(DirectX::SpriteBatch& spriteBatch) const
 	GUITransform* guiTransform = entity.getComponent<GUITransform>();
 	if (!guiTransform) return;
 
-	if (!m_textureSRV) return;
+	if (!m_texture) return;
 
 	XMFLOAT2 position = guiTransform->getPosition();
 	float rotation = guiTransform->getRotation();
@@ -101,16 +101,16 @@ void GUIButtonComponent::draw(DirectX::SpriteBatch& spriteBatch) const
 
 	XMVECTORF32 color = { m_color.x, m_color.y, m_color.z, m_color.w };
 	XMVECTORF32 textColor = { m_textColor.x, m_textColor.y, m_textColor.z, m_textColor.w };
-	spriteBatch.Draw(m_textureSRV, position, nullptr, color, sinf(XMConvertToRadians(rotation)), origin, size);
+	spriteBatch.Draw(m_texture->getSRV(), position, nullptr, color, sinf(XMConvertToRadians(rotation)), origin, size);
 
 	XMVECTOR originVector = XMLoadFloat2(&origin);
 	XMVECTOR sizeVector = XMLoadFloat2(&size);
 	XMStoreFloat2(&origin, XMVectorMultiply(originVector, sizeVector));
 
-	m_font->DrawString(&spriteBatch, std::wstring(m_text.begin(), m_text.end()).c_str(), position, textColor, sinf(XMConvertToRadians(rotation)), origin);
+	m_font->getSpriteFont()->DrawString(&spriteBatch, std::wstring(m_text.begin(), m_text.end()).c_str(), position, textColor, sinf(XMConvertToRadians(rotation)), origin);
 }
 
-DirectX::SpriteFont* GUIButtonComponent::getFont() const
+Font* GUIButtonComponent::getFont() const
 {
 	return m_font;
 }
@@ -122,7 +122,7 @@ std::string GUIButtonComponent::getFontID() const
 
 void GUIButtonComponent::setFont(std::string fontID)
 {
-	m_font = AssetManager::getFont(fontID);
+	m_font = AssetManager::getAsset<Font>(fontID);
 	if (m_font)
 	{
 		m_fontID = fontID;

@@ -1,7 +1,6 @@
 #pragma once
 #include "DebugWindow.h"
 
-class Scene;
 class Entity;
 class Component;
 
@@ -11,13 +10,16 @@ public:
 	EntityDebugWindow(std::string windowID, std::string windowLabel);
 	~EntityDebugWindow();
 
+	void setupControls(Scene* scene) override;
+
 	void addEntity(Entity* entity);
-	void removeEntity(Scene& scene, Entity* entity);
+	void removeEntity(Entity* entity);
 
 	void addComponent(Component* component);
 	void removeComponent(Component* component);
 };
 
-void TW_CALL removeEntityDebugWindow(void* clientData);
-void TW_CALL addComponentDebugWindow(void* clientData);
-void TW_CALL removeComponentDebugWindow(void* clientData);
+void TW_CALL addEntityDebugEditor(void* clientData);
+void TW_CALL removeEntityDebugEditor(void* clientData);
+void TW_CALL addComponentDebugEditor(void* clientData);
+void TW_CALL removeComponentDebugEditor(void* clientData);

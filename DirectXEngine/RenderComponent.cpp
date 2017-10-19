@@ -23,7 +23,7 @@ void RenderComponent::init()
 {
 	Component::init();
 
-	setMaterial("default");
+	setMaterial(DEFAULT_MATERIAL);
 
 	if(TW_TYPE_RENDER_STLYE == TW_TYPE_UNDEF)
 		TW_TYPE_RENDER_STLYE = TwDefineEnum("TW_TYPE_RENDER_STLYE", d_renderStyleMembers, 3);
@@ -114,7 +114,7 @@ std::string RenderComponent::getMaterialID() const
 
 void RenderComponent::setMaterial(std::string materialID)
 {
-	m_material = AssetManager::getMaterial(materialID);
+	m_material = AssetManager::getAsset<Material>(materialID);
 	if (m_material)
 	{
 		m_materialID = materialID;

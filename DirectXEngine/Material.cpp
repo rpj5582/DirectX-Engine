@@ -2,81 +2,91 @@
 
 #include "AssetManager.h"
 
-Material::Material(std::string vertexShaderID, std::string pixelShaderID, std::string diffuseTextureID,
-	std::string specularTextureID, std::string normalTextureID, std::string samplerID)
+Material::Material(ID3D11Device* device, ID3D11DeviceContext* context, std::string assetID, std::string filepath) : Asset(device, context, assetID, filepath)
 {
-	m_vertexShaderID = vertexShaderID;
-	m_pixelShaderID = pixelShaderID;
-	m_diffuseTextureID = diffuseTextureID;
-	m_specularTextureID = specularTextureID;
-	m_normalTextureID = normalTextureID;
-	m_samplerID = samplerID;
+}
 
-	m_vertexShader = AssetManager::getVertexShader(vertexShaderID);
-	m_pixelShader = AssetManager::getPixelShader(pixelShaderID);
+Material::Material(ID3D11Device* device, ID3D11DeviceContext* context, std::string assetID, VertexShader* vertexShader, PixelShader* pixelShader, const MaterialSettings& materialSettings) : Asset(device, context, assetID, "")
+{
+	m_vertexShader = vertexShader;
+	m_pixelShader = pixelShader;
 
-	m_diffuseTextureSRV = AssetManager::getTexture(diffuseTextureID);
-	m_specularTextureSRV = AssetManager::getTexture(specularTextureID);
-	m_normalTextureSRV = AssetManager::getTexture(normalTextureID);
-	m_sampler = AssetManager::getSampler(samplerID);
+	setMaterialSettings(materialSettings);
 }
 
 Material::~Material()
 {
 }
 
-std::string Material::getVertexShaderID() const
+void Material::saveToJSON(rapidjson::Writer<rapidjson::StringBuffer>& writer)
 {
-	return m_vertexShaderID;
+	Asset::saveToJSON(writer);
+
+	writer.Key("type");
+	writer.String("material");
+
+	writer.Key("vertexShader");
+	writer.String(m_vertexShader->getAssetID().c_str());
+
+	writer.Key("pixelShader");
+	writer.String(m_pixelShader->getAssetID().c_str());
+
+	writer.Key("diffuse");
+	writer.String(m_materialSettings.diffuseTextureID.c_str());
+
+	writer.Key("specular");
+	writer.String(m_materialSettings.specularTextureID.c_str());
+
+	writer.Key("normal");
+	writer.String(m_materialSettings.normalTextureID.c_str());
+
+	writer.Key("sampler");
+	writer.String(m_materialSettings.samplerID.c_str());
 }
 
-std::string Material::getPixelShaderID() const
-{
-	return m_pixelShaderID;
-}
-
-std::string Material::getDiffuseTextureID() const
-{
-	return m_diffuseTextureID;
-}
-
-std::string Material::getSpecularTextureID() const
-{
-	return m_specularTextureID;
-}
-
-std::string Material::getNormalTextureID() const
-{
-	return m_normalTextureID;
-}
-
-std::string Material::getSamplerID() const
-{
-	return m_samplerID;
-}
-
-SimpleVertexShader* Material::getVertexShader() const
+VertexShader* Material::getVertexShader() const
 {
 	return m_vertexShader;
 }
 
-SimplePixelShader* Material::getPixelShader() const
+PixelShader* Material::getPixelShader() const
 {
 	return m_pixelShader;
 }
 
-void Material::useMaterial()
+bool Material::loadAsset()
 {
-	m_vertexShader->SetShader();
-	m_pixelShader->SetShader();
-
-	m_pixelShader->SetShaderResourceView("diffuseTexture", m_diffuseTextureSRV);
-	m_pixelShader->SetShaderResourceView("normalTexture", m_normalTextureSRV);
-	m_pixelShader->SetShaderResourceView("specularTexture", m_specularTextureSRV);
-	m_pixelShader->SetSamplerState("materialSampler", m_sampler);
+	Debug::error("Loading materials from file is not yet implemented.");
+	return false;
 }
 
-ID3D11ShaderResourceView* Material::getDiffuseTextureSRV() const
+MaterialSettings Material::getMaterialSettings() const
 {
-	return m_diffuseTextureSRV;
+	return m_materialSettings;
+}
+
+void Material::setMaterialSettings(const MaterialSettings& settings)
+{
+	m_materialSettings = settings;
+}
+
+void Material::useMaterial()
+{
+	if(m_vertexShader)
+		m_vertexShader->SetShader();
+
+	if (m_pixelShader)
+	{
+		m_pixelShader->SetShader();
+
+		Texture* diffuseTextureSRV = AssetManager::getAsset<Texture>(m_materialSettings.diffuseTextureID);
+		Texture* specularTextureSRV = AssetManager::getAsset<Texture>(m_materialSettings.specularTextureID);
+		Texture* normalTextureSRV = AssetManager::getAsset<Texture>(m_materialSettings.normalTextureID);
+		Sampler* sampler = AssetManager::getAsset<Sampler>(m_materialSettings.samplerID);
+
+		m_pixelShader->SetShaderResourceView("diffuseTexture", diffuseTextureSRV->getSRV());
+		m_pixelShader->SetShaderResourceView("specularTexture", specularTextureSRV->getSRV());
+		m_pixelShader->SetShaderResourceView("normalTexture", normalTextureSRV->getSRV());
+		m_pixelShader->SetSamplerState("materialSampler", sampler->getSampler());
+	}
 }

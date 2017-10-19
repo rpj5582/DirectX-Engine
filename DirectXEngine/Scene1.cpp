@@ -14,7 +14,7 @@ bool Scene1::init()
 {
 	if (!Scene::init()) return false;
 
-	//if (!loadFromJSON("scene1.json")) return false;
+	//if (!loadFromJSON("Assets/Scenes/scene1.json")) return false;
 
 	//// The onclick callback can't be saved to a json file, so set the callback here
 	//Entity* guiButtonEntity = getEntityByName("Button");
@@ -138,7 +138,7 @@ bool Scene1::init()
 	//	guiButton->setText("Yay!");
 	//});
 
-	//saveToJSON("scene1.json");
+	//saveToJSON("Assets/Scenes/scene1.json");
 
 	return true;
 }

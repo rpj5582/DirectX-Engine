@@ -1,5 +1,5 @@
 TODO:
-Add assets to AntTweakBar
+Implement file loading for materials and samplers
 Convert pointers to smart pointers
 Make Input class
 Parenting

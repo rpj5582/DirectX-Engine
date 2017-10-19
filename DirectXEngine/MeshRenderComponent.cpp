@@ -48,7 +48,7 @@ std::string MeshRenderComponent::getMeshID() const
 
 void MeshRenderComponent::setMesh(std::string meshID)
 {
-	m_mesh = AssetManager::getMesh(meshID);
+	m_mesh = AssetManager::getAsset<Mesh>(meshID);
 	if (m_mesh)
 	{
 		m_meshID = meshID;

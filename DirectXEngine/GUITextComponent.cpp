@@ -18,7 +18,7 @@ void GUITextComponent::init()
 {
 	GUIComponent::init();
 
-	setFont("default");
+	setFont(DEFAULT_FONT);
 
 	Debug::entityDebugWindow->addVariableWithCallbacks(TW_TYPE_STDSTRING, "Font", typeName, entity.getName(), &getGUITextComponentFontDebugEditor, &setGUITextComponentFontDebugEditor, this);
 	Debug::entityDebugWindow->addVariable(&m_text, TW_TYPE_STDSTRING, "Text", typeName, entity.getName());
@@ -66,11 +66,11 @@ void GUITextComponent::draw(DirectX::SpriteBatch& spriteBatch) const
 		XMFLOAT2 origin = guiTransform->getOrigin();
 		XMVECTORF32 color = { m_color.x, m_color.y, m_color.z, m_color.w };
 
-		m_font->DrawString(&spriteBatch, std::wstring(m_text.begin(), m_text.end()).c_str(), position, color, sinf(XMConvertToRadians(rotation)), origin);
+		m_font->getSpriteFont()->DrawString(&spriteBatch, std::wstring(m_text.begin(), m_text.end()).c_str(), position, color, sinf(XMConvertToRadians(rotation)), origin);
 	}
 }
 
-SpriteFont* GUITextComponent::getFont() const
+Font* GUITextComponent::getFont() const
 {
 	return m_font;
 }
@@ -82,7 +82,7 @@ std::string GUITextComponent::getFontID() const
 
 void GUITextComponent::setFont(std::string fontID)
 {
-	m_font = AssetManager::getFont(fontID);
+	m_font = AssetManager::getAsset<Font>(fontID);
 	if (m_font)
 	{
 		m_fontID = fontID;

@@ -6,7 +6,7 @@ using namespace DirectX;
 
 GUISpriteComponent::GUISpriteComponent(Entity& entity) : GUIComponent(entity)
 {
-	m_textureSRV = nullptr;
+	m_texture = nullptr;
 	m_textureID = "";
 }
 
@@ -18,7 +18,7 @@ void GUISpriteComponent::init()
 {
 	GUIComponent::init();
 
-	setTexture("defaultGUI");
+	setTexture(DEFAULT_TEXTURE_GUI);
 
 	Debug::entityDebugWindow->addVariableWithCallbacks(TW_TYPE_STDSTRING, "Texture", typeName, entity.getName(), &getGUISpriteComponentTextureDebugEditor, &setGUISpriteComponentTextureDebugEditor, this);
 }
@@ -47,19 +47,19 @@ void GUISpriteComponent::draw(DirectX::SpriteBatch& spriteBatch) const
 	GUITransform* guiTransform = entity.getComponent<GUITransform>();
 	if (!guiTransform) return;
 
-	if (!m_textureSRV) return;
+	if (!m_texture) return;
 
 	XMFLOAT2 position = guiTransform->getPosition();
 	float rotation = guiTransform->getRotation();
 	XMFLOAT2 size = guiTransform->getSize();
 	XMFLOAT2 origin = guiTransform->getOrigin();
 	XMVECTORF32 color = { m_color.x, m_color.y, m_color.z, m_color.w };
-	spriteBatch.Draw(m_textureSRV, position, nullptr, color, sinf(XMConvertToRadians(rotation)), origin, size);
+	spriteBatch.Draw(m_texture->getSRV(), position, nullptr, color, sinf(XMConvertToRadians(rotation)), origin, size);
 }
 
-ID3D11ShaderResourceView* GUISpriteComponent::getTextureSRV() const
+Texture* GUISpriteComponent::getTexture() const
 {
-	return m_textureSRV;
+	return m_texture;
 }
 
 std::string GUISpriteComponent::getTextureID() const
@@ -69,15 +69,15 @@ std::string GUISpriteComponent::getTextureID() const
 
 void GUISpriteComponent::setTexture(std::string textureID)
 {
-	m_textureSRV = AssetManager::getTexture(textureID);
-	if (m_textureSRV)
+	m_texture = AssetManager::getAsset<Texture>(textureID);
+	if (m_texture)
 	{
 		m_textureID = textureID;
 	}
 	else
 	{
 		m_textureID = "";
-		m_textureSRV = nullptr;
+		m_texture = nullptr;
 	}
 }
 

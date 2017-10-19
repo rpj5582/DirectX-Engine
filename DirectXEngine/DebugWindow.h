@@ -4,11 +4,15 @@
 
 #include <string>
 
+class Scene;
+
 class DebugWindow
 {
 public:
 	DebugWindow(std::string windowID, std::string windowLabel);
 	virtual ~DebugWindow();
+
+	virtual void setupControls(Scene* scene) = 0;
 
 	template<typename T>
 	void addVariable(T* var, TwType varType, std::string varName, std::string componentName, std::string entityName, std::string additionalParams = "", bool readonly = false);

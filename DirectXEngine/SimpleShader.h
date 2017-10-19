@@ -1,4 +1,6 @@
 #pragma once
+#include "Asset.h"
+
 #pragma comment(lib, "dxguid.lib")
 #pragma comment(lib, "d3dcompiler.lib")
 
@@ -57,10 +59,10 @@ struct SimpleSampler
 // --------------------------------------------------------
 // Base abstract class for simplifying shader handling
 // --------------------------------------------------------
-class ISimpleShader
+class ISimpleShader : public Asset
 {
 public:
-	ISimpleShader(ID3D11Device* device, ID3D11DeviceContext* context);
+	ISimpleShader(std::string assetID, std::string filepath, ID3D11Device* device, ID3D11DeviceContext* context);
 	virtual ~ISimpleShader();
 
 	// Initialization method (since we can't invoke derived class
@@ -150,9 +152,9 @@ protected:
 class SimpleVertexShader : public ISimpleShader
 {
 public:
-	SimpleVertexShader(ID3D11Device* device, ID3D11DeviceContext* context);
-	SimpleVertexShader(ID3D11Device* device, ID3D11DeviceContext* context, ID3D11InputLayout* inputLayout, bool perInstanceCompatible);
-	~SimpleVertexShader();
+	SimpleVertexShader(std::string assetID, std::string filepath, ID3D11Device* device, ID3D11DeviceContext* context);
+	SimpleVertexShader(std::string assetID, std::string filepath, ID3D11Device* device, ID3D11DeviceContext* context, ID3D11InputLayout* inputLayout, bool perInstanceCompatible);
+	virtual ~SimpleVertexShader();
 	ID3D11VertexShader* GetDirectXShader() { return shader; }
 	ID3D11InputLayout* GetInputLayout() { return inputLayout; }
 	bool GetPerInstanceCompatible() { return perInstanceCompatible; }
@@ -176,8 +178,8 @@ protected:
 class SimplePixelShader : public ISimpleShader
 {
 public:
-	SimplePixelShader(ID3D11Device* device, ID3D11DeviceContext* context);
-	~SimplePixelShader();
+	SimplePixelShader(std::string assetID, std::string filepath, ID3D11Device* device, ID3D11DeviceContext* context);
+	virtual ~SimplePixelShader();
 	ID3D11PixelShader* GetDirectXShader() { return shader; }
 
 	bool SetShaderResourceView(std::string name, ID3D11ShaderResourceView* srv);
@@ -196,8 +198,8 @@ protected:
 class SimpleDomainShader : public ISimpleShader
 {
 public:
-	SimpleDomainShader(ID3D11Device* device, ID3D11DeviceContext* context);
-	~SimpleDomainShader();
+	SimpleDomainShader(std::string assetID, std::string filepath, ID3D11Device* device, ID3D11DeviceContext* context);
+	virtual ~SimpleDomainShader();
 	ID3D11DomainShader* GetDirectXShader() { return shader; }
 
 	bool SetShaderResourceView(std::string name, ID3D11ShaderResourceView* srv);
@@ -216,8 +218,8 @@ protected:
 class SimpleHullShader : public ISimpleShader
 {
 public:
-	SimpleHullShader(ID3D11Device* device, ID3D11DeviceContext* context);
-	~SimpleHullShader();
+	SimpleHullShader(std::string assetID, std::string filepath, ID3D11Device* device, ID3D11DeviceContext* context);
+	virtual ~SimpleHullShader();
 	ID3D11HullShader* GetDirectXShader() { return shader; }
 
 	bool SetShaderResourceView(std::string name, ID3D11ShaderResourceView* srv);
@@ -236,8 +238,8 @@ protected:
 class SimpleGeometryShader : public ISimpleShader
 {
 public:
-	SimpleGeometryShader(ID3D11Device* device, ID3D11DeviceContext* context, bool useStreamOut = 0, bool allowStreamOutRasterization = 0);
-	~SimpleGeometryShader();
+	SimpleGeometryShader(std::string assetID, std::string filepath, ID3D11Device* device, ID3D11DeviceContext* context, bool useStreamOut = 0, bool allowStreamOutRasterization = 0);
+	virtual ~SimpleGeometryShader();
 	ID3D11GeometryShader* GetDirectXShader() { return shader; }
 
 	bool SetShaderResourceView(std::string name, ID3D11ShaderResourceView* srv);
@@ -272,8 +274,8 @@ protected:
 class SimpleComputeShader : public ISimpleShader
 {
 public:
-	SimpleComputeShader(ID3D11Device* device, ID3D11DeviceContext* context);
-	~SimpleComputeShader();
+	SimpleComputeShader(std::string assetID, std::string filepath, ID3D11Device* device, ID3D11DeviceContext* context);
+	virtual ~SimpleComputeShader();
 	ID3D11ComputeShader* GetDirectXShader() { return shader; }
 
 	void DispatchByGroups(unsigned int groupsX, unsigned int groupsY, unsigned int groupsZ);

@@ -12,7 +12,7 @@ public:
 	virtual void saveToJSON(rapidjson::Writer<rapidjson::StringBuffer>& writer) override;
 	virtual void draw(DirectX::SpriteBatch& spriteBatch) const override;
 
-	DirectX::SpriteFont* getFont() const;
+	Font* getFont() const;
 	std::string getFontID() const;
 	void setFont(std::string fontID);
 
@@ -20,7 +20,7 @@ public:
 	void setText(std::string text);
 
 private:
-	DirectX::SpriteFont* m_font;
+	Font* m_font;
 	std::string m_fontID;
 
 	std::string m_text;

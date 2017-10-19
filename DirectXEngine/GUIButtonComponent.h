@@ -17,7 +17,7 @@ public:
 	template<typename T>
 	void setOnClickCallback(T& onClick);
 
-	DirectX::SpriteFont* getFont() const;
+	Font* getFont() const;
 	std::string getFontID() const;
 	void setFont(std::string fontID);
 
@@ -35,7 +35,7 @@ private:
 	std::function<void()> m_onClick;
 	bool m_isClicking;
 
-	DirectX::SpriteFont* m_font;
+	Font* m_font;
 	std::string m_fontID;
 
 	std::string m_text;

@@ -77,13 +77,8 @@ void Renderer::render(const CameraComponent& mainCamera, const XMMATRIX& project
 						unsigned int stride = sizeof(Vertex);
 						unsigned int offset = 0;
 
-						if (lightData)
-						{
-							pixelShader->SetData("lights", lightData, sizeof(GPU_LIGHT_DATA) * MAX_LIGHTS);
-							pixelShader->CopyBufferData("lighting");
-						}
-
-
+						pixelShader->SetData("lights", lightData, sizeof(GPU_LIGHT_DATA) * MAX_LIGHTS);
+						pixelShader->CopyBufferData("lighting");
 
 						ID3D11Buffer* vertexBuffer = mesh->getVertexBuffer();
 						ID3D11Buffer* indexBuffer = mesh->getIndexBuffer();

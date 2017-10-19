@@ -12,12 +12,12 @@ public:
 	virtual void saveToJSON(rapidjson::Writer<rapidjson::StringBuffer>& writer) override;
 	virtual void draw(DirectX::SpriteBatch& spriteBatch) const override;
 
-	ID3D11ShaderResourceView* getTextureSRV() const;
+	Texture* getTexture() const;
 	std::string getTextureID() const;
 	void setTexture(std::string textureID);
 
 protected:
-	ID3D11ShaderResourceView* m_textureSRV;
+	Texture* m_texture;
 	std::string m_textureID;
 };
 
