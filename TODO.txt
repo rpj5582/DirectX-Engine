@@ -1,10 +1,8 @@
 TODO:
 Implement file loading for materials and samplers
 Convert pointers to smart pointers
-Make Input class
 Parenting
 Tagging?
 Collision detection
 
 BUGS:
-if window is not focused input can still be accessed

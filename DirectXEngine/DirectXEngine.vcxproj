@@ -131,88 +131,90 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="Asset.cpp" />
-    <ClCompile Include="AssetDebugWindow.cpp" />
-    <ClCompile Include="AssetManager.cpp" />
-    <ClCompile Include="CameraComponent.cpp" />
-    <ClCompile Include="ComponentRegistry.cpp" />
-    <ClCompile Include="DebugWindow.cpp" />
-    <ClCompile Include="DXCore.cpp" />
-    <ClCompile Include="Entity.cpp" />
-    <ClCompile Include="EntityDebugWindow.cpp" />
-    <ClCompile Include="Font.cpp" />
-    <ClCompile Include="FreeCamControls.cpp" />
-    <ClCompile Include="Game.cpp" />
-    <ClCompile Include="Component.cpp" />
-    <ClCompile Include="GUIButtonComponent.cpp" />
-    <ClCompile Include="GUIComponent.cpp" />
-    <ClCompile Include="GUIRenderer.cpp" />
-    <ClCompile Include="GUISpriteComponent.cpp" />
-    <ClCompile Include="GUITextComponent.cpp" />
-    <ClCompile Include="GUITransform.cpp" />
-    <ClCompile Include="LightComponent.cpp" />
-    <ClCompile Include="Main.cpp" />
-    <ClCompile Include="Material.cpp" />
-    <ClCompile Include="Mesh.cpp" />
-    <ClCompile Include="MeshRenderComponent.cpp" />
-    <ClCompile Include="Debug.cpp" />
-    <ClCompile Include="PixelShader.cpp" />
-    <ClCompile Include="RenderComponent.cpp" />
-    <ClCompile Include="Renderer.cpp" />
-    <ClCompile Include="Sampler.cpp" />
-    <ClCompile Include="Scene.cpp" />
-    <ClCompile Include="Scene1.cpp" />
-    <ClCompile Include="SceneDebugWindow.cpp" />
-    <ClCompile Include="SimpleShader.cpp" />
-    <ClCompile Include="Texture.cpp" />
-    <ClCompile Include="Transform.cpp" />
-    <ClCompile Include="VertexShader.cpp" />
+    <ClCompile Include="src\Input.cpp" />
+    <ClCompile Include="src\Asset\Asset.cpp" />
+    <ClCompile Include="src\Debug\AssetDebugWindow.cpp" />
+    <ClCompile Include="src\Asset\AssetManager.cpp" />
+    <ClCompile Include="src\Component\CameraComponent.cpp" />
+    <ClCompile Include="src\Component\ComponentRegistry.cpp" />
+    <ClCompile Include="src\Debug\DebugWindow.cpp" />
+    <ClCompile Include="src\DXCore.cpp" />
+    <ClCompile Include="src\Entity.cpp" />
+    <ClCompile Include="src\Debug\EntityDebugWindow.cpp" />
+    <ClCompile Include="src\Asset\Font.cpp" />
+    <ClCompile Include="src\Component\FreeCamControls.cpp" />
+    <ClCompile Include="src\Game.cpp" />
+    <ClCompile Include="src\Component\Component.cpp" />
+    <ClCompile Include="src\Component\GUIButtonComponent.cpp" />
+    <ClCompile Include="src\Component\GUIComponent.cpp" />
+    <ClCompile Include="src\Render\GUIRenderer.cpp" />
+    <ClCompile Include="src\Component\GUISpriteComponent.cpp" />
+    <ClCompile Include="src\Component\GUITextComponent.cpp" />
+    <ClCompile Include="src\Component\GUITransform.cpp" />
+    <ClCompile Include="src\Component\LightComponent.cpp" />
+    <ClCompile Include="src\Main.cpp" />
+    <ClCompile Include="src\Asset\Material.cpp" />
+    <ClCompile Include="src\Asset\Mesh.cpp" />
+    <ClCompile Include="src\Component\MeshRenderComponent.cpp" />
+    <ClCompile Include="src\Debug\Debug.cpp" />
+    <ClCompile Include="src\Asset\PixelShader.cpp" />
+    <ClCompile Include="src\Component\RenderComponent.cpp" />
+    <ClCompile Include="src\Render\Renderer.cpp" />
+    <ClCompile Include="src\Asset\Sampler.cpp" />
+    <ClCompile Include="src\Scene\Scene.cpp" />
+    <ClCompile Include="src\Scene\Scene1.cpp" />
+    <ClCompile Include="src\Debug\SceneDebugWindow.cpp" />
+    <ClCompile Include="src\Asset\SimpleShader.cpp" />
+    <ClCompile Include="src\Asset\Texture.cpp" />
+    <ClCompile Include="src\Component\Transform.cpp" />
+    <ClCompile Include="src\Asset\VertexShader.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Asset.h" />
-    <ClInclude Include="AssetDebugWindow.h" />
-    <ClInclude Include="AssetManager.h" />
-    <ClInclude Include="CameraComponent.h" />
-    <ClInclude Include="Component.h" />
-    <ClInclude Include="ComponentRegistry.h" />
-    <ClInclude Include="DebugWindow.h" />
-    <ClInclude Include="DXCore.h" />
-    <ClInclude Include="Entity.h" />
-    <ClInclude Include="EntityDebugWindow.h" />
-    <ClInclude Include="Font.h" />
-    <ClInclude Include="FreeCamControls.h" />
-    <ClInclude Include="Game.h" />
-    <ClInclude Include="GUIButtonComponent.h" />
-    <ClInclude Include="GUIComponent.h" />
-    <ClInclude Include="GUIRenderer.h" />
-    <ClInclude Include="GUISpriteComponent.h" />
-    <ClInclude Include="GUITextComponent.h" />
-    <ClInclude Include="GUITransform.h" />
-    <ClInclude Include="LightComponent.h" />
-    <ClInclude Include="Material.h" />
-    <ClInclude Include="Mesh.h" />
-    <ClInclude Include="MeshRenderComponent.h" />
-    <ClInclude Include="Debug.h" />
-    <ClInclude Include="PixelShader.h" />
-    <ClInclude Include="RenderComponent.h" />
-    <ClInclude Include="Renderer.h" />
-    <ClInclude Include="Sampler.h" />
-    <ClInclude Include="Scene.h" />
-    <ClInclude Include="Scene1.h" />
-    <ClInclude Include="SceneDebugWindow.h" />
-    <ClInclude Include="SimpleShader.h" />
-    <ClInclude Include="Texture.h" />
-    <ClInclude Include="Transform.h" />
-    <ClInclude Include="Util.h" />
-    <ClInclude Include="VertexShader.h" />
+    <ClInclude Include="src\Input.h" />
+    <ClInclude Include="src\Asset\Asset.h" />
+    <ClInclude Include="src\Debug\AssetDebugWindow.h" />
+    <ClInclude Include="src\Asset\AssetManager.h" />
+    <ClInclude Include="src\Component\CameraComponent.h" />
+    <ClInclude Include="src\Component\Component.h" />
+    <ClInclude Include="src\Component\ComponentRegistry.h" />
+    <ClInclude Include="src\Debug\DebugWindow.h" />
+    <ClInclude Include="src\DXCore.h" />
+    <ClInclude Include="src\Entity.h" />
+    <ClInclude Include="src\Debug\EntityDebugWindow.h" />
+    <ClInclude Include="src\Asset\Font.h" />
+    <ClInclude Include="src\Component\FreeCamControls.h" />
+    <ClInclude Include="src\Game.h" />
+    <ClInclude Include="src\Component\GUIButtonComponent.h" />
+    <ClInclude Include="src\Component\GUIComponent.h" />
+    <ClInclude Include="src\Render\GUIRenderer.h" />
+    <ClInclude Include="src\Component\GUISpriteComponent.h" />
+    <ClInclude Include="src\Component\GUITextComponent.h" />
+    <ClInclude Include="src\Component\GUITransform.h" />
+    <ClInclude Include="src\Component\LightComponent.h" />
+    <ClInclude Include="src\Asset\Material.h" />
+    <ClInclude Include="src\Asset\Mesh.h" />
+    <ClInclude Include="src\Component\MeshRenderComponent.h" />
+    <ClInclude Include="src\Debug\Debug.h" />
+    <ClInclude Include="src\Asset\PixelShader.h" />
+    <ClInclude Include="src\Component\RenderComponent.h" />
+    <ClInclude Include="src\Render\Renderer.h" />
+    <ClInclude Include="src\Asset\Sampler.h" />
+    <ClInclude Include="src\Scene\Scene.h" />
+    <ClInclude Include="src\Scene\Scene1.h" />
+    <ClInclude Include="src\Debug\SceneDebugWindow.h" />
+    <ClInclude Include="src\Asset\SimpleShader.h" />
+    <ClInclude Include="src\Asset\Texture.h" />
+    <ClInclude Include="src\Component\Transform.h" />
+    <ClInclude Include="src\Util.h" />
+    <ClInclude Include="src\Asset\VertexShader.h" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="LightingFunctions.hlsli" />
-    <None Include="UtilityFunctions.hlsli" />
+    <None Include="src\Shader\LightingFunctions.hlsli" />
+    <None Include="src\Shader\UtilityFunctions.hlsli" />
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <FxCompile Include="PixelShader.hlsl">
+    <FxCompile Include="src\Shader\PixelShader.hlsl">
       <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(OutDir)\Assets\Shaders\%(Filename).cso</ObjectFileOutput>
       <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(OutDir)\Assets\Shaders\%(Filename).cso</ObjectFileOutput>
       <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(OutDir)\Assets\Shaders\%(Filename).cso</ObjectFileOutput>
@@ -226,7 +228,7 @@
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">4.0</ShaderModel>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">4.0</ShaderModel>
     </FxCompile>
-    <FxCompile Include="VertexShader.hlsl">
+    <FxCompile Include="src\Shader\VertexShader.hlsl">
       <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(OutDir)\Assets\Shaders\%(Filename).cso</ObjectFileOutput>
       <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(OutDir)\Assets\Shaders\%(Filename).cso</ObjectFileOutput>
       <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(OutDir)\Assets\Shaders\%(Filename).cso</ObjectFileOutput>
