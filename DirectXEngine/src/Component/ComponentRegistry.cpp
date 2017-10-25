@@ -1,6 +1,6 @@
 #include "ComponentRegistry.h"
 
-std::unordered_map<std::string, CreateComponentFunc> ComponentRegistry::m_componentRegistry = std::unordered_map<std::string, CreateComponentFunc>();
+std::unordered_map<std::string, ComponentRegistry::CreateComponentFunc> ComponentRegistry::m_componentRegistry = std::unordered_map<std::string, CreateComponentFunc>();
 std::unordered_map<std::type_index, std::string> ComponentRegistry::m_componentRegistryReverse = std::unordered_map<std::type_index, std::string>();
 
 Component* ComponentRegistry::addComponentToEntity(Entity& entity, std::string componentType)

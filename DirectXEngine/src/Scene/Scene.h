@@ -17,8 +17,10 @@ public:
 	virtual ~Scene();
 
 	virtual bool init();
-	void update(float deltaTime, float totalTime);
+	virtual void update(float deltaTime, float totalTime);
 	void render();
+
+	virtual void onLoad() = 0;
 
 	bool loadFromJSON(std::string filename);
 	void saveToJSON(std::string filename);
@@ -33,6 +35,8 @@ public:
 
 	float getNearZ() const;
 	float getFarZ() const;
+
+	Entity* getEntityByName(std::string name);
 
 	CameraComponent* getMainCamera() const;
 
@@ -56,8 +60,6 @@ public:
 	std::string d_pixelShaderPathField;
 
 protected:
-	Entity* getEntityByName(std::string name);
-
 	void setMainCamera(CameraComponent* camera);
 
 private:

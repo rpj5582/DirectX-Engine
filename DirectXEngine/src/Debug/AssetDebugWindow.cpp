@@ -5,7 +5,7 @@
 
 AssetDebugWindow::AssetDebugWindow(std::string windowID, std::string windowLabel) : DebugWindow(windowID, windowLabel)
 {
-	TwDefine((windowID + " position='20 405' size='250 250' ").c_str());
+	TwDefine((windowID + " position='20 465' size='250 250' ").c_str());
 }
 
 AssetDebugWindow::~AssetDebugWindow()

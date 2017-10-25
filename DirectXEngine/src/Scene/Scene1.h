@@ -9,7 +9,8 @@ public:
 	Scene1(ID3D11Device* device, ID3D11DeviceContext* context);
 	~Scene1();
 
-	virtual bool init() override;
+	virtual void onLoad() override;
+	virtual void update(float deltaTime, float totalTime) override;
 
 private:
 

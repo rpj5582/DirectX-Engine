@@ -5,7 +5,7 @@
 
 EntityDebugWindow::EntityDebugWindow(std::string windowID, std::string windowLabel) : DebugWindow(windowID, windowLabel)
 {
-	TwDefine((windowID + " position='20 150' size='250 250' ").c_str());
+	TwDefine((windowID + " position='20 195' size='250 250' ").c_str());
 }
 
 EntityDebugWindow::~EntityDebugWindow()

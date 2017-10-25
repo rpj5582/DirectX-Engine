@@ -1,0 +1,39 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ClassDiagram MajorVersion="1" MinorVersion="1">
+  <Class Name="AssetDebugWindow" Collapsed="true">
+    <Position X="7" Y="2.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>BAAAAAAAAEAAAAAAAAAAAgAAAAAAgACAAAAAAAAAAAA=</HashCode>
+      <FileName>src\Debug\AssetDebugWindow.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Debug" Collapsed="true">
+    <Position X="14" Y="1.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAIAAAACAAAIAIAAEAAABAAAYQACAAAggAAAAEACA=</HashCode>
+      <FileName>src\Debug\Debug.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="DebugWindow" Collapsed="true">
+    <Position X="9.25" Y="1.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>DIAAEAAAAAAAAAAABAAAAgAAIAAAAEAAgoEAAAAAAAE=</HashCode>
+      <FileName>src\Debug\DebugWindow.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="EntityDebugWindow" Collapsed="true">
+    <Position X="9.25" Y="2.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>DAABBAAAAAAAAAAACAAAAAAAAAAAAAAAAAAAAADAAAA=</HashCode>
+      <FileName>src\Debug\EntityDebugWindow.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SceneDebugWindow" Collapsed="true">
+    <Position X="11.5" Y="2.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>BAAAAAAAAAAAAAAAAAAAAAAAAAEAAAAAAAAAAAgAAAA=</HashCode>
+      <FileName>src\Debug\SceneDebugWindow.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Font Name="Segoe UI" Size="9" />
+</ClassDiagram>

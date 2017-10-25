@@ -19,8 +19,6 @@
 class Component;
 class Entity;
 
-typedef Component*(Entity::*CreateComponentFunc)();
-
 class ComponentRegistry
 {
 public:
@@ -30,6 +28,8 @@ public:
 	static std::string getTypeName(std::type_index type);
 
 private:
+	typedef Component*(Entity::*CreateComponentFunc)();
+
 	template<typename T>
 	bool registerComponent(std::string componentType);
 

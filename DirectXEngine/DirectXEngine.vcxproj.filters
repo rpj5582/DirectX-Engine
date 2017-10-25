@@ -244,6 +244,9 @@
     <None Include="packages.config" />
     <None Include="src\Shader\LightingFunctions.hlsli" />
     <None Include="src\Shader\UtilityFunctions.hlsli" />
+    <None Include="src\Asset\AssetClassDiagram.cd" />
+    <None Include="src\Component\ComponentClassDiagram.cd" />
+    <None Include="src\Debug\DebugClassDiagram.cd" />
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="src\Shader\PixelShader.hlsl" />

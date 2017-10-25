@@ -270,6 +270,7 @@ bool Scene::loadFromJSON(std::string filename)
 	}
 	
 	Debug::message("Loaded scene from " + filename);
+	onLoad();
 	return true;
 }
 

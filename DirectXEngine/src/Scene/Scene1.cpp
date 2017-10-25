@@ -10,10 +10,8 @@ Scene1::~Scene1()
 {
 }
 
-bool Scene1::init()
+void Scene1::onLoad()
 {
-	if (!Scene::init()) return false;
-
 	//if (!loadFromJSON("Assets/Scenes/scene1.json")) return false;
 
 	//// The onclick callback can't be saved to a json file, so set the callback here
@@ -140,5 +138,26 @@ bool Scene1::init()
 
 	//saveToJSON("Assets/Scenes/scene1.json");
 
-	return true;
+	Transform* coneTransform = getEntityByName("Cone")->getComponent<Transform>();
+	Transform* cubeTransform = getEntityByName("Cube")->getComponent<Transform>();
+
+	coneTransform->setParent(cubeTransform);
+	//coneTransform->setParent(nullptr);
+
+	//cubeTransform->addChild(coneTransform);
+	//cubeTransform->removeChild(coneTransform);
+}
+
+void Scene1::update(float deltaTime, float totalTime)
+{
+	Scene::update(deltaTime, totalTime);
+
+	/*Entity* cube = getEntityByName("Cube");
+	if (cube)
+	{
+		Transform* cubeTransform = cube->getComponent<Transform>();
+
+		if (cubeTransform)
+			cubeTransform->rotateAroundPoint(XMFLOAT3(0.0f, 0.0f, 5.0f), XMFLOAT3(0.0f, 45.0f * deltaTime, 0.0f));
+	}*/
 }

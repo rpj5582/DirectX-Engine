@@ -45,7 +45,9 @@ void DebugWindow::addVariableWithCallbacks(TwType varType, std::string varName, 
 void DebugWindow::addButton(std::string buttonID, std::string buttonLabel, std::string group, TwButtonCallback callback, void* object, std::string additionalParams)
 {
 #if defined(DEBUG) || defined(_DEBUG)
-	TwAddButton(m_window, buttonID.c_str(), callback, object, (" group=" + group + " label='" + buttonLabel + "' " + additionalParams).c_str());
+	std::string spacelessButtonID = removeSpacesFromString(buttonID);
+	std::string spacelessGroupName = removeSpacesFromString(group);
+	TwAddButton(m_window, spacelessButtonID.c_str(), callback, object, (" group=" + spacelessGroupName + " label='" + buttonLabel + "' " + additionalParams).c_str());
 #endif
 }
 
