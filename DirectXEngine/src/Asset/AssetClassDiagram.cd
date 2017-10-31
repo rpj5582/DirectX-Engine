@@ -15,63 +15,63 @@
     </TypeIdentifier>
   </Class>
   <Class Name="Font" Collapsed="true">
-    <Position X="14.5" Y="1.75" Width="1.5" />
+    <Position X="15.5" Y="1.75" Width="1.5" />
     <TypeIdentifier>
       <HashCode>AAAAAAAAAAAAAAAAAAAEAAAAAIAQAAAAAAAAAEACAAE=</HashCode>
       <FileName>src\Asset\Font.h</FileName>
     </TypeIdentifier>
   </Class>
   <Class Name="Material" Collapsed="true">
-    <Position X="24" Y="1.75" Width="1.5" />
+    <Position X="21.25" Y="1.75" Width="1.5" />
     <TypeIdentifier>
       <HashCode>AEEAAAAAAAAEABACACAAAAAAAAWQAAAAAAABAEAAAAA=</HashCode>
       <FileName>src\Asset\Material.h</FileName>
     </TypeIdentifier>
   </Class>
   <Class Name="Mesh" Collapsed="true">
-    <Position X="12.75" Y="1.75" Width="1.5" />
+    <Position X="13.75" Y="1.75" Width="1.5" />
     <TypeIdentifier>
       <HashCode>AAAQAACQABEAAEAAAAAAAAAAAAAQAgAAAQAAAEAAEAA=</HashCode>
       <FileName>src\Asset\Mesh.h</FileName>
     </TypeIdentifier>
   </Class>
   <Class Name="PixelShader" Collapsed="true">
-    <Position X="18.5" Y="4.75" Width="1.5" />
+    <Position X="19" Y="4.75" Width="1.5" />
     <TypeIdentifier>
       <HashCode>AAAAAAAAAAAAAAAAAAAAABAAAAgQAAAAAAAAAEAAAAA=</HashCode>
       <FileName>src\Asset\PixelShader.h</FileName>
     </TypeIdentifier>
   </Class>
   <Class Name="Sampler" Collapsed="true">
-    <Position X="16.25" Y="1.75" Width="1.5" />
+    <Position X="17.25" Y="1.75" Width="1.5" />
     <TypeIdentifier>
       <HashCode>AAAAAAAAAAAAAgAAABAAAAAAAAAQAAAQAABAAEAAAIA=</HashCode>
       <FileName>src\Asset\Sampler.h</FileName>
     </TypeIdentifier>
   </Class>
   <Class Name="ISimpleShader" Collapsed="true">
-    <Position X="21.75" Y="1.75" Width="1.5" />
+    <Position X="19" Y="1.75" Width="1.5" />
     <TypeIdentifier>
       <HashCode>QABUAgADAgQAQkgJCCBAAEggEIBAQSIBBAAAAEQABAk=</HashCode>
       <FileName>src\Asset\SimpleShader.h</FileName>
     </TypeIdentifier>
   </Class>
   <Class Name="SimpleVertexShader" Collapsed="true">
-    <Position X="25" Y="3.25" Width="1.5" />
+    <Position X="24.75" Y="3.25" Width="1.75" />
     <TypeIdentifier>
       <HashCode>AAAAAgAQAAAAAEAAgAAAAAAAAAAEAAADAAAAQEACACE=</HashCode>
       <FileName>src\Asset\SimpleShader.h</FileName>
     </TypeIdentifier>
   </Class>
   <Class Name="SimplePixelShader" Collapsed="true">
-    <Position X="18.5" Y="3.25" Width="1.5" />
+    <Position X="19" Y="3.25" Width="1.5" />
     <TypeIdentifier>
       <HashCode>AAAAAgAAAAAAAEAAgAAEAAAAAAAAABABAAAAAEAAAAE=</HashCode>
       <FileName>src\Asset\SimpleShader.h</FileName>
     </TypeIdentifier>
   </Class>
   <Class Name="SimpleDomainShader" Collapsed="true">
-    <Position X="16.25" Y="3.25" Width="1.5" />
+    <Position X="17" Y="3.25" Width="1.75" />
     <TypeIdentifier>
       <HashCode>AAAAAoAAAAAAAEAAgAAAAAAIAAAAAAABAAAAAEAAAAE=</HashCode>
       <FileName>src\Asset\SimpleShader.h</FileName>
@@ -85,70 +85,70 @@
     </TypeIdentifier>
   </Class>
   <Class Name="SimpleGeometryShader" Collapsed="true">
-    <Position X="22.75" Y="3.25" Width="1.5" />
+    <Position X="22.5" Y="3.25" Width="2" />
     <TypeIdentifier>
       <HashCode>BAAAAgAAAAAAAEAAhAAAQUACABgAAAABAAAAgEAAAAE=</HashCode>
       <FileName>src\Asset\SimpleShader.h</FileName>
     </TypeIdentifier>
   </Class>
   <Class Name="SimpleComputeShader" Collapsed="true">
-    <Position X="27.25" Y="3.25" Width="1.5" />
+    <Position X="26.75" Y="3.25" Width="2" />
     <TypeIdentifier>
       <HashCode>ABAAAgAIAQAAAUAAgAABAQEAAAAABAARAAAAAEAEIAE=</HashCode>
       <FileName>src\Asset\SimpleShader.h</FileName>
     </TypeIdentifier>
   </Class>
   <Class Name="Texture" Collapsed="true">
-    <Position X="11" Y="1.75" Width="1.5" />
+    <Position X="12" Y="1.75" Width="1.5" />
     <TypeIdentifier>
       <HashCode>AAAQAAAAAAAAgAAAAAAAAAAAAAAQCAAAAAIAAEAIAAA=</HashCode>
       <FileName>src\Asset\Texture.h</FileName>
     </TypeIdentifier>
   </Class>
   <Class Name="VertexShader" Collapsed="true">
-    <Position X="25" Y="4.75" Width="1.5" />
+    <Position X="24.75" Y="4.75" Width="1.5" />
     <TypeIdentifier>
       <HashCode>AAEAAAAAAAAAAAAAAEAAAAAAAAAQAAAAAAAAAEAAAAA=</HashCode>
       <FileName>src\Asset\VertexShader.h</FileName>
     </TypeIdentifier>
   </Class>
   <Struct Name="MaterialSettings" Collapsed="true">
-    <Position X="18.25" Y="6.25" Width="1.5" />
+    <Position X="11.5" Y="3.25" Width="1.5" />
     <TypeIdentifier>
       <HashCode>AAAAAAABAAIAAAAAAAAAIAAAAAAAAAAAAAAAAIAAAAA=</HashCode>
       <FileName>src\Asset\Material.h</FileName>
     </TypeIdentifier>
   </Struct>
   <Struct Name="Vertex" Collapsed="true">
-    <Position X="21.75" Y="7.25" Width="1.5" />
+    <Position X="15.25" Y="4.25" Width="1.5" />
     <TypeIdentifier>
       <HashCode>AAAAAAAAAAAAAAAAAAAAIAgAAAAAAAAAAAAAAgAAggA=</HashCode>
       <FileName>src\Asset\Mesh.h</FileName>
     </TypeIdentifier>
   </Struct>
   <Struct Name="SimpleShaderVariable" Collapsed="true">
-    <Position X="18.25" Y="7.25" Width="1.5" />
+    <Position X="11.5" Y="4.25" Width="1.75" />
     <TypeIdentifier>
       <HashCode>AAAAAAAAAAAAgAAAAAABAAAAAAAAAAAAAAAAgAAAAAA=</HashCode>
       <FileName>src\Asset\SimpleShader.h</FileName>
     </TypeIdentifier>
   </Struct>
   <Struct Name="SimpleConstantBuffer" Collapsed="true">
-    <Position X="20" Y="6.25" Width="1.5" />
+    <Position X="13.25" Y="3.25" Width="1.75" />
     <TypeIdentifier>
       <HashCode>AAAAAIAAAAAAgAAAAAAAAAYAgAAAAAAAAAQAAAAAAAA=</HashCode>
       <FileName>src\Asset\SimpleShader.h</FileName>
     </TypeIdentifier>
   </Struct>
   <Struct Name="SimpleSRV" Collapsed="true">
-    <Position X="20" Y="7.25" Width="1.5" />
+    <Position X="13.5" Y="4.25" Width="1.5" />
     <TypeIdentifier>
       <HashCode>AAAAAIAAAAAAAAAAAAAAAAAAAAAAAAAAAAEAAAAAAAA=</HashCode>
       <FileName>src\Asset\SimpleShader.h</FileName>
     </TypeIdentifier>
   </Struct>
   <Struct Name="SimpleSampler" Collapsed="true">
-    <Position X="21.75" Y="6.25" Width="1.5" />
+    <Position X="15.25" Y="3.25" Width="1.5" />
     <TypeIdentifier>
       <HashCode>AAAAAIAAAAAAAAAAAAAAAAAAAAAAAAAAAAEAAAAAAAA=</HashCode>
       <FileName>src\Asset\SimpleShader.h</FileName>

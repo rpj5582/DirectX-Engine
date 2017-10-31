@@ -247,6 +247,7 @@
     <None Include="src\Asset\AssetClassDiagram.cd" />
     <None Include="src\Component\ComponentClassDiagram.cd" />
     <None Include="src\Debug\DebugClassDiagram.cd" />
+    <None Include="src\MiscClassDiagram.cd" />
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="src\Shader\PixelShader.hlsl" />

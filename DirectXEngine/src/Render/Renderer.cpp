@@ -49,7 +49,7 @@ void Renderer::render(const CameraComponent& mainCamera, const XMMATRIX& project
 				XMFLOAT4X4 worldMatrix4x4;
 				XMStoreFloat4x4(&worldMatrix4x4, worldMatrixT);
 
-				XMMATRIX worldMatrixIT = XMMatrixInverse(nullptr, worldMatrixT);
+				XMMATRIX worldMatrixIT = transform->getInverseWorldMatrix();
 				XMFLOAT4X4 worldMatrixInverseTranspose4x4;
 				XMStoreFloat4x4(&worldMatrixInverseTranspose4x4, worldMatrixIT);
 

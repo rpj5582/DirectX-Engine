@@ -7,14 +7,13 @@ using namespace DirectX;
 
 Transform::Transform(Entity& entity) : Component(entity)
 {
-	m_position = XMFLOAT3();
-	m_rotation = XMFLOAT3();
-	m_scale = XMFLOAT3(1.0f, 1.0f, 1.0f);
-	
-	XMStoreFloat4x4(&m_translationMatrix, XMMatrixIdentity());
-	XMStoreFloat4x4(&m_rotationMatrix, XMMatrixIdentity());
-	XMStoreFloat4x4(&m_scaleMatrix, XMMatrixIdentity());
+	m_localPosition = XMFLOAT3();
+	m_localRotation = XMFLOAT3();
+	m_localScale = XMFLOAT3(1.0f, 1.0f, 1.0f);
+
 	XMStoreFloat4x4(&m_worldMatrix, XMMatrixIdentity());
+	XMStoreFloat4x4(&m_inverseWorldMatrix, XMMatrixIdentity());
+	m_isDirty = false;
 
 	m_parent = nullptr;
 	m_children = std::vector<Transform*>();
@@ -52,17 +51,17 @@ void Transform::loadFromJSON(rapidjson::Value& dataObject)
 
 	if (position != dataObject.MemberEnd())
 	{
-		setPosition(XMFLOAT3(position->value["x"].GetFloat(), position->value["y"].GetFloat(), position->value["z"].GetFloat()));
+		setLocalPosition(XMFLOAT3(position->value["x"].GetFloat(), position->value["y"].GetFloat(), position->value["z"].GetFloat()));
 	}
 
 	if (rotation != dataObject.MemberEnd())
 	{
-		setRotation(XMFLOAT3(rotation->value["x"].GetFloat(), rotation->value["y"].GetFloat(), rotation->value["z"].GetFloat()));
+		setLocalRotation(XMFLOAT3(rotation->value["x"].GetFloat(), rotation->value["y"].GetFloat(), rotation->value["z"].GetFloat()));
 	}
 
 	if (scale != dataObject.MemberEnd())
 	{
-		setScale(XMFLOAT3(scale->value["x"].GetFloat(), scale->value["y"].GetFloat(), scale->value["z"].GetFloat()));
+		setLocalScale(XMFLOAT3(scale->value["x"].GetFloat(), scale->value["y"].GetFloat(), scale->value["z"].GetFloat()));
 	}
 }
 
@@ -74,13 +73,13 @@ void Transform::saveToJSON(rapidjson::Writer<rapidjson::StringBuffer>& writer)
 	writer.StartObject();
 
 	writer.Key("x");
-	writer.Double(m_position.x);
+	writer.Double(m_localPosition.x);
 
 	writer.Key("y");
-	writer.Double(m_position.y);
+	writer.Double(m_localPosition.y);
 
 	writer.Key("z");
-	writer.Double(m_position.z);
+	writer.Double(m_localPosition.z);
 
 	writer.EndObject();
 
@@ -88,13 +87,13 @@ void Transform::saveToJSON(rapidjson::Writer<rapidjson::StringBuffer>& writer)
 	writer.StartObject();
 
 	writer.Key("x");
-	writer.Double(XMConvertToDegrees(m_rotation.x));
+	writer.Double(XMConvertToDegrees(m_localRotation.x));
 
 	writer.Key("y");
-	writer.Double(XMConvertToDegrees(m_rotation.y));
+	writer.Double(XMConvertToDegrees(m_localRotation.y));
 
 	writer.Key("z");
-	writer.Double(XMConvertToDegrees(m_rotation.z));
+	writer.Double(XMConvertToDegrees(m_localRotation.z));
 
 	writer.EndObject();
 
@@ -102,113 +101,160 @@ void Transform::saveToJSON(rapidjson::Writer<rapidjson::StringBuffer>& writer)
 	writer.StartObject();
 
 	writer.Key("x");
-	writer.Double(m_scale.x);
+	writer.Double(m_localScale.x);
 
 	writer.Key("y");
-	writer.Double(m_scale.y);
+	writer.Double(m_localScale.y);
 
 	writer.Key("z");
-	writer.Double(m_scale.z);
+	writer.Double(m_localScale.z);
 
 	writer.EndObject();
 }
 
-const XMFLOAT3 Transform::getPosition() const
+const DirectX::XMFLOAT3 Transform::getPosition()
 {
-	return m_position;
-}
+	XMMATRIX worldMatrix = XMLoadFloat4x4(&m_worldMatrix);
 
-const XMFLOAT3 Transform::getRotation() const
-{
-	return m_rotation;
-}
-
-const XMFLOAT3 Transform::getScale() const
-{
-	return m_scale;
-}
-
-void Transform::setPosition(DirectX::XMFLOAT3 position)
-{
-	XMFLOAT3 deltaPosition;
-	XMVECTOR deltaPositionVec = XMLoadFloat3(&position) - XMLoadFloat3(&m_position);
-	XMStoreFloat3(&deltaPosition, deltaPositionVec);
-
-	m_position = position;
-	calcTranslationMatrix();
-
-	for (unsigned int i = 0; i < m_children.size(); i++)
+	if (m_isDirty)
 	{
-		m_children[i]->move(deltaPosition);
+		worldMatrix = calcWorldMatrix();
+		m_isDirty = false;
 	}
+
+	XMVECTOR worldPositionVec = XMVector3Transform(XMVectorSet(0, 0, 0, 1), worldMatrix);
+
+	XMFLOAT3 worldPosition;
+	XMStoreFloat3(&worldPosition, worldPositionVec);
+
+	return worldPosition;
 }
 
-void Transform::setRotation(DirectX::XMFLOAT3 rotation)
+const XMFLOAT3 Transform::getLocalPosition() const
 {
-	m_rotation = XMFLOAT3(XMConvertToRadians(rotation.x), XMConvertToRadians(rotation.y), XMConvertToRadians(rotation.z));
-	calcRotationMatrix();
+	return m_localPosition;
 }
 
-void Transform::setScale(DirectX::XMFLOAT3 scale)
+const XMFLOAT3 Transform::getLocalRotation() const
 {
-	m_scale = scale;
-	calcScaleMatrix();
+	return m_localRotation;
 }
 
-const XMFLOAT3 Transform::getRight() const
+const XMFLOAT3 Transform::getLocalScale() const
 {
-	XMVECTOR v = XMVector3Transform(XMVectorSet(1.0f, 0.0f, 0.0f, 0.0f), getRotationMatrix());
+	return m_localScale;
+}
+
+void Transform::setLocalPosition(DirectX::XMFLOAT3 position)
+{
+	m_localPosition = position;
+	setDirty();
+}
+
+void Transform::setLocalRotation(DirectX::XMFLOAT3 rotation)
+{
+	m_localRotation = XMFLOAT3(XMConvertToRadians(rotation.x), XMConvertToRadians(rotation.y), XMConvertToRadians(rotation.z));
+	setDirty();
+}
+
+void Transform::setLocalScale(DirectX::XMFLOAT3 scale)
+{
+	m_localScale = scale;
+	setDirty();
+}
+
+const XMFLOAT3 Transform::getRight()
+{
+	if (m_isDirty)
+	{
+		calcWorldMatrix();
+		m_isDirty = false;
+	}
+
+	XMMATRIX rotationMatrix = XMMatrixSet(
+		m_worldMatrix.m[0][0] / m_localScale.x, m_worldMatrix.m[0][1], m_worldMatrix.m[0][2], 0,
+		m_worldMatrix.m[1][0], m_worldMatrix.m[1][1] / m_localScale.y, m_worldMatrix.m[1][2], 0,
+		m_worldMatrix.m[2][0], m_worldMatrix.m[2][1], m_worldMatrix.m[2][2] / m_localScale.z, 0,
+		0, 0, 0, 1);
+
+	XMVECTOR v = XMVector3Transform(XMVectorSet(1.0f, 0.0f, 0.0f, 0.0f), rotationMatrix);
 
 	XMFLOAT3 right;
 	XMStoreFloat3(&right, v);
 	return right;
 }
 
-const XMFLOAT3 Transform::getUp() const
+const XMFLOAT3 Transform::getUp()
 {
-	XMVECTOR v = XMVector3Transform(XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f), getRotationMatrix());
+	if (m_isDirty)
+	{
+		calcWorldMatrix();
+		m_isDirty = false;
+	}
+
+	XMMATRIX rotationMatrix = XMMatrixSet(
+		m_worldMatrix.m[0][0] / m_localScale.x, m_worldMatrix.m[0][1], m_worldMatrix.m[0][2], 0,
+		m_worldMatrix.m[1][0], m_worldMatrix.m[1][1] / m_localScale.y, m_worldMatrix.m[1][2], 0,
+		m_worldMatrix.m[2][0], m_worldMatrix.m[2][1], m_worldMatrix.m[2][2] / m_localScale.z, 0,
+		0, 0, 0, 1);
+
+	XMVECTOR v = XMVector3Transform(XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f), rotationMatrix);
 
 	XMFLOAT3 up;
 	XMStoreFloat3(&up, v);
 	return up;
 }
 
-const XMFLOAT3 Transform::getForward() const
+const XMFLOAT3 Transform::getForward()
 {
-	XMVECTOR v = XMVector3Transform(XMVectorSet(0.0f, 0.0f, 1.0f, 0.0f), getRotationMatrix());
+	if (m_isDirty)
+	{
+		calcWorldMatrix();
+		m_isDirty = false;
+	}
+
+	XMMATRIX rotationMatrix = XMMatrixSet(
+		m_worldMatrix.m[0][0] / m_localScale.x, m_worldMatrix.m[0][1], m_worldMatrix.m[0][2], 0,
+		m_worldMatrix.m[1][0], m_worldMatrix.m[1][1] / m_localScale.y, m_worldMatrix.m[1][2], 0,
+		m_worldMatrix.m[2][0], m_worldMatrix.m[2][1], m_worldMatrix.m[2][2] / m_localScale.z, 0,
+		0, 0, 0, 1);
+
+	XMVECTOR v = XMVector3Transform(XMVectorSet(0.0f, 0.0f, 1.0f, 0.0f), rotationMatrix);
 
 	XMFLOAT3 forward;
 	XMStoreFloat3(&forward, v);
 	return forward;
 }
 
-const DirectX::XMMATRIX Transform::getTranslationMatrix() const
+const XMMATRIX Transform::getWorldMatrix()
 {
-	return XMLoadFloat4x4(&m_translationMatrix);
-}
-
-const DirectX::XMMATRIX Transform::getRotationMatrix() const
-{
-	return XMLoadFloat4x4(&m_rotationMatrix);
-}
-
-const DirectX::XMMATRIX Transform::getScaleMatrix() const
-{
-	return XMLoadFloat4x4(&m_scaleMatrix);
-}
-
-const XMMATRIX Transform::getWorldMatrix() const
-{
+	if (m_isDirty)
+	{
+		calcWorldMatrix();
+		m_isDirty = false;
+	}
+	
 	return XMLoadFloat4x4(&m_worldMatrix);
+}
+
+const DirectX::XMMATRIX Transform::getInverseWorldMatrix()
+{
+	if (m_isDirty)
+	{
+		calcWorldMatrix();
+		m_isDirty = false;
+	}
+
+	return XMLoadFloat4x4(&m_inverseWorldMatrix);
 }
 
 void Transform::move(XMFLOAT3 delta)
 {
-	XMVECTOR position = XMLoadFloat3(&m_position);
+	XMVECTOR position = XMLoadFloat3(&m_localPosition);
 	position = XMVectorAdd(position, XMLoadFloat3(&delta));
-	XMStoreFloat3(&m_position, position);
+	XMStoreFloat3(&m_localPosition, position);
 
-	calcTranslationMatrix();
+	setDirty();
 
 	for (unsigned int i = 0; i < m_children.size(); i++)
 	{
@@ -218,11 +264,11 @@ void Transform::move(XMFLOAT3 delta)
 
 void Transform::moveX(float delta)
 {
-	XMVECTOR position = XMLoadFloat3(&m_position);
+	XMVECTOR position = XMLoadFloat3(&m_localPosition);
 	position = XMVectorAdd(position, XMVectorScale(XMVectorSet(1.0f, 0.0f, 0.0f, 0.0f), delta));
-	XMStoreFloat3(&m_position, position);
+	XMStoreFloat3(&m_localPosition, position);
 
-	calcTranslationMatrix();
+	setDirty();
 
 	for (unsigned int i = 0; i < m_children.size(); i++)
 	{
@@ -232,11 +278,11 @@ void Transform::moveX(float delta)
 
 void Transform::moveY(float delta)
 {
-	XMVECTOR position = XMLoadFloat3(&m_position);
+	XMVECTOR position = XMLoadFloat3(&m_localPosition);
 	position = XMVectorAdd(position, XMVectorScale(XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f), delta));
-	XMStoreFloat3(&m_position, position);
+	XMStoreFloat3(&m_localPosition, position);
 
-	calcTranslationMatrix();
+	setDirty();
 
 	for (unsigned int i = 0; i < m_children.size(); i++)
 	{
@@ -246,11 +292,11 @@ void Transform::moveY(float delta)
 
 void Transform::moveZ(float delta)
 {
-	XMVECTOR position = XMLoadFloat3(&m_position);
+	XMVECTOR position = XMLoadFloat3(&m_localPosition);
 	position = XMVectorAdd(position, XMVectorScale(XMVectorSet(0.0f, 0.0f, 1.0f, 0.0f), delta));
-	XMStoreFloat3(&m_position, position);
+	XMStoreFloat3(&m_localPosition, position);
 
-	calcTranslationMatrix();
+	setDirty();
 
 	for (unsigned int i = 0; i < m_children.size(); i++)
 	{
@@ -267,12 +313,12 @@ void Transform::moveLocal(DirectX::XMFLOAT3 delta)
 	XMVECTOR right = XMLoadFloat3(&rightFloat3);
 	XMVECTOR up = XMLoadFloat3(&upFloat3);
 	XMVECTOR forward = XMLoadFloat3(&forwardFloat3);
-	XMVECTOR positionVec = XMLoadFloat3(&m_position);
+	XMVECTOR positionVec = XMLoadFloat3(&m_localPosition);
 
 	XMVECTOR translationVec = XMVectorAdd(XMVectorAdd(XMVectorScale(right, delta.x), XMVectorScale(up, delta.y)), XMVectorScale(forward, delta.z));
-	XMStoreFloat3(&m_position, XMVectorAdd(positionVec, translationVec));
+	XMStoreFloat3(&m_localPosition, XMVectorAdd(positionVec, translationVec));
 
-	calcTranslationMatrix();
+	setDirty();
 
 	for (unsigned int i = 0; i < m_children.size(); i++)
 	{
@@ -285,11 +331,11 @@ void Transform::moveLocalX(float delta)
 	XMFLOAT3 rightFloat3 = getRight();
 
 	XMVECTOR right = XMLoadFloat3(&rightFloat3);
-	XMVECTOR position = XMLoadFloat3(&m_position);
+	XMVECTOR position = XMLoadFloat3(&m_localPosition);
 	position = XMVectorAdd(position, XMVectorScale(right, delta));
-	XMStoreFloat3(&m_position, position);
+	XMStoreFloat3(&m_localPosition, position);
 
-	calcTranslationMatrix();
+	setDirty();
 
 	for (unsigned int i = 0; i < m_children.size(); i++)
 	{
@@ -302,11 +348,11 @@ void Transform::moveLocalY(float delta)
 	XMFLOAT3 upFloat3 = getUp();
 
 	XMVECTOR up = XMLoadFloat3(&upFloat3);
-	XMVECTOR position = XMLoadFloat3(&m_position);
+	XMVECTOR position = XMLoadFloat3(&m_localPosition);
 	position = XMVectorAdd(position, XMVectorScale(up, delta));
-	XMStoreFloat3(&m_position, position);
+	XMStoreFloat3(&m_localPosition, position);
 
-	calcTranslationMatrix();
+	setDirty();
 
 	for (unsigned int i = 0; i < m_children.size(); i++)
 	{
@@ -319,11 +365,11 @@ void Transform::moveLocalZ(float delta)
 	XMFLOAT3 forwardFloat3 = getForward();
 
 	XMVECTOR forward = XMLoadFloat3(&forwardFloat3);
-	XMVECTOR position = XMLoadFloat3(&m_position);
+	XMVECTOR position = XMLoadFloat3(&m_localPosition);
 	position = XMVectorAdd(position, XMVectorScale(forward, delta));
-	XMStoreFloat3(&m_position, position);
+	XMStoreFloat3(&m_localPosition, position);
 
-	calcTranslationMatrix();
+	setDirty();
 
 	for (unsigned int i = 0; i < m_children.size(); i++)
 	{
@@ -334,78 +380,78 @@ void Transform::moveLocalZ(float delta)
 void Transform::rotateLocal(DirectX::XMFLOAT3 rotDegrees)
 {
 	XMFLOAT3 rot = XMFLOAT3(XMConvertToRadians(rotDegrees.x), XMConvertToRadians(rotDegrees.y), XMConvertToRadians(rotDegrees.z));
-	XMVECTOR rotation = XMLoadFloat3(&m_rotation);
+	XMVECTOR rotation = XMLoadFloat3(&m_localRotation);
 	XMVECTOR rotVector = XMLoadFloat3(&rot);
 	rotation = XMVectorAdd(rotation, rotVector);
-	XMStoreFloat3(&m_rotation, rotation);
+	XMStoreFloat3(&m_localRotation, rotation);
 
-	calcRotationMatrix();
+	setDirty();
 }
 
 void Transform::rotateLocalX(float degrees)
 {
-	XMVECTOR rotation = XMLoadFloat3(&m_rotation);
+	XMVECTOR rotation = XMLoadFloat3(&m_localRotation);
 	XMVECTOR angleVector = XMVectorSet(XMConvertToRadians(degrees), 0.0f, 0.0f, 0.0f);
 	rotation = XMVectorAdd(rotation, angleVector);
-	XMStoreFloat3(&m_rotation, rotation);
+	XMStoreFloat3(&m_localRotation, rotation);
 
-	calcRotationMatrix();
+	setDirty();
 }
 
 void Transform::rotateLocalY(float degrees)
 {
-	XMVECTOR rotation = XMLoadFloat3(&m_rotation);
+	XMVECTOR rotation = XMLoadFloat3(&m_localRotation);
 	XMVECTOR angleVector = XMVectorSet(0.0f, XMConvertToRadians(degrees), 0.0f, 0.0f);
 	rotation = XMVectorAdd(rotation, angleVector);
-	XMStoreFloat3(&m_rotation, rotation);
+	XMStoreFloat3(&m_localRotation, rotation);
 
-	calcRotationMatrix();
+	setDirty();
 }
 
 void Transform::rotateLocalZ(float degrees)
 {
-	XMVECTOR rotation = XMLoadFloat3(&m_rotation);
+	XMVECTOR rotation = XMLoadFloat3(&m_localRotation);
 	XMVECTOR angleVector = XMVectorSet(0.0f, 0.0f, XMConvertToRadians(degrees), 0.0f);
 	rotation = XMVectorAdd(rotation, angleVector);
-	XMStoreFloat3(&m_rotation, rotation);
+	XMStoreFloat3(&m_localRotation, rotation);
 
-	calcRotationMatrix();
+	setDirty();
 }
 
 void Transform::scale(DirectX::XMFLOAT3 delta)
 {
-	XMVECTOR scale = XMLoadFloat3(&m_scale);
+	XMVECTOR scale = XMLoadFloat3(&m_localScale);
 	scale = XMVectorAdd(scale, XMLoadFloat3(&delta));
-	XMStoreFloat3(&m_scale, scale);
+	XMStoreFloat3(&m_localScale, scale);
 
-	calcScaleMatrix();
+	setDirty();
 }
 
 void Transform::scaleX(float delta)
 {
-	XMVECTOR scale = XMLoadFloat3(&m_scale);
+	XMVECTOR scale = XMLoadFloat3(&m_localScale);
 	scale = XMVectorAdd(scale, XMVectorScale(XMVectorSet(1.0f, 0.0f, 0.0f, 0.0f), delta));
-	XMStoreFloat3(&m_scale, scale);
+	XMStoreFloat3(&m_localScale, scale);
 
-	calcScaleMatrix();
+	setDirty();
 }
 
 void Transform::scaleY(float delta)
 {
-	XMVECTOR scale = XMLoadFloat3(&m_scale);
+	XMVECTOR scale = XMLoadFloat3(&m_localScale);
 	scale = XMVectorAdd(scale, XMVectorScale(XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f), delta));
-	XMStoreFloat3(&m_scale, scale);
+	XMStoreFloat3(&m_localScale, scale);
 
-	calcScaleMatrix();
+	setDirty();
 }
 
 void Transform::scaleZ(float delta)
 {
-	XMVECTOR scale = XMLoadFloat3(&m_scale);
+	XMVECTOR scale = XMLoadFloat3(&m_localScale);
 	scale = XMVectorAdd(scale, XMVectorScale(XMVectorSet(0.0f, 0.0f, 1.0f, 0.0f), delta));
-	XMStoreFloat3(&m_scale, scale);
+	XMStoreFloat3(&m_localScale, scale);
 
-	calcScaleMatrix();
+	setDirty();
 }
 
 Transform* Transform::getParent() const
@@ -523,38 +569,39 @@ void Transform::removeAllChildren()
 	m_children.clear();
 }
 
-void Transform::calcTranslationMatrix()
+XMMATRIX Transform::calcWorldMatrix()
 {
-	XMVECTOR position = XMLoadFloat3(&m_position);
-	XMStoreFloat4x4(&m_translationMatrix, XMMatrixTranslationFromVector(position));
-
-	calcWorldMatrix();
-}
-
-void Transform::calcRotationMatrix()
-{
-	XMVECTOR rotation = XMLoadFloat3(&m_rotation);
-	XMStoreFloat4x4(&m_rotationMatrix, XMMatrixRotationRollPitchYawFromVector(rotation));
-
-	calcWorldMatrix();
-}
-
-void Transform::calcScaleMatrix()
-{
-	XMVECTOR scale = XMLoadFloat3(&m_scale);
-	XMStoreFloat4x4(&m_scaleMatrix, XMMatrixScalingFromVector(scale));
-
-	calcWorldMatrix();
-}
-
-void Transform::calcWorldMatrix()
-{
-	XMMATRIX translation = XMLoadFloat4x4(&m_translationMatrix);
-	XMMATRIX rotation = XMLoadFloat4x4(&m_rotationMatrix);
-	XMMATRIX scale = XMLoadFloat4x4(&m_scaleMatrix);
-
+	XMMATRIX translation = XMMatrixTranslationFromVector(XMLoadFloat3(&m_localPosition));
+	XMMATRIX rotation = XMMatrixRotationRollPitchYawFromVector(XMLoadFloat3(&m_localRotation));
+	XMMATRIX scale = XMMatrixScalingFromVector(XMLoadFloat3(&m_localScale));
 	XMMATRIX world = XMMatrixMultiply(XMMatrixMultiply(scale, rotation), translation);
-	XMStoreFloat4x4(&m_worldMatrix, world);
+
+	if (m_parent)
+	{
+		world = XMMatrixMultiply(world, m_parent->calcWorldMatrix());
+		XMStoreFloat4x4(&m_worldMatrix, world);
+		XMStoreFloat4x4(&m_inverseWorldMatrix, XMMatrixInverse(nullptr, world));
+	}
+	else
+	{
+		XMStoreFloat4x4(&m_worldMatrix, world);
+		XMStoreFloat4x4(&m_inverseWorldMatrix, XMMatrixInverse(nullptr, world));
+	}
+
+	return world;
+}
+
+void Transform::setDirty()
+{
+	if (!m_isDirty)
+	{
+		m_isDirty = true;
+
+		for (unsigned int i = 0; i < m_children.size(); i++)
+		{
+			m_children[i]->setDirty();
+		}
+	}
 }
 
 void Transform::setParentNonRecursive(Transform* parent)
@@ -570,13 +617,13 @@ void Transform::addChildNonRecursive(Transform* child)
 void TW_CALL getTransformPositionDebugEditor(void* value, void* clientData)
 {
 	Transform* transform = static_cast<Transform*>(clientData);
-	*static_cast<XMFLOAT3*>(value) = transform->getPosition();
+	*static_cast<XMFLOAT3*>(value) = transform->getLocalPosition();
 }
 
 void TW_CALL getTransformRotationDebugEditor(void* value, void* clientData)
 {
 	Transform* transform = static_cast<Transform*>(clientData);
-	XMFLOAT3 rotation = transform->getRotation();
+	XMFLOAT3 rotation = transform->getLocalRotation();
 	XMFLOAT3 rotationDegrees = XMFLOAT3(XMConvertToDegrees(rotation.x), XMConvertToDegrees(rotation.y), XMConvertToDegrees(rotation.z));
 	*static_cast<XMFLOAT3*>(value) = rotationDegrees;
 }
@@ -584,25 +631,25 @@ void TW_CALL getTransformRotationDebugEditor(void* value, void* clientData)
 void TW_CALL getTransformScaleDebugEditor(void* value, void* clientData)
 {
 	Transform* transform = static_cast<Transform*>(clientData);
-	*static_cast<XMFLOAT3*>(value) = transform->getScale();
+	*static_cast<XMFLOAT3*>(value) = transform->getLocalScale();
 }
 
 void TW_CALL setTransformPositionDebugEditor(const void* value, void* clientData)
 {
 	Transform* transform = static_cast<Transform*>(clientData);
-	transform->setPosition(*static_cast<const XMFLOAT3*>(value));
+	transform->setLocalPosition(*static_cast<const XMFLOAT3*>(value));
 }
 
 void TW_CALL setTransformRotationDebugEditor(const void* value, void* clientData)
 {
 	Transform* transform = static_cast<Transform*>(clientData);
-	transform->setRotation(*static_cast<const XMFLOAT3*>(value));
+	transform->setLocalRotation(*static_cast<const XMFLOAT3*>(value));
 }
 
 void TW_CALL setTransformScaleDebugEditor(const void* value, void* clientData)
 {
 	Transform* transform = static_cast<Transform*>(clientData);
-	transform->setScale(*static_cast<const XMFLOAT3*>(value));
+	transform->setLocalScale(*static_cast<const XMFLOAT3*>(value));
 }
 
 void TW_CALL setTransformParentNameDebugEditor(void* clientData)

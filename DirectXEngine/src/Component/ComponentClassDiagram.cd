@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <ClassDiagram MajorVersion="1" MinorVersion="1">
   <Class Name="CameraComponent" Collapsed="true">
-    <Position X="5.5" Y="3.75" Width="1.5" />
+    <Position X="8" Y="3.75" Width="1.75" />
     <TypeIdentifier>
       <HashCode>AAIAAAAAAAAAIAAAAAAAAACAAiAAAAAgAAAAAAAAAAA=</HashCode>
       <FileName>src\Component\CameraComponent.h</FileName>
@@ -15,98 +15,98 @@
     </TypeIdentifier>
   </Class>
   <Class Name="ComponentRegistry" Collapsed="true">
-    <Position X="13.75" Y="1" Width="1.5" />
+    <Position X="13.5" Y="1" Width="1.75" />
     <TypeIdentifier>
       <HashCode>AAAAAAABAAAAAQAgAAAAAIAAgAAAAAAAAgAAAAAAAAA=</HashCode>
       <FileName>src\Component\ComponentRegistry.h</FileName>
     </TypeIdentifier>
   </Class>
   <Class Name="FreeCamControls" Collapsed="true">
-    <Position X="18.75" Y="3.75" Width="1.5" />
+    <Position X="17.25" Y="3.75" Width="1.5" />
     <TypeIdentifier>
       <HashCode>AAAAAAACEAAAAAAAAAAAAAAAAAAQCAIAAAAgIEAEAAg=</HashCode>
       <FileName>src\Component\FreeCamControls.h</FileName>
     </TypeIdentifier>
   </Class>
   <Class Name="GUIButtonComponent" Collapsed="true">
-    <Position X="7.5" Y="6.75" Width="1.5" />
+    <Position X="7.75" Y="6" Width="1.75" />
     <TypeIdentifier>
       <HashCode>gAAAAAACIAAAAgAABAYACACAAAAAgAIIEEQAAEAEAAA=</HashCode>
       <FileName>src\Component\GUIButtonComponent.h</FileName>
     </TypeIdentifier>
   </Class>
   <Class Name="GUIComponent" Collapsed="true">
-    <Position X="8.5" Y="3.75" Width="1.5" />
+    <Position X="10" Y="3.75" Width="1.5" />
     <TypeIdentifier>
       <HashCode>AAAAAAACAAAAAAAAAAIAAAAAAAAAAIIAAABAgEgIAAA=</HashCode>
       <FileName>src\Component\GUIComponent.h</FileName>
     </TypeIdentifier>
   </Class>
   <Class Name="GUISpriteComponent" Collapsed="true">
-    <Position X="7.5" Y="5.25" Width="1.5" />
+    <Position X="7.75" Y="5" Width="1.75" />
     <TypeIdentifier>
       <HashCode>AAAAAQACAAAAAgAAAAIgEAAAAAAAAAMgAAAAAEAAAAA=</HashCode>
       <FileName>src\Component\GUISpriteComponent.h</FileName>
     </TypeIdentifier>
   </Class>
   <Class Name="GUITextComponent" Collapsed="true">
-    <Position X="9.75" Y="5.25" Width="1.5" />
+    <Position X="9.75" Y="5" Width="1.75" />
     <TypeIdentifier>
       <HashCode>AAAAAAACIAAAAgAABAIACACAAAAAgAIIEEAIAEAAAAA=</HashCode>
       <FileName>src\Component\GUITextComponent.h</FileName>
     </TypeIdentifier>
   </Class>
   <Class Name="GUITransform" Collapsed="true">
-    <Position X="21" Y="3.75" Width="1.5" />
+    <Position X="19" Y="3.75" Width="1.5" />
     <TypeIdentifier>
       <HashCode>AAAAIIACALgAgAiAABAQBAACCAAAACIAAAAAEEMAAAI=</HashCode>
       <FileName>src\Component\GUITransform.h</FileName>
     </TypeIdentifier>
   </Class>
   <Class Name="LightComponent" Collapsed="true">
-    <Position X="16.5" Y="3.75" Width="1.5" />
+    <Position X="15.5" Y="3.75" Width="1.5" />
     <TypeIdentifier>
       <HashCode>wAAgABECAAAAAAEAAAAAAAAQAgQAAQIAAAABAEAAIIA=</HashCode>
       <FileName>src\Component\LightComponent.h</FileName>
     </TypeIdentifier>
   </Class>
   <Class Name="MeshRenderComponent" Collapsed="true">
-    <Position X="12" Y="5.25" Width="1.5" />
+    <Position X="11.75" Y="5" Width="2" />
     <TypeIdentifier>
       <HashCode>CAgAAAACAAAAAAAAARAAAEAAAAAAAAIAIAAAIEAAAAA=</HashCode>
       <FileName>src\Component\MeshRenderComponent.h</FileName>
     </TypeIdentifier>
   </Class>
   <Class Name="RenderComponent" Collapsed="true">
-    <Position X="12" Y="3.75" Width="1.5" />
+    <Position X="11.75" Y="3.75" Width="1.75" />
     <TypeIdentifier>
       <HashCode>SAAABAACAAAAAAAAAAAAAAEAEAQQAAIAgABAQEAAkAA=</HashCode>
       <FileName>src\Component\RenderComponent.h</FileName>
     </TypeIdentifier>
   </Class>
   <Class Name="Transform" Collapsed="true">
-    <Position X="14.25" Y="3.75" Width="1.5" />
+    <Position X="13.75" Y="3.75" Width="1.5" />
     <TypeIdentifier>
-      <HashCode>AAAQIMCCwCAAAPCuABAAAgQCCAAgAIJSgAIAAEEgAII=</HashCode>
+      <HashCode>BCAQIMCDwCEAAPCuEBEAEgQCCAAhIIJSgEIAAEFgIII=</HashCode>
       <FileName>src\Component\Transform.h</FileName>
     </TypeIdentifier>
   </Class>
   <Struct Name="GPU_LIGHT_DATA" Collapsed="true">
-    <Position X="16.5" Y="1" Width="1.5" />
+    <Position X="15.5" Y="1" Width="1.5" />
     <TypeIdentifier>
       <HashCode>AAAAgAAACAAAIAAAAACAIAAAAAABAACAAAAAAAACAAA=</HashCode>
       <FileName>src\Component\LightComponent.h</FileName>
     </TypeIdentifier>
   </Struct>
   <Struct Name="LightSettings" Collapsed="true">
-    <Position X="16.5" Y="1.75" Width="1.5" />
+    <Position X="15.5" Y="1.75" Width="1.5" />
     <TypeIdentifier>
       <HashCode>AAAAgAAACAAAAAAAAAAAIAAAAAAAAACAAAAAAAACAAA=</HashCode>
       <FileName>src\Component\LightComponent.h</FileName>
     </TypeIdentifier>
   </Struct>
   <Enum Name="LightType" Collapsed="true">
-    <Position X="16.5" Y="2.5" Width="1.5" />
+    <Position X="15.5" Y="2.5" Width="1.5" />
     <TypeIdentifier>
       <HashCode>AQAAAAAAACAAAAAAAAAAAAAAAAAAAAQAAAAAAAAAAAA=</HashCode>
       <FileName>src\Component\LightComponent.h</FileName>

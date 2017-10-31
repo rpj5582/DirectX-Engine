@@ -11,22 +11,21 @@ public:
 	virtual void loadFromJSON(rapidjson::Value& dataObject) override;
 	virtual void saveToJSON(rapidjson::Writer<rapidjson::StringBuffer>& writer) override;
 
-	const DirectX::XMFLOAT3 getPosition() const;
-	const DirectX::XMFLOAT3 getRotation() const;
-	const DirectX::XMFLOAT3 getScale() const;
+	const DirectX::XMFLOAT3 getPosition();
+	const DirectX::XMFLOAT3 getLocalPosition() const;
+	const DirectX::XMFLOAT3 getLocalRotation() const;
+	const DirectX::XMFLOAT3 getLocalScale() const;
 
-	void setPosition(DirectX::XMFLOAT3 position);
-	void setRotation(DirectX::XMFLOAT3 rotation);
-	void setScale(DirectX::XMFLOAT3 scale);
+	void setLocalPosition(DirectX::XMFLOAT3 position);
+	void setLocalRotation(DirectX::XMFLOAT3 rotation);
+	void setLocalScale(DirectX::XMFLOAT3 scale);
 
-	const DirectX::XMFLOAT3 getRight() const;
-	const DirectX::XMFLOAT3 getUp() const;
-	const DirectX::XMFLOAT3 getForward() const;
+	const DirectX::XMFLOAT3 getRight();
+	const DirectX::XMFLOAT3 getUp();
+	const DirectX::XMFLOAT3 getForward();
 
-	const DirectX::XMMATRIX getTranslationMatrix() const;
-	const DirectX::XMMATRIX getRotationMatrix() const;
-	const DirectX::XMMATRIX getScaleMatrix() const;
-	const DirectX::XMMATRIX getWorldMatrix() const;
+	const DirectX::XMMATRIX getWorldMatrix();
+	const DirectX::XMMATRIX getInverseWorldMatrix();
 
 	void move(DirectX::XMFLOAT3 delta);
 	void moveX(float delta);
@@ -66,22 +65,19 @@ public:
 	std::vector<std::string> d_childrenNames;
 
 private:
-	void calcTranslationMatrix();
-	void calcRotationMatrix();
-	void calcScaleMatrix();
-	void calcWorldMatrix();
+	DirectX::XMMATRIX calcWorldMatrix();
+	void setDirty();
 
 	void setParentNonRecursive(Transform* parent);
 	void addChildNonRecursive(Transform* child);
 
-	DirectX::XMFLOAT3 m_position;
-	DirectX::XMFLOAT3 m_rotation;
-	DirectX::XMFLOAT3 m_scale;
-	
-	DirectX::XMFLOAT4X4 m_translationMatrix;
-	DirectX::XMFLOAT4X4 m_rotationMatrix;
-	DirectX::XMFLOAT4X4 m_scaleMatrix;
+	DirectX::XMFLOAT3 m_localPosition;
+	DirectX::XMFLOAT3 m_localRotation;
+	DirectX::XMFLOAT3 m_localScale;
+
 	DirectX::XMFLOAT4X4 m_worldMatrix;
+	DirectX::XMFLOAT4X4 m_inverseWorldMatrix;
+	bool m_isDirty;
 
 	Transform* m_parent;
 	std::vector<Transform*> m_children;
