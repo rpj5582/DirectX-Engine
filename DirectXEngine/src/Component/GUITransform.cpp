@@ -18,10 +18,10 @@ void GUITransform::init()
 {
 	Component::init();
 
-	Debug::entityDebugWindow->addVariable(&m_position, Debug::TW_TYPE_VEC2F, "Position", typeName, entity.getName());
-	Debug::entityDebugWindow->addVariable(&m_rotation, TW_TYPE_FLOAT, "Rotation", typeName, entity.getName());
-	Debug::entityDebugWindow->addVariable(&m_size, Debug::TW_TYPE_VEC2F, "Size", typeName, entity.getName());
-	Debug::entityDebugWindow->addVariable(&m_origin, Debug::TW_TYPE_VEC2F, "Origin", typeName, entity.getName());
+	Debug::entityDebugWindow->addVariable(&m_position, Debug::TW_TYPE_VEC2F, "Position", this);
+	Debug::entityDebugWindow->addVariable(&m_rotation, TW_TYPE_FLOAT, "Rotation", this);
+	Debug::entityDebugWindow->addVariable(&m_size, Debug::TW_TYPE_VEC2F, "Size", this);
+	Debug::entityDebugWindow->addVariable(&m_origin, Debug::TW_TYPE_VEC2F, "Origin", this);
 
 	m_size = XMFLOAT2(1.0f, 1.0f);
 }

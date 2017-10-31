@@ -20,7 +20,7 @@ void GUISpriteComponent::init()
 
 	setTexture(DEFAULT_TEXTURE_GUI);
 
-	Debug::entityDebugWindow->addVariableWithCallbacks(TW_TYPE_STDSTRING, "Texture", typeName, entity.getName(), &getGUISpriteComponentTextureDebugEditor, &setGUISpriteComponentTextureDebugEditor, this);
+	Debug::entityDebugWindow->addVariableWithCallbacks(TW_TYPE_STDSTRING, "Texture", this, &getGUISpriteComponentTextureDebugEditor, &setGUISpriteComponentTextureDebugEditor, this);
 }
 
 void GUISpriteComponent::loadFromJSON(rapidjson::Value& dataObject)

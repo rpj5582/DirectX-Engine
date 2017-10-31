@@ -41,8 +41,8 @@ void LightComponent::init()
 	if (TW_TYPE_LIGHT_TYPE == TW_TYPE_UNDEF)
 		TW_TYPE_LIGHT_TYPE = TwDefineEnum("TW_TYPE_LIGH_TYPE", d_lightTypeMembers, 3);
 
-	Debug::entityDebugWindow->addVariable(&m_light, TW_TYPE_LIGHT_SETTINGS, "Light Settings", typeName, entity.getName());
-	Debug::entityDebugWindow->addVariable(&m_lightType, TW_TYPE_LIGHT_TYPE, "Light Type", typeName, entity.getName());
+	Debug::entityDebugWindow->addVariable(&m_light, TW_TYPE_LIGHT_SETTINGS, "Light Settings", this);
+	Debug::entityDebugWindow->addVariable(&m_lightType, TW_TYPE_LIGHT_TYPE, "Light Type", this);
 }
 
 void LightComponent::loadFromJSON(rapidjson::Value& dataObject)

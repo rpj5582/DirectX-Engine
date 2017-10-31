@@ -28,8 +28,8 @@ void RenderComponent::init()
 	if(TW_TYPE_RENDER_STLYE == TW_TYPE_UNDEF)
 		TW_TYPE_RENDER_STLYE = TwDefineEnum("TW_TYPE_RENDER_STLYE", d_renderStyleMembers, 3);
 
-	Debug::entityDebugWindow->addVariableWithCallbacks(TW_TYPE_STDSTRING, "Material", typeName, entity.getName(), &getRenderComponentMaterialDebugEditor, &setRenderComponentMaterialDebugEditor, this);
-	Debug::entityDebugWindow->addVariable(&m_renderStyle, TW_TYPE_RENDER_STLYE, "Render Style", typeName, entity.getName());
+	Debug::entityDebugWindow->addVariableWithCallbacks(TW_TYPE_STDSTRING, "Material", this, &getRenderComponentMaterialDebugEditor, &setRenderComponentMaterialDebugEditor, this);
+	Debug::entityDebugWindow->addVariable(&m_renderStyle, TW_TYPE_RENDER_STLYE, "Render Style", this);
 }
 
 void RenderComponent::loadFromJSON(rapidjson::Value& dataObject)

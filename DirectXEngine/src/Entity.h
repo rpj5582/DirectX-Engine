@@ -30,26 +30,52 @@ public:
 	Component* addComponentByStringType(std::string componentType);
 
 	template<typename T>
-	T* getComponent();
+	T* getComponent() const;
 
-	std::vector<Component*>& getComponents();
+	template<typename T>
+	std::vector<T*> getComponentsByType() const;
+
+	std::vector<Component*> getAllComponents() const;
 
 	template<typename T>
 	void removeComponent();
 	void removeComponent(Component* component);
 
+	Entity* getParent() const;
+	void setParent(Entity* parent);
+
+	Entity* getChild(unsigned int index) const;
+	Entity* getChildByName(std::string childName) const;
+	std::vector<Entity*> getChildren() const;
+
+	void addChild(Entity* child);
+	void removeChild(Entity* child);
+	void removeChildByIndex(unsigned int index);
+	void removeChildByName(std::string childName);
+	void removeAllChildren();
+
 	bool enabled;
 	
 	std::string d_componentTypeField;
+
+	std::string d_parentNameInputField;
+	std::string d_childNameInputField;
+	std::vector<std::string> d_childrenNames;
 
 private:
 	Entity(Scene& scene, std::string name);
 	~Entity();
 
+	void setParentNonRecursive(Entity* parent);
+	void addChildNonRecursive(Entity* child);
+
 	Scene& m_scene;
 
 	std::string m_name;
 	std::vector<Component*> m_components;
+
+	Entity* m_parent;
+	std::vector<Entity*> m_children;
 };
 
 template<typename T>
@@ -76,7 +102,7 @@ inline T* Entity::addComponent()
 }
 
 template<typename T>
-inline T* Entity::getComponent()
+inline T* Entity::getComponent() const
 {
 	static_assert(std::is_base_of<Component, T>::value, "Given type is not a Component.");
 
@@ -87,6 +113,22 @@ inline T* Entity::getComponent()
 	}
 
 	return nullptr;
+}
+
+template<typename T>
+inline std::vector<T*> Entity::getComponentsByType() const
+{
+	static_assert(std::is_base_of<Component, T>::value, "Given type is not a Component.");
+
+	std::vector<T*> components;
+
+	for (unsigned int i = 0; i < m_components.size(); i++)
+	{
+		T* component = dynamic_cast<T*>(m_components[i]);
+		if (component) components.push_back(component);
+	}
+
+	return components;
 }
 
 template<typename T>
@@ -105,3 +147,5 @@ inline void Entity::removeComponent()
 	Debug::warning("Given component was not removed because it could not be found on entity " + m_name + ".");
 	return;
 }
+
+void TW_CALL setEntityParentNameDebugEditor(void* clientData);

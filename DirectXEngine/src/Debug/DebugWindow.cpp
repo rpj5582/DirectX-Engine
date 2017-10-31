@@ -22,26 +22,6 @@ DebugWindow::~DebugWindow()
 	TwDeleteBar(m_window);
 }
 
-void DebugWindow::addVariableWithCallbacks(TwType varType, std::string varName, std::string componentName, std::string entityName, TwGetVarCallback getCallback, TwSetVarCallback setCallback, void* object, std::string additionalParams)
-{
-#if defined(DEBUG) || defined(_DEBUG)
-	std::string varID = entityName + componentName + varName;
-	std::string componentID = entityName + componentName;
-
-	std::string spacelessVarID = removeSpacesFromString(varID);
-	std::string spacelessComponentID = removeSpacesFromString(componentID);
-	std::string spacelessEntityName = removeSpacesFromString(entityName);
-
-	TwAddVarCB(m_window, spacelessVarID.c_str(), varType, setCallback, getCallback, object, "");
-
-	std::string description = " " + m_windowID + "/" + spacelessVarID + " group=" + spacelessComponentID + " label='" + varName + "' " + additionalParams;
-	TwDefine(description.c_str());
-
-	description = " " + m_windowID + "/" + spacelessComponentID + " group=" + spacelessEntityName + " label='" + componentName + "' opened=false ";
-	TwDefine(description.c_str());
-#endif
-}
-
 void DebugWindow::addButton(std::string buttonID, std::string buttonLabel, std::string group, TwButtonCallback callback, void* object, std::string additionalParams)
 {
 #if defined(DEBUG) || defined(_DEBUG)

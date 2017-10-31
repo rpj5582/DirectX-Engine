@@ -25,9 +25,9 @@ void GUIButtonComponent::init()
 
 	setFont(DEFAULT_FONT);
 
-	Debug::entityDebugWindow->addVariableWithCallbacks(TW_TYPE_STDSTRING, "Font", typeName, entity.getName(), &getGUIButtonComponentFontDebugEditor, &setGUIButtonComponentFontDebugEditor, this);
-	Debug::entityDebugWindow->addVariable(&m_text, TW_TYPE_STDSTRING, "Text", typeName, entity.getName());
-	Debug::entityDebugWindow->addVariable(&m_textColor, TW_TYPE_COLOR4F, "Text Color", typeName, entity.getName());
+	Debug::entityDebugWindow->addVariableWithCallbacks(TW_TYPE_STDSTRING, "Font", this, &getGUIButtonComponentFontDebugEditor, &setGUIButtonComponentFontDebugEditor, this);
+	Debug::entityDebugWindow->addVariable(&m_text, TW_TYPE_STDSTRING, "Text", this);
+	Debug::entityDebugWindow->addVariable(&m_textColor, TW_TYPE_COLOR4F, "Text Color", this);
 }
 
 void GUIButtonComponent::update(float deltaTime, float totalTime)

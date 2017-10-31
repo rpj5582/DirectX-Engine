@@ -138,14 +138,12 @@ void Scene1::onLoad()
 
 	//saveToJSON("Assets/Scenes/scene1.json");
 
-	Transform* coneTransform = getEntityByName("Cone")->getComponent<Transform>();
-	Transform* cubeTransform = getEntityByName("Cube")->getComponent<Transform>();
+	Entity* cone = getEntityByName("Cone");
+	Entity* cube = getEntityByName("Cube");
 
-	coneTransform->setParent(cubeTransform);
-	//coneTransform->setParent(nullptr);
+	cone->setParent(cube);
 
-	//cubeTransform->addChild(coneTransform);
-	//cubeTransform->removeChild(coneTransform);
+	//std::vector<Transform*> transforms = getAllComponentsByType<Transform>();
 }
 
 void Scene1::update(float deltaTime, float totalTime)

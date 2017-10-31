@@ -47,29 +47,9 @@ public:
 	void scaleY(float delta);
 	void scaleZ(float delta);
 
-	Transform* getParent() const;
-	void setParent(Transform* parent);
-
-	Transform* getChild(unsigned int index) const;
-	Transform* getChildByName(std::string childName) const;
-	std::vector<Transform*> getChildren() const;
-
-	void addChild(Transform* child);
-	void removeChild(Transform* child);
-	void removeChildByIndex(unsigned int index);
-	void removeChildByName(std::string childName);
-	void removeAllChildren();
-
-	std::string d_parentNameInputField;
-	std::string d_childNameInputField;
-	std::vector<std::string> d_childrenNames;
-
 private:
 	DirectX::XMMATRIX calcWorldMatrix();
 	void setDirty();
-
-	void setParentNonRecursive(Transform* parent);
-	void addChildNonRecursive(Transform* child);
 
 	DirectX::XMFLOAT3 m_localPosition;
 	DirectX::XMFLOAT3 m_localRotation;
@@ -78,9 +58,6 @@ private:
 	DirectX::XMFLOAT4X4 m_worldMatrix;
 	DirectX::XMFLOAT4X4 m_inverseWorldMatrix;
 	bool m_isDirty;
-
-	Transform* m_parent;
-	std::vector<Transform*> m_children;
 };
 
 void TW_CALL getTransformPositionDebugEditor(void* value, void* clientData);
@@ -90,5 +67,3 @@ void TW_CALL getTransformScaleDebugEditor(void* value, void* clientData);
 void TW_CALL setTransformPositionDebugEditor(const void* value, void* clientData);
 void TW_CALL setTransformRotationDebugEditor(const void* value, void* clientData);
 void TW_CALL setTransformScaleDebugEditor(const void* value, void* clientData);
-
-void TW_CALL setTransformParentNameDebugEditor(void* clientData);

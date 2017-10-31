@@ -14,7 +14,7 @@ Component::~Component()
 void Component::init()
 {
 	typeName = ComponentRegistry::getTypeName(typeid(*this));
-	Debug::entityDebugWindow->addVariable(&enabled, TW_TYPE_BOOLCPP, "Enabled", typeName, entity.getName());
+	Debug::entityDebugWindow->addVariable(&enabled, TW_TYPE_BOOLCPP, "Enabled", this);
 }
 
 void Component::update(float deltaTime, float totalTime)

@@ -20,8 +20,8 @@ void GUITextComponent::init()
 
 	setFont(DEFAULT_FONT);
 
-	Debug::entityDebugWindow->addVariableWithCallbacks(TW_TYPE_STDSTRING, "Font", typeName, entity.getName(), &getGUITextComponentFontDebugEditor, &setGUITextComponentFontDebugEditor, this);
-	Debug::entityDebugWindow->addVariable(&m_text, TW_TYPE_STDSTRING, "Text", typeName, entity.getName());
+	Debug::entityDebugWindow->addVariableWithCallbacks(TW_TYPE_STDSTRING, "Font", this, &getGUITextComponentFontDebugEditor, &setGUITextComponentFontDebugEditor, this);
+	Debug::entityDebugWindow->addVariable(&m_text, TW_TYPE_STDSTRING, "Text", this);
 }
 
 void GUITextComponent::loadFromJSON(rapidjson::Value& dataObject)

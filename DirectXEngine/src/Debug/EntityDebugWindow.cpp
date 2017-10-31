@@ -26,23 +26,29 @@ void EntityDebugWindow::addEntity(Entity* entity)
 #if defined(DEBUG) || defined(_DEBUG)
 	if (!entity) return;
 
-	std::string entityName = entity->getName();
-	std::string spacelessEntityName = removeSpacesFromString(entityName);
+	std::string parentName;
+	std::string entityName = getEntityDebugName(entity, &parentName);
 
-	addButton(spacelessEntityName + "RemoveButton", "Remove Entity", spacelessEntityName, &removeEntityDebugEditor, entity);
-	addSeparator(spacelessEntityName + "SaveSeparator", spacelessEntityName);
+	addButton(entityName + "RemoveButton", "Remove Entity", entityName, &removeEntityDebugEditor, entity);
+	addSeparator(entityName + "SaveSeparator", entityName);
 
-	TwAddVarRW(m_window, (spacelessEntityName + "ComponentTypeField").c_str(), TW_TYPE_STDSTRING, &entity->d_componentTypeField, (" group=" + spacelessEntityName + " label='Component Type' ").c_str());
-	addButton(spacelessEntityName + "AddComponentButton", "Add Component", spacelessEntityName, &addComponentDebugEditor, entity);
-	addSeparator(spacelessEntityName + "AddComponentSeparator", spacelessEntityName);
+	TwAddVarRW(m_window, (entityName + "ComponentTypeField").c_str(), TW_TYPE_STDSTRING, &entity->d_componentTypeField, (" group='" + entityName + "' label='Component Type' ").c_str());
+	addButton(entityName + "AddComponentButton", "Add Component", entityName, &addComponentDebugEditor, entity);
+	addSeparator(entityName + "AddComponentSeparator", entityName);
 
-	TwAddVarRW(m_window, (spacelessEntityName + "Enabled").c_str(), TW_TYPE_BOOLCPP, &entity->enabled, " label='Enabled' ");
+	TwAddVarRW(m_window, (entityName + "Enabled").c_str(), TW_TYPE_BOOLCPP, &entity->enabled, " label='Enabled' ");
 
-	std::string description = " " + m_windowID + "/" + spacelessEntityName + "Enabled group=" + spacelessEntityName + " ";
+	std::string description = " " + m_windowID + "/" + entityName + "Enabled group='" + entityName + "' ";
 	TwDefine(description.c_str());
 
-	description = " " + m_windowID + "/" + spacelessEntityName + " label='" + entityName + "' opened=false ";
+	description = " " + m_windowID + "/" + entityName + " label='" + entity->getName() + "' opened=false group='" + parentName + "' ";
 	TwDefine(description.c_str());
+
+	std::vector<Component*> components = entity->getAllComponents();
+	for (unsigned int i = 0; i < components.size(); i++)
+	{
+		addComponent(components[i]);
+	}
 #endif
 }
 
@@ -51,10 +57,8 @@ void EntityDebugWindow::removeEntity(Entity* entity)
 #if defined(DEBUG) || defined(_DEBUG)
 	if (!entity) return;
 
-	std::string entityName = entity->getName();
-	std::string spacelessEntityName = removeSpacesFromString(entityName);
-
-	TwRemoveVar(m_window, spacelessEntityName.c_str());
+	std::string entityName = getEntityDebugName(entity, nullptr);
+	TwRemoveVar(m_window, entityName.c_str());
 #endif
 }
 
@@ -63,18 +67,13 @@ void EntityDebugWindow::addComponent(Component* component)
 #if defined(DEBUG) || defined(_DEBUG)
 	if (!component) return;
 
-	std::string entityName = component->getEntity().getName();
-	std::string spacelessEntityName = removeSpacesFromString(entityName);
+	std::string entityName;
+	std::string componentName = getComponentDebugName(component, &entityName);
 
-	std::string componentName = component->getName();
-	std::string spacelessComponentName = removeSpacesFromString(componentName);
+	addSeparator(componentName + "RemoveSeparator", componentName);
+	addButton(componentName + "RemoveButton", "Remove Component", componentName, &removeComponentDebugEditor, component);
 
-	std::string componentID = spacelessEntityName + spacelessComponentName;
-
-	addSeparator(componentID + "RemoveSeparator", componentID);
-	addButton(componentID + "RemoveButton", "Remove Component", componentID, &removeComponentDebugEditor, component);
-
-	TwDefine((" " + m_windowID + "/" + componentID + " label='" + componentName + "' ").c_str());
+	TwDefine((" " + m_windowID + "/" + componentName + " label='" + component->getName() + "' group='" + entityName + "' ").c_str());
 #endif
 }
 
@@ -83,14 +82,64 @@ void EntityDebugWindow::removeComponent(Component* component)
 #if defined(DEBUG) || defined(_DEBUG)
 	if (!component) return;
 
-	std::string entityName = component->getEntity().getName();
-	std::string spacelessEntityName = removeSpacesFromString(entityName);
+	std::string componentName = getComponentDebugName(component, nullptr);
+	TwRemoveVar(m_window, componentName.c_str());
+#endif
+}
+
+void EntityDebugWindow::addVariableWithCallbacks(TwType varType, std::string varName, Component* component, TwGetVarCallback getCallback, TwSetVarCallback setCallback, void * object, std::string additionalParams)
+{
+#if defined(DEBUG) || defined(_DEBUG)
+	std::string entityName;
+	std::string componentName = getComponentDebugName(component, &entityName);
+	std::string spacelessVarName = componentName + removeSpacesFromString(varName);
+
+	TwAddVarCB(m_window, spacelessVarName.c_str(), varType, setCallback, getCallback, object, "");
+
+	std::string description = " " + m_windowID + "/" + spacelessVarName + " group='" + componentName + "' label='" + varName + "' " + additionalParams;
+	TwDefine(description.c_str());
+
+	description = " " + m_windowID + "/" + componentName + " group='" + entityName + "' label='" + componentName + "' opened=false ";
+	TwDefine(description.c_str());
+#endif
+}
+
+std::string EntityDebugWindow::getEntityDebugName(const Entity* entity, std::string* out_parentDebugName) const
+{
+	if (!entity) return "";
+
+	std::string entityName = entity->getName();
+	std::string parentName = "";
+	const Entity* currentEntity = entity;
+	while (true)
+	{
+		const Entity* parent = currentEntity->getParent();
+		if (!parent) break;
+
+		parentName = parent->getName();
+		currentEntity = parent;
+	}
+
+	std::string spacelessParentName = removeSpacesFromString(parentName);
+	std::string spacelessEntityName = removeSpacesFromString(entityName) + spacelessParentName;
+
+	if(out_parentDebugName)
+		*out_parentDebugName = spacelessParentName;
+	return spacelessEntityName;
+}
+
+std::string EntityDebugWindow::getComponentDebugName(const Component* component, std::string* out_entityDebugName) const
+{
+	if (!component) return "";
+
+	std::string entityName = getEntityDebugName(&component->getEntity(), nullptr);
 
 	std::string componentName = component->getName();
 	std::string spacelessComponentName = removeSpacesFromString(componentName);
 
-	TwRemoveVar(m_window, (spacelessEntityName + spacelessComponentName).c_str());
-#endif
+	if(out_entityDebugName)
+		*out_entityDebugName = entityName;
+	return entityName + spacelessComponentName;
 }
 
 void TW_CALL addEntityDebugEditor(void* clientData)

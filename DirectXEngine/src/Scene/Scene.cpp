@@ -391,7 +391,7 @@ void Scene::renderGeometry()
 		if (!m_entities[i]->enabled) continue;
 
 		LightComponent* lightComponent = nullptr;
-		std::vector<Component*>& components = m_entities[i]->getComponents();
+		std::vector<Component*>& components = m_entities[i]->getAllComponents();
 		for (unsigned int j = 0; j < components.size(); j++)
 		{
 			lightComponent = dynamic_cast<LightComponent*>(components[j]);
@@ -443,7 +443,7 @@ void Scene::renderGUI()
 		if (!m_entities[i]->enabled) continue;
 
 		GUIComponent* guiComponent = nullptr;
-		std::vector<Component*>& components = m_entities[i]->getComponents();
+		std::vector<Component*>& components = m_entities[i]->getAllComponents();
 		for (unsigned int j = 0; j < components.size(); j++)
 		{
 			guiComponent = dynamic_cast<GUIComponent*>(components[j]);
@@ -488,16 +488,47 @@ Entity* Scene::createEntity(std::string name)
 
 void Scene::deleteEntity(Entity* entity)
 {
-	for (unsigned int i = 0; i < m_entities.size(); i++)
+	if (!entity)
 	{
-		if (m_entities[i] == entity)
+		Debug::warning("Attempted to delete a null entity, skipping.");
+		return;
+	}
+
+	unsigned int index = 0;
+	for (; index < m_entities.size(); index++)
+	{
+		if (m_entities[index] == entity)
 		{
-			Debug::entityDebugWindow->removeEntity(entity);
-			delete m_entities[i];
-			m_entities.erase(m_entities.begin() + i);
-			return;
+			break;
 		}
 	}
+
+	if (index == m_entities.size())
+	{
+		Debug::warning("Could not delete entity " + entity->getName() + " because it wasn't found in the scene's entity list (How did that happen???).");
+		return;
+	}
+
+	std::vector<Entity*> children = m_entities[index]->getChildren();
+	for (unsigned int i = 0; i < children.size(); i++)
+	{
+		// Find the child entity in the big entity list and remove its pointer
+		for (unsigned int j = 0; j < m_entities.size(); j++)
+		{
+			if (m_entities[j] == children[i])
+			{
+				m_entities.erase(m_entities.begin() + j);
+				delete children[i];
+				break;
+			}
+		}
+	}
+	children.clear();
+
+	Debug::entityDebugWindow->removeEntity(entity);
+	delete m_entities[index];
+	m_entities.erase(m_entities.begin() + index);
+	return;
 }
 
 void Scene::clear()

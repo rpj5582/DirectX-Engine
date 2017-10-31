@@ -14,7 +14,7 @@ void MeshRenderComponent::init()
 {
 	RenderComponent::init();
 
-	Debug::entityDebugWindow->addVariableWithCallbacks(TW_TYPE_STDSTRING, "Mesh", typeName, entity.getName(), &getMeshRenderComponentMeshDebugEditor, &setMeshRenderComponentMeshDebugEditor, this);
+	Debug::entityDebugWindow->addVariableWithCallbacks(TW_TYPE_STDSTRING, "Mesh", this, &getMeshRenderComponentMeshDebugEditor, &setMeshRenderComponentMeshDebugEditor, this);
 }
 
 void MeshRenderComponent::loadFromJSON(rapidjson::Value& dataObject)

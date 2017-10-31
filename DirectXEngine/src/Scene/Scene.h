@@ -38,6 +38,9 @@ public:
 
 	Entity* getEntityByName(std::string name);
 
+	template<typename T>
+	std::vector<T*> getAllComponentsByType() const;
+
 	CameraComponent* getMainCamera() const;
 
 	std::string d_sceneNameField;
@@ -86,4 +89,18 @@ private:
 	CameraComponent* m_mainCamera;
 };
 
+template<typename T>
+inline std::vector<T*> Scene::getAllComponentsByType() const
+{
+	static_assert(std::is_base_of<Component, T>::value, "Given type is not a Component.");
 
+	std::vector<T*> components;
+
+	for (unsigned int i = 0; i < m_entities.size(); i++)
+	{
+		std::vector<T*> entityComponents = m_entities[i]->getComponentsByType<T>();
+		components.insert(components.end(), entityComponents.begin(), entityComponents.end());
+	}
+
+	return components;
+}
