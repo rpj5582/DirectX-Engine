@@ -17,6 +17,8 @@ public:
 	void addButton(std::string buttonID, std::string buttonLabel, std::string group, TwButtonCallback callback, void* object, std::string additionalParams = "");
 	void addSeparator(std::string separatorID, std::string group, std::string additionalParams = "");
 
+	void clear();
+
 	std::string getWindowID() const;
 	std::string getWindowLabel() const;
 	TwBar* getWindow() const;

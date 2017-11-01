@@ -38,6 +38,11 @@ void DebugWindow::addSeparator(std::string separatorID, std::string group, std::
 #endif
 }
 
+void DebugWindow::clear()
+{
+	TwRemoveAllVars(m_window);
+}
+
 std::string DebugWindow::getWindowID() const
 {
 	return m_windowID;

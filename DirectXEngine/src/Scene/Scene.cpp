@@ -215,6 +215,12 @@ bool Scene::loadFromJSON(std::string filename)
 
 	ifs.close();
 
+	Debug::entityDebugWindow->clear();
+	Debug::assetDebugWindow->clear();
+	clear();
+	Debug::entityDebugWindow->setupControls(this);
+	Debug::assetDebugWindow->setupControls(this);
+
 	// Load the scene's dependent assets.
 	rapidjson::Value& assets = dom["assets"];
 	AssetManager::loadFromJSON(assets);

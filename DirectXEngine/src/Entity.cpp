@@ -175,7 +175,8 @@ void Entity::setParent(Entity* parent)
 	}
 	else
 	{
-		m_parent->removeChild(this);
+		if(m_parent)
+			m_parent->removeChild(this);
 	}
 }
 

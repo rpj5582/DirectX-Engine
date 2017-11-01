@@ -43,11 +43,6 @@ void TW_CALL loadSceneDebugEditor(void* clientData)
 		return;
 	}
 
-	TwRemoveAllVars(Debug::entityDebugWindow->getWindow());
-	TwRemoveAllVars(Debug::assetDebugWindow->getWindow());
-	scene->clear();
-	Debug::entityDebugWindow->setupControls(scene);
-	Debug::assetDebugWindow->setupControls(scene);
 	scene->loadFromJSON("Assets/Scenes/" + scene->d_sceneNameField + ".json");
 }
 
@@ -59,5 +54,6 @@ void TW_CALL saveSceneDebugEditor(void* clientData)
 		Debug::warning("Name the scene before saving.");
 		return;
 	}
+
 	scene->saveToJSON("Assets/Scenes/" + scene->d_sceneNameField + ".json");
 }
