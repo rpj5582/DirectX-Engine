@@ -21,6 +21,7 @@ public:
 	virtual void lateUpdate(float deltaTime, float totalTime);
 	virtual void loadFromJSON(rapidjson::Value& dataObject);
 	virtual void saveToJSON(rapidjson::Writer<rapidjson::StringBuffer>& writer);
+	virtual void onSceneLoaded();
 
 	Entity& getEntity() const;
 	std::string getName() const;

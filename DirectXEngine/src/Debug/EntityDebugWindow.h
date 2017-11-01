@@ -26,11 +26,6 @@ public:
 	std::string getComponentDebugName(const Component* component, std::string* out_entityDebugName) const;
 };
 
-void TW_CALL addEntityDebugEditor(void* clientData);
-void TW_CALL removeEntityDebugEditor(void* clientData);
-void TW_CALL addComponentDebugEditor(void* clientData);
-void TW_CALL removeComponentDebugEditor(void* clientData);
-
 template<typename T>
 inline void EntityDebugWindow::addVariable(T* var, TwType varType, std::string varName, Component* component, std::string additionalParams, bool readonly)
 {
@@ -57,3 +52,8 @@ inline void EntityDebugWindow::addVariable(T* var, TwType varType, std::string v
 	TwDefine(description.c_str());
 #endif
 }
+
+void TW_CALL addEntityDebugEditor(void* clientData);
+void TW_CALL removeEntityDebugEditor(void* clientData);
+void TW_CALL addComponentDebugEditor(void* clientData);
+void TW_CALL removeComponentDebugEditor(void* clientData);

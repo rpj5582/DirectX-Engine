@@ -21,6 +21,8 @@ public:
 
 	void saveToJSON(rapidjson::Writer<rapidjson::StringBuffer>& writer) const;
 
+	void onSceneLoaded();
+
 	Scene& getScene() const;
 
 	std::string getName() const;
@@ -41,6 +43,9 @@ public:
 	void removeComponent();
 	void removeComponent(Component* component);
 
+	bool getEnabled() const;
+	void setEnabled(bool enabled);
+
 	Entity* getParent() const;
 	void setParent(Entity* parent);
 
@@ -53,8 +58,6 @@ public:
 	void removeChildByIndex(unsigned int index);
 	void removeChildByName(std::string childName);
 	void removeAllChildren();
-
-	bool enabled;
 	
 	std::string d_componentTypeField;
 
@@ -73,6 +76,8 @@ private:
 
 	std::string m_name;
 	std::vector<Component*> m_components;
+
+	bool m_enabled;
 
 	Entity* m_parent;
 	std::vector<Entity*> m_children;
@@ -147,5 +152,8 @@ inline void Entity::removeComponent()
 	Debug::warning("Given component was not removed because it could not be found on entity " + m_name + ".");
 	return;
 }
+
+void TW_CALL getEntityEnabledDebugEditor(void* value, void* clientData);
+void TW_CALL setEntityEnabledDebugEditor(const void* value, void* clientData);
 
 void TW_CALL setEntityParentNameDebugEditor(void* clientData);

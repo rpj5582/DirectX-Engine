@@ -36,7 +36,7 @@ void EntityDebugWindow::addEntity(Entity* entity)
 	addButton(entityName + "AddComponentButton", "Add Component", entityName, &addComponentDebugEditor, entity);
 	addSeparator(entityName + "AddComponentSeparator", entityName);
 
-	TwAddVarRW(m_window, (entityName + "Enabled").c_str(), TW_TYPE_BOOLCPP, &entity->enabled, " label='Enabled' ");
+	TwAddVarCB(m_window, (entityName + "Enabled").c_str(), TW_TYPE_BOOLCPP, &setEntityEnabledDebugEditor, &getEntityEnabledDebugEditor, entity, " label='Enabled' ");
 
 	std::string description = " " + m_windowID + "/" + entityName + "Enabled group='" + entityName + "' ";
 	TwDefine(description.c_str());

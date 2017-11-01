@@ -150,14 +150,14 @@ void Scene::update(float deltaTime, float totalTime)
 		// Update all entities in the scene
 		for (unsigned int i = 0; i < m_entities.size(); i++)
 		{
-			if (m_entities[i]->enabled)
+			if (m_entities[i]->getEnabled())
 				m_entities[i]->update(deltaTime, totalTime);
 		}
 
 		// LateUpdate for all entities in the scene
 		for (unsigned int i = 0; i < m_entities.size(); i++)
 		{
-			if (m_entities[i]->enabled)
+			if (m_entities[i]->getEnabled())
 				m_entities[i]->lateUpdate(deltaTime, totalTime);
 		}
 	}
@@ -233,7 +233,7 @@ bool Scene::loadFromJSON(std::string filename)
 		rapidjson::Value::MemberIterator entityEnabled = entity.FindMember("enabled");
 		if (entityEnabled != entity.MemberEnd())
 		{
-			e->enabled = entityEnabled->value.GetBool();
+			e->setEnabled(entityEnabled->value.GetBool());
 		}
 
 		for (rapidjson::SizeType j = 0; j < components.Size(); j++)
@@ -271,6 +271,12 @@ bool Scene::loadFromJSON(std::string filename)
 	
 	Debug::message("Loaded scene from " + filename);
 	onLoad();
+
+	for (unsigned int i = 0; i < m_entities.size(); i++)
+	{
+		m_entities[i]->onSceneLoaded();
+	}
+
 	return true;
 }
 
@@ -388,7 +394,7 @@ void Scene::renderGeometry()
 	unsigned int lightCount = 0;
 	for (unsigned int i = 0; i < m_entities.size(); i++)
 	{
-		if (!m_entities[i]->enabled) continue;
+		if (!m_entities[i]->getEnabled()) continue;
 
 		LightComponent* lightComponent = nullptr;
 		std::vector<Component*>& components = m_entities[i]->getAllComponents();
@@ -440,7 +446,7 @@ void Scene::renderGUI()
 
 	for (unsigned int i = 0; i < m_entities.size(); i++)
 	{
-		if (!m_entities[i]->enabled) continue;
+		if (!m_entities[i]->getEnabled()) continue;
 
 		GUIComponent* guiComponent = nullptr;
 		std::vector<Component*>& components = m_entities[i]->getAllComponents();

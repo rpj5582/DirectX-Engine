@@ -7,7 +7,7 @@ Entity::Entity(Scene& scene, std::string name) : m_scene(scene)
 {
 	m_name = name;
 	m_components = std::vector<Component*>();
-	enabled = true;
+	m_enabled = true;
 
 	m_parent = nullptr;
 	m_children = std::vector<Entity*>();
@@ -54,7 +54,7 @@ void Entity::saveToJSON(rapidjson::Writer<rapidjson::StringBuffer>& writer) cons
 	writer.String(m_name.c_str());
 
 	writer.Key("enabled");
-	writer.Bool(enabled);
+	writer.Bool(m_enabled);
 
 	writer.Key("components");
 	writer.StartArray();
@@ -80,6 +80,14 @@ void Entity::saveToJSON(rapidjson::Writer<rapidjson::StringBuffer>& writer) cons
 	writer.EndObject();
 
 	
+}
+
+void Entity::onSceneLoaded()
+{
+	for (unsigned int i = 0; i < m_components.size(); i++)
+	{
+		m_components[i]->onSceneLoaded();
+	}
 }
 
 Scene& Entity::getScene() const
@@ -120,6 +128,34 @@ void Entity::removeComponent(Component* component)
 			return;
 		}
 	}
+}
+
+bool Entity::getEnabled() const
+{
+	if (!m_enabled) return false;
+
+	const Entity* current = this;
+	while (true)
+	{
+		if (!current->m_parent)
+		{
+			return true;
+		}
+		else
+		{
+			if (current->m_parent->m_enabled)
+				current = current->m_parent;
+			else
+				return false;
+		}
+	}
+
+	return false;
+}
+
+void Entity::setEnabled(bool enabled)
+{
+	m_enabled = enabled;
 }
 
 Entity* Entity::getParent() const
@@ -253,4 +289,16 @@ void TW_CALL setEntityParentNameDebugEditor(void* clientData)
 {
 	Entity* entity = static_cast<Entity*>(clientData);
 	entity->setParent(entity->getScene().getEntityByName(entity->d_parentNameInputField));
+}
+
+void TW_CALL getEntityEnabledDebugEditor(void* value, void* clientData)
+{
+	Entity* entity = static_cast<Entity*>(clientData);
+	*static_cast<bool*>(value) = entity->getEnabled();
+}
+
+void TW_CALL setEntityEnabledDebugEditor(const void* value, void* clientData)
+{
+	Entity* entity = static_cast<Entity*>(clientData);
+	entity->setEnabled(*static_cast<const bool*>(value));
 }

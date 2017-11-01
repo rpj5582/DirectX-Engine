@@ -40,6 +40,10 @@ void Component::saveToJSON(rapidjson::Writer<rapidjson::StringBuffer>& writer)
 	writer.Bool(enabled);
 }
 
+void Component::onSceneLoaded()
+{
+}
+
 Entity& Component::getEntity() const
 {
 	return entity;
