@@ -10,7 +10,7 @@ public:
 	EntityDebugWindow(std::string windowID, std::string windowLabel);
 	~EntityDebugWindow();
 
-	void setupControls(Scene* scene) override;
+	void setupControls() override;
 
 	void addEntity(Entity* entity);
 	void removeEntity(Entity* entity);

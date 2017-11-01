@@ -13,17 +13,17 @@
 class Scene
 {
 public:
-	Scene(ID3D11Device* device, ID3D11DeviceContext* context);
+	Scene(ID3D11Device* device, ID3D11DeviceContext* context, std::string name, std::string filepath, unsigned int windowWidth, unsigned int windowHeight, float nearZ, float farZ);
 	virtual ~Scene();
 
 	virtual bool init();
 	virtual void update(float deltaTime, float totalTime);
 	void render();
 
-	virtual void onLoad() = 0;
+	std::string getName() const;
 
-	bool loadFromJSON(std::string filename);
-	void saveToJSON(std::string filename);
+	bool loadFromJSON();
+	void saveToJSON();
 
 	Entity* createEntity(std::string name);
 	void deleteEntity(Entity* entity);
@@ -31,7 +31,7 @@ public:
 	void clear();
 
 	DirectX::XMMATRIX getProjectionMatrix() const;
-	void updateProjectionMatrix(int width, int height, float nearZ, float farZ);
+	void updateProjectionMatrix(unsigned int windowWidth, unsigned int windowHeight, float nearZ, float farZ);
 
 	float getNearZ() const;
 	float getFarZ() const;
@@ -43,7 +43,6 @@ public:
 
 	CameraComponent* getMainCamera() const;
 
-	std::string d_sceneNameField;
 	std::string d_entityNameField;
 
 	std::string d_textureNameField;
@@ -65,12 +64,17 @@ public:
 protected:
 	void setMainCamera(CameraComponent* camera);
 
+	virtual void onLoad() = 0;
+
 private:
 	void renderGeometry();
 	void renderGUI();
 
 	ID3D11Device* m_device;
 	ID3D11DeviceContext* m_context;
+
+	std::string m_name;
+	std::string m_filepath;
 
 	Renderer* m_renderer;
 	GUIRenderer* m_guiRenderer;
@@ -80,6 +84,8 @@ private:
 	ID3D11DepthStencilState* m_depthStencilStateRead;
 
 	DirectX::XMFLOAT4X4 m_projectionMatrix;
+	unsigned int m_windowWidth;
+	unsigned int m_windowHeight;
 	float m_near;
 	float m_far;
 

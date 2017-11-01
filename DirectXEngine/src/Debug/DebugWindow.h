@@ -12,7 +12,7 @@ public:
 	DebugWindow(std::string windowID, std::string windowLabel);
 	virtual ~DebugWindow();
 
-	virtual void setupControls(Scene* scene) = 0;
+	virtual void setupControls() = 0;
 
 	void addButton(std::string buttonID, std::string buttonLabel, std::string group, TwButtonCallback callback, void* object, std::string additionalParams = "");
 	void addSeparator(std::string separatorID, std::string group, std::string additionalParams = "");

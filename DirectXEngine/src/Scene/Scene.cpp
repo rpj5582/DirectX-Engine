@@ -6,10 +6,13 @@
 
 using namespace DirectX;
 
-Scene::Scene(ID3D11Device* device, ID3D11DeviceContext* context)
+Scene::Scene(ID3D11Device* device, ID3D11DeviceContext* context, std::string name, std::string filepath, unsigned int windowWidth, unsigned int windowHeight, float nearZ, float farZ)
 {
 	m_device = device;
 	m_context = context;
+
+	m_name = name;
+	m_filepath = filepath;
 
 	m_renderer = nullptr;
 	m_guiRenderer = nullptr;
@@ -19,15 +22,16 @@ Scene::Scene(ID3D11Device* device, ID3D11DeviceContext* context)
 	m_depthStencilStateRead = nullptr;
 
 	XMStoreFloat4x4(&m_projectionMatrix, XMMatrixIdentity());
-	m_near = 0;
-	m_far = 0;
+	m_windowWidth = windowWidth;
+	m_windowHeight = windowHeight;
+	m_near = nearZ;
+	m_far = farZ;
 
 	m_entities = std::vector<Entity*>();
 
 	m_debugCamera = nullptr;
 	m_mainCamera = nullptr;
 
-	d_sceneNameField = "";
 	d_entityNameField = "";
 
 	d_textureNameField = "";
@@ -67,10 +71,6 @@ Scene::~Scene()
 
 bool Scene::init()
 {
-	Debug::sceneDebugWindow->setupControls(this);
-	Debug::entityDebugWindow->setupControls(this);
-	Debug::assetDebugWindow->setupControls(this);
-
 	m_debugCamera = new Entity(*this, "DebugCamera");
 	Transform* debugCameraTransform = m_debugCamera->addComponent<Transform>();
 	debugCameraTransform->move(XMFLOAT3(0, 10, -10));
@@ -140,6 +140,8 @@ bool Scene::init()
 	m_context->OMSetBlendState(m_blendState, nullptr, 0xffffffff);
 	m_context->OMSetDepthStencilState(m_depthStencilStateDefault, 0);
 
+	updateProjectionMatrix(m_windowWidth, m_windowHeight, m_near, m_far);
+
 	return true;
 }
 
@@ -177,17 +179,22 @@ void Scene::render()
 	renderGUI();
 }
 
-bool Scene::loadFromJSON(std::string filename)
+std::string Scene::getName() const
+{
+	return m_name;
+}
+
+bool Scene::loadFromJSON()
 {
 	// Load the json file
-	std::ifstream ifs(filename, std::ios::in | std::ios::binary);
+	std::ifstream ifs(m_filepath, std::ios::in | std::ios::binary);
 
 	if (!ifs.is_open())
 	{
 		char errorMessage[512];
 		strerror_s(errorMessage, 512, errno);
 		std::string errString = std::string(errorMessage);
-		Debug::warning("Failed to load scene at " + filename + ": " + errString);
+		Debug::warning("Failed to load scene at " + m_filepath + ": " + errString);
 		return false;
 	}
 
@@ -206,7 +213,7 @@ bool Scene::loadFromJSON(std::string filename)
 	{
 		const char* errorMessage = rapidjson::GetParseError_En(result.Code());
 
-		Debug::error("Failed to load scene at " + filename + " because there was a parse error at character " +  std::to_string(result.Offset()) + ": " + std::string(errorMessage));
+		Debug::error("Failed to load scene at " + m_filepath + " because there was a parse error at character " +  std::to_string(result.Offset()) + ": " + std::string(errorMessage));
 		delete[] jsonStringBuffer;
 		return false;
 	}
@@ -215,11 +222,7 @@ bool Scene::loadFromJSON(std::string filename)
 
 	ifs.close();
 
-	Debug::entityDebugWindow->clear();
-	Debug::assetDebugWindow->clear();
 	clear();
-	Debug::entityDebugWindow->setupControls(this);
-	Debug::assetDebugWindow->setupControls(this);
 
 	// Load the scene's dependent assets.
 	rapidjson::Value& assets = dom["assets"];
@@ -275,7 +278,7 @@ bool Scene::loadFromJSON(std::string filename)
 		Debug::warning("Could not set main camera because entity with name " + std::string(mainCamera.GetString()) + " does not exist.");
 	}
 	
-	Debug::message("Loaded scene from " + filename);
+	Debug::message("Loaded scene from " + m_filepath);
 	onLoad();
 
 	for (unsigned int i = 0; i < m_entities.size(); i++)
@@ -286,7 +289,7 @@ bool Scene::loadFromJSON(std::string filename)
 	return true;
 }
 
-void Scene::saveToJSON(std::string filename)
+void Scene::saveToJSON()
 {
 	rapidjson::StringBuffer s;
 	rapidjson::Writer<rapidjson::StringBuffer> writer(s);
@@ -326,23 +329,23 @@ void Scene::saveToJSON(std::string filename)
 	writer.EndObject();
 
 	// Now stringify the DOM and save it to a file
-	std::ofstream ofs(filename, std::ios::out);
+	std::ofstream ofs(m_filepath, std::ios::out);
 
 	if (!ofs.is_open())
 	{
-		Debug::error("Failed to create file at " + filename);
+		Debug::error("Failed to create file at " + m_filepath);
 
 		char errorMessage[512];
 		strerror_s(errorMessage, 512, errno);
 		std::string errString = std::string(errorMessage);
-		Debug::error("Failed to create file at " + filename + ": " + errString);
+		Debug::error("Failed to create file at " + m_filepath + ": " + errString);
 		return;
 	}
 
 	ofs.write(s.GetString(), s.GetSize());
 	ofs.close();
 
-	Debug::message("Saved scene to " + filename);
+	Debug::message("Saved scene to " + m_filepath);
 }
 
 DirectX::XMMATRIX Scene::getProjectionMatrix() const
@@ -350,11 +353,14 @@ DirectX::XMMATRIX Scene::getProjectionMatrix() const
 	return XMLoadFloat4x4(&m_projectionMatrix);
 }
 
-void Scene::updateProjectionMatrix(int width, int height, float nearZ, float farZ)
+void Scene::updateProjectionMatrix(unsigned int windowWidth, unsigned int windowHeight, float nearZ, float farZ)
 {
+	m_windowWidth = windowWidth;
+	m_windowHeight = windowHeight;
 	m_near = nearZ;
 	m_far = farZ;
-	XMMATRIX perspective = XMMatrixPerspectiveFovLH(XM_PIDIV4, (float)width / height, m_near, m_far);
+
+	XMMATRIX perspective = XMMatrixPerspectiveFovLH(XM_PIDIV4, (float)m_windowWidth / m_windowHeight, m_near, m_far);
 	XMStoreFloat4x4(&m_projectionMatrix, perspective);
 }
 
@@ -554,6 +560,9 @@ void Scene::clear()
 	m_mainCamera = nullptr;
 	
 	AssetManager::unloadAllAssets();
+
+	Debug::entityDebugWindow->clear();
+	Debug::assetDebugWindow->clear();
 }
 
 Entity* Scene::getEntityByName(std::string name)

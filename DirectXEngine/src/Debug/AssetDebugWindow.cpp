@@ -1,6 +1,6 @@
 #include "AssetDebugWindow.h"
 
-#include "../Scene/Scene.h"
+#include "../Scene/SceneManager.h"
 #include "../Asset/AssetManager.h"
 
 AssetDebugWindow::AssetDebugWindow(std::string windowID, std::string windowLabel) : DebugWindow(windowID, windowLabel)
@@ -12,50 +12,54 @@ AssetDebugWindow::~AssetDebugWindow()
 {
 }
 
-void AssetDebugWindow::setupControls(Scene* scene)
+void AssetDebugWindow::setupControls()
 {
 #if defined(DEBUG) || defined(_DEBUG)
-	TwAddVarRW(m_window, "TextureNameField", TW_TYPE_STDSTRING, &scene->d_textureNameField, " label='Texture Name' group='Textures' ");
-	TwAddVarRW(m_window, "TexturePathField", TW_TYPE_STDSTRING, &scene->d_texturePathField, " label='Texture Path' group='Textures' ");
-	addButton("AddTextureButton", "Load Texture", "Textures", &addTextureDebugEditor, scene);
-	addSeparator("TextureSeparator", "Textures");
-	TwDefine((" " + m_windowID + "/Textures opened=false ").c_str());
+	Scene* activeScene = SceneManager::getActiveScene();
+	if (activeScene)
+	{
+		addSeparator("TextureSeparator", "Textures");
+		TwAddVarRW(m_window, "TextureNameField", TW_TYPE_STDSTRING, &activeScene->d_textureNameField, " label='Texture Name' group='Textures' ");
+		TwAddVarRW(m_window, "TexturePathField", TW_TYPE_STDSTRING, &activeScene->d_texturePathField, " label='Texture Path' group='Textures' ");
+		addButton("AddTextureButton", "Load Texture", "Textures", &addTextureDebugEditor, activeScene);
+		TwDefine((" " + m_windowID + "/Textures opened=false ").c_str());
 
-	TwAddVarRW(m_window, "MaterialNameField", TW_TYPE_STDSTRING, &scene->d_materialNameField, " label='Material Name' group='Materials' ");
-	TwAddVarRW(m_window, "MaterialPathField", TW_TYPE_STDSTRING, &scene->d_materialPathField, " label='Material Path' group='Materials' ");
-	addButton("AddMaterialButton", "Load Material", "Materials", &addMaterialDebugEditor, scene);
-	addSeparator("MaterialSeparator", "Materials");
-	TwDefine((" " + m_windowID + "/Materials opened=false ").c_str());
+		addSeparator("MaterialSeparator", "Materials");
+		TwAddVarRW(m_window, "MaterialNameField", TW_TYPE_STDSTRING, &activeScene->d_materialNameField, " label='Material Name' group='Materials' ");
+		TwAddVarRW(m_window, "MaterialPathField", TW_TYPE_STDSTRING, &activeScene->d_materialPathField, " label='Material Path' group='Materials' ");
+		addButton("AddMaterialButton", "Load Material", "Materials", &addMaterialDebugEditor, activeScene);
+		TwDefine((" " + m_windowID + "/Materials opened=false ").c_str());
 
-	TwAddVarRW(m_window, "MeshNameField", TW_TYPE_STDSTRING, &scene->d_meshNameField, " label='Model Name' group='Models' ");
-	TwAddVarRW(m_window, "MeshPathField", TW_TYPE_STDSTRING, &scene->d_meshPathField, " label='Model Path' group='Models' ");
-	addButton("AddMeshButton", "Load Model", "Models", &addMeshDebugEditor, scene);
-	addSeparator("MeshSeparator", "Models");
-	TwDefine((" " + m_windowID + "/Models opened=false ").c_str());
+		addSeparator("MeshSeparator", "Models");
+		TwAddVarRW(m_window, "MeshNameField", TW_TYPE_STDSTRING, &activeScene->d_meshNameField, " label='Model Name' group='Models' ");
+		TwAddVarRW(m_window, "MeshPathField", TW_TYPE_STDSTRING, &activeScene->d_meshPathField, " label='Model Path' group='Models' ");
+		addButton("AddMeshButton", "Load Model", "Models", &addMeshDebugEditor, activeScene);
+		TwDefine((" " + m_windowID + "/Models opened=false ").c_str());
 
-	TwAddVarRW(m_window, "FontNameField", TW_TYPE_STDSTRING, &scene->d_fontNameField, " label='Font Name' group='Fonts' ");
-	TwAddVarRW(m_window, "FontPathField", TW_TYPE_STDSTRING, &scene->d_fontPathField, " label='Font Path' group='Fonts' ");
-	addButton("AddFontButton", "Load Font", "Fonts", &addFontDebugEditor, scene);
-	addSeparator("FontSeparator", "Fonts");
-	TwDefine((" " + m_windowID + "/Fonts opened=false ").c_str());
+		addSeparator("FontSeparator", "Fonts");
+		TwAddVarRW(m_window, "FontNameField", TW_TYPE_STDSTRING, &activeScene->d_fontNameField, " label='Font Name' group='Fonts' ");
+		TwAddVarRW(m_window, "FontPathField", TW_TYPE_STDSTRING, &activeScene->d_fontPathField, " label='Font Path' group='Fonts' ");
+		addButton("AddFontButton", "Load Font", "Fonts", &addFontDebugEditor, activeScene);
+		TwDefine((" " + m_windowID + "/Fonts opened=false ").c_str());
 
-	TwAddVarRW(m_window, "SamplerNameField", TW_TYPE_STDSTRING, &scene->d_samplerNameField, " label='Sampler Name' group='Samplers' ");
-	TwAddVarRW(m_window, "SamplerPathField", TW_TYPE_STDSTRING, &scene->d_samplerPathField, " label='Sampler Path' group='Samplers' ");
-	addButton("AddSamplerButton", "Load Sampler", "Samplers", &addSamplerDebugEditor, scene);
-	addSeparator("SamplerSeparator", "Samplers");
-	TwDefine((" " + m_windowID + "/Samplers opened=false ").c_str());
+		addSeparator("SamplerSeparator", "Samplers");
+		TwAddVarRW(m_window, "SamplerNameField", TW_TYPE_STDSTRING, &activeScene->d_samplerNameField, " label='Sampler Name' group='Samplers' ");
+		TwAddVarRW(m_window, "SamplerPathField", TW_TYPE_STDSTRING, &activeScene->d_samplerPathField, " label='Sampler Path' group='Samplers' ");
+		addButton("AddSamplerButton", "Load Sampler", "Samplers", &addSamplerDebugEditor, activeScene);
+		TwDefine((" " + m_windowID + "/Samplers opened=false ").c_str());
 
-	TwAddVarRW(m_window, "VertexShaderNameField", TW_TYPE_STDSTRING, &scene->d_vertexShaderNameField, " label='Vertex Shader Name' group='VertexShaders' ");
-	TwAddVarRW(m_window, "VertexShaderPathField", TW_TYPE_STDSTRING, &scene->d_vertexShaderPathField, " label='Vertex Shader Path' group='VertexShaders' ");
-	addButton("AddVertexShaderButton", "Load Vertex Shader", "VertexShaders", &addVertexShaderDebugEditor, scene);
-	addSeparator("VertexShaderSeparator", "VertexShaders");
-	TwDefine((" " + m_windowID + "/VertexShaders opened=false ").c_str());
+		addSeparator("VertexShaderSeparator", "VertexShaders");
+		TwAddVarRW(m_window, "VertexShaderNameField", TW_TYPE_STDSTRING, &activeScene->d_vertexShaderNameField, " label='Vertex Shader Name' group='VertexShaders' ");
+		TwAddVarRW(m_window, "VertexShaderPathField", TW_TYPE_STDSTRING, &activeScene->d_vertexShaderPathField, " label='Vertex Shader Path' group='VertexShaders' ");
+		addButton("AddVertexShaderButton", "Load Vertex Shader", "VertexShaders", &addVertexShaderDebugEditor, activeScene);
+		TwDefine((" " + m_windowID + "/VertexShaders opened=false ").c_str());
 
-	TwAddVarRW(m_window, "PixelShaderNameField", TW_TYPE_STDSTRING, &scene->d_pixelShaderNameField, " label='Pixel Shader Name' group='PixelShaders' ");
-	TwAddVarRW(m_window, "PixelShaderPathField", TW_TYPE_STDSTRING, &scene->d_pixelShaderPathField, " label='Pixel Shader Path' group='PixelShaders' ");
-	addButton("AddPixelShaderButton", "Load Pixel Shader", "PixelShaders", &addPixelShaderDebugEditor, scene);
-	addSeparator("PixelShaderSeparator", "PixelShaders");
-	TwDefine((" " + m_windowID + "/PixelShaders opened=false ").c_str());
+		addSeparator("PixelShaderSeparator", "PixelShaders");
+		TwAddVarRW(m_window, "PixelShaderNameField", TW_TYPE_STDSTRING, &activeScene->d_pixelShaderNameField, " label='Pixel Shader Name' group='PixelShaders' ");
+		TwAddVarRW(m_window, "PixelShaderPathField", TW_TYPE_STDSTRING, &activeScene->d_pixelShaderPathField, " label='Pixel Shader Path' group='PixelShaders' ");
+		addButton("AddPixelShaderButton", "Load Pixel Shader", "PixelShaders", &addPixelShaderDebugEditor, activeScene);
+		TwDefine((" " + m_windowID + "/PixelShaders opened=false ").c_str());
+	}
 #endif
 }
 

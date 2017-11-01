@@ -1,5 +1,8 @@
 #include "Game.h"
 
+#include "Scene/Scene1.h"
+#include "Scene/Scene2.h"
+
 #define NEAR_Z 0.1f
 #define FAR_Z 100.0f
 
@@ -23,7 +26,7 @@ Game::Game(HINSTANCE hInstance)
 		true)			   // Show extra stats (fps) in title bar?
 {
 	m_assetManager = nullptr;
-	m_scene = nullptr;
+	m_sceneManager = nullptr;
 	m_input = nullptr;
 
 	Debug::createConsoleWindow();
@@ -39,7 +42,7 @@ Game::~Game()
 	Debug::cleanDebugWindows();
 
 	delete m_assetManager;
-	delete m_scene;
+	delete m_sceneManager;
 	delete m_input;
 }
 
@@ -64,10 +67,19 @@ bool Game::Init()
 
 	m_input = new Input(hWnd);
 
-	m_scene = new Scene1(device, context);
-	if (!m_scene->init()) return false;
+	m_sceneManager = new SceneManager();
+	m_sceneManager->addScene(new Scene1(device, context, "testscene", "Assets/Scenes/testscene.json", width, height, NEAR_Z, FAR_Z));
+	m_sceneManager->addScene(new Scene2(device, context, "testscene2", "Assets/Scenes/testscene2.json", width, height, NEAR_Z, FAR_Z));
 
-	m_scene->updateProjectionMatrix(width, height, NEAR_Z, FAR_Z);
+	if (m_sceneManager->getSceneCount() == 0)
+	{
+		Debug::error("No scenes added to the scene list!");
+		return false;
+	}
+	else
+	{
+		m_sceneManager->loadScene(0U);
+	}
 
 	return true;
 }
@@ -82,7 +94,11 @@ void Game::OnResize()
 	// Handle base-level DX resize stuff
 	DXCore::OnResize();
 
-	m_scene->updateProjectionMatrix(width, height, NEAR_Z, FAR_Z);
+	Scene* activeScene = m_sceneManager->getActiveScene();
+	if (activeScene)
+	{
+		activeScene->updateProjectionMatrix(width, height, NEAR_Z, FAR_Z);
+	}
 }
 
 // --------------------------------------------------------
@@ -99,7 +115,11 @@ void Game::Update(float deltaTime, float totalTime)
 	if (Input::isKeyPressed(Keyboard::F5))
 		Debug::inPlayMode = !Debug::inPlayMode;
 
-	m_scene->update(deltaTime, totalTime);
+	Scene* activeScene = m_sceneManager->getActiveScene();
+	if (activeScene)
+	{
+		activeScene->update(deltaTime, totalTime);
+	}
 }
 
 // --------------------------------------------------------
@@ -113,7 +133,11 @@ void Game::Draw(float deltaTime, float totalTime)
 	context->ClearRenderTargetView(backBufferRTV, backgroundColor);
 	context->ClearDepthStencilView(depthStencilView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 
-	m_scene->render();
+	Scene* activeScene = m_sceneManager->getActiveScene();
+	if (activeScene)
+	{
+		activeScene->render();
+	}
 
 	if(!Debug::inPlayMode)
 		TwDraw();

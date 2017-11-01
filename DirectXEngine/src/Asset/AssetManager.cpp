@@ -6,10 +6,8 @@ AssetManager* AssetManager::m_instance = nullptr;
 
 AssetManager::AssetManager(ID3D11Device* device, ID3D11DeviceContext* context)
 {
-	if (m_instance == nullptr)
-		m_instance = this;
-	else
-		return;
+	if (!m_instance) m_instance = this;
+	else return;
 
 	m_device = device;
 	m_context = context;

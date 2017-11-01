@@ -1,7 +1,7 @@
 #include "EntityDebugWindow.h"
 
 #include "Debug.h"
-#include "../Scene/Scene.h"
+#include "../Scene/SceneManager.h"
 
 EntityDebugWindow::EntityDebugWindow(std::string windowID, std::string windowLabel) : DebugWindow(windowID, windowLabel)
 {
@@ -12,12 +12,16 @@ EntityDebugWindow::~EntityDebugWindow()
 {
 }
 
-void EntityDebugWindow::setupControls(Scene* scene)
+void EntityDebugWindow::setupControls()
 {
 #if defined(DEBUG) || defined(_DEBUG)
-	TwAddVarRW(m_window, "AddEntityInputField", TW_TYPE_STDSTRING, &scene->d_entityNameField, " label='Entity Name' ");
-	addButton("AddEntityButton", "Add Entity", "''", &addEntityDebugEditor, scene);
-	addSeparator("AddEntitySeparator", "");
+	Scene* activeScene = SceneManager::getActiveScene();
+	if (activeScene)
+	{
+		addSeparator("AddEntitySeparator", "");
+		TwAddVarRW(m_window, "AddEntityInputField", TW_TYPE_STDSTRING, &activeScene->d_entityNameField, " label='Entity Name' ");
+		addButton("AddEntityButton", "Add Entity", "''", &addEntityDebugEditor, activeScene);
+	}
 #endif
 }
 
@@ -41,12 +45,10 @@ void EntityDebugWindow::addEntity(Entity* entity)
 	addButton(entityName + "AddComponentButton", "Add Component", entityName, &addComponentDebugEditor, entity);
 	addSeparator(entityName + "AddComponentSeparator", entityName);
 
-	TwAddVarCB(m_window, (entityName + "Enabled").c_str(), TW_TYPE_BOOLCPP, &setEntityEnabledDebugEditor, &getEntityEnabledDebugEditor, entity, " label='Enabled' ");
+	TwAddVarCB(m_window, (entityName + "Enabled").c_str(), TW_TYPE_BOOLCPP, &setEntityEnabledDebugEditor, &getEntityEnabledDebugEditor, entity, (" label='Enabled' group='" + entityName + "' ").c_str());
+	addSeparator(entityName + "EnabledSeparator", entityName);
 
-	std::string description = " " + m_windowID + "/" + entityName + "Enabled group='" + entityName + "' ";
-	TwDefine(description.c_str());
-
-	description = " " + m_windowID + "/" + entityName + " label='" + entity->getName() + "' opened=false group='" + parentName + "' ";
+	std::string description = " " + m_windowID + "/" + entityName + " label='" + entity->getName() + "' opened=false group='" + parentName + "' ";
 	TwDefine(description.c_str());
 
 	std::vector<Component*> components = entity->getAllComponents();

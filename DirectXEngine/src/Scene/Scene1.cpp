@@ -2,7 +2,8 @@
 
 using namespace DirectX;
 
-Scene1::Scene1(ID3D11Device* device, ID3D11DeviceContext* context) : Scene(device, context)
+Scene1::Scene1(ID3D11Device* device, ID3D11DeviceContext* context, std::string name, std::string filepath, unsigned int windowWidth, unsigned int windowHeight, float nearZ, float farZ)
+	: Scene(device, context, name, filepath, windowWidth, windowHeight, nearZ, farZ)
 {
 }
 

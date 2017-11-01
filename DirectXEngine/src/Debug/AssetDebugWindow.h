@@ -15,7 +15,7 @@ public:
 	AssetDebugWindow(std::string windowID, std::string windowLabel);
 	~AssetDebugWindow();
 
-	void setupControls(Scene* scene) override;
+	void setupControls() override;
 
 	void addAsset(Texture* texture);
 	void addAsset(Material* material);

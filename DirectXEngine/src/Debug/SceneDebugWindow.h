@@ -7,7 +7,9 @@ public:
 	SceneDebugWindow(std::string windowID, std::string windowLabel);
 	~SceneDebugWindow();
 
-	void setupControls(Scene* scene) override;
+	void setupControls() override;
+
+	std::string d_activeSceneNameDisplay;
 };
 
 void TW_CALL newSceneDebugEditor(void* clientData);

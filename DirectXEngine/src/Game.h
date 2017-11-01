@@ -2,7 +2,8 @@
 #include "DXCore.h"
 
 #include "Component/ComponentRegistry.h"
-#include "Scene/Scene1.h"
+
+#include "Scene/SceneManager.h"
 
 #include "Input.h"
 
@@ -24,7 +25,7 @@ public:
 
 private:
 	AssetManager* m_assetManager;
-	Scene* m_scene;
+	SceneManager* m_sceneManager;
 	Input* m_input;
 };
 

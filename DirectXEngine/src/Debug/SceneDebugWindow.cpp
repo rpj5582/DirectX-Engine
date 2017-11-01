@@ -1,9 +1,11 @@
 #include "SceneDebugWindow.h"
 
-#include "../Scene/Scene.h"
+#include "../Scene/SceneManager.h"
 
 SceneDebugWindow::SceneDebugWindow(std::string windowID, std::string windowLabel) : DebugWindow(windowID, windowLabel)
 {
+	d_activeSceneNameDisplay = "";
+
 	TwDefine((windowID + " position='20 25' size='250 150' ").c_str());
 }
 
@@ -11,49 +13,50 @@ SceneDebugWindow::~SceneDebugWindow()
 {
 }
 
-void SceneDebugWindow::setupControls(Scene* scene)
+void SceneDebugWindow::setupControls()
 {
-	addButton("NewSceneButton", "New Scene", "''", &newSceneDebugEditor, scene);
-	addSeparator("NewSceneSeparator", "''");
+	Scene* activeScene = SceneManager::getActiveScene();
+	if (activeScene)
+	{
+		d_activeSceneNameDisplay = activeScene->getName();
+		TwAddVarRO(m_window, "SceneName", TW_TYPE_STDSTRING, &d_activeSceneNameDisplay, " label='Currently Editing:' ");
+	}
+	else
+	{
+		d_activeSceneNameDisplay = "No Active Scene!";
+		TwAddVarRO(m_window, "SceneName", TW_TYPE_STDSTRING, &d_activeSceneNameDisplay, " label='Currently Editing:' ");
+	}
 
-	TwAddVarRW(m_window, "SceneInputField", TW_TYPE_STDSTRING, &scene->d_sceneNameField, " label='Scene Name' ");
-	addButton("LoadSceneButton", "Load Scene", "''", &loadSceneDebugEditor, scene);
-	addButton("SaveSceneButton", "Save Scene", "''", &saveSceneDebugEditor, scene);
-	addSeparator("SceneInputSeparator", "''");
+	addSeparator("SceneNameSeparator", "''");
+
+	TwAddVarRW(m_window, "SceneInputField", TW_TYPE_STDSTRING, &SceneManager::d_sceneNameField, " label='Scene Name' ");
+	addButton("LoadSceneButton", "Load Scene", "''", &loadSceneDebugEditor, nullptr);
+	addSeparator("LoadSceneSeparator", "''");
+	addButton("SaveSceneButton", "Save Scene", "''", &saveSceneDebugEditor, nullptr);
+	addSeparator("SaveSceneSeparator", "''");
+	addButton("ClearSceneButton", "Clear Scene", "''", &newSceneDebugEditor, nullptr);
+	addSeparator("ClearSceneSeparator", "''");
 
 	TwAddVarRW(m_window, "PlayButton", TW_TYPE_BOOLCPP, &Debug::inPlayMode, " label='Play' ");
 }
 
 void TW_CALL newSceneDebugEditor(void* clientData)
 {
-	Scene* scene = static_cast<Scene*>(clientData);
-	TwRemoveAllVars(Debug::entityDebugWindow->getWindow());
-	TwRemoveAllVars(Debug::assetDebugWindow->getWindow());
-	scene->clear();
-	Debug::entityDebugWindow->setupControls(scene);
-	Debug::assetDebugWindow->setupControls(scene);
+	SceneManager::clearActiveScene();
 }
 
 void TW_CALL loadSceneDebugEditor(void* clientData)
 {
-	Scene* scene = static_cast<Scene*>(clientData);
-	if (scene->d_sceneNameField.empty())
+	if (SceneManager::d_sceneNameField.empty())
 	{
 		Debug::warning("No scene name given. Enter a scene to load.");
 		return;
 	}
 
-	scene->loadFromJSON("Assets/Scenes/" + scene->d_sceneNameField + ".json");
+	SceneManager::loadScene(SceneManager::d_sceneNameField);
 }
 
 void TW_CALL saveSceneDebugEditor(void* clientData)
 {
-	Scene* scene = static_cast<Scene*>(clientData);
-	if (scene->d_sceneNameField.empty())
-	{
-		Debug::warning("Name the scene before saving.");
-		return;
-	}
-
-	scene->saveToJSON("Assets/Scenes/" + scene->d_sceneNameField + ".json");
+	SceneManager::saveActiveScene();
 }
