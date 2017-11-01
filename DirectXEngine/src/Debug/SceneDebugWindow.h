@@ -11,7 +11,3 @@ public:
 
 	std::string d_activeSceneNameDisplay;
 };
-
-void TW_CALL newSceneDebugEditor(void* clientData);
-void TW_CALL loadSceneDebugEditor(void* clientData);
-void TW_CALL saveSceneDebugEditor(void* clientData);

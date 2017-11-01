@@ -1,8 +1,6 @@
 #pragma once
 #include "Scene.h"
 
-#include "../Component/FreeCamControls.h"
-
 class Scene1 : public Scene
 {
 public:

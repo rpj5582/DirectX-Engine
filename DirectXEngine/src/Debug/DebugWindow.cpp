@@ -2,11 +2,6 @@
 
 #include "../Util.h"
 
-void TW_CALL copyStringToClient(std::string& destination, const std::string& source)
-{
-	destination = source;
-}
-
 DebugWindow::DebugWindow(std::string windowID, std::string windowLabel)
 {
 #if defined(DEBUG) || defined(_DEBUG)

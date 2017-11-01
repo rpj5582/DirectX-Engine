@@ -149,9 +149,3 @@ inline void Entity::removeComponent()
 	Debug::warning("Given component was not removed because it could not be found on entity " + m_name + ".");
 	return;
 }
-
-void TW_CALL getEntityEnabledDebugEditor(void* value, void* clientData);
-void TW_CALL setEntityEnabledDebugEditor(const void* value, void* clientData);
-
-void TW_CALL addChildEntityDebugEditor(void* clientData);
-void TW_CALL removeChildEntityDebugEditor(void* clientData);

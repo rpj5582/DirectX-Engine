@@ -1,5 +1,7 @@
 #include "Scene1.h"
 
+#include "../Component/FreeCamControls.h"
+
 using namespace DirectX;
 
 Scene1::Scene1(ID3D11Device* device, ID3D11DeviceContext* context, std::string name, std::string filepath, unsigned int windowWidth, unsigned int windowHeight, float nearZ, float farZ)

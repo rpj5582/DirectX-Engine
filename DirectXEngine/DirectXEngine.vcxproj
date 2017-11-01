@@ -131,6 +131,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="src\Debug\DebugGlobals.cpp" />
     <ClCompile Include="src\Scene\SceneManager.cpp" />
     <ClCompile Include="src\Scene\Scene2.cpp" />
     <ClCompile Include="src\Input.cpp" />
@@ -172,6 +173,7 @@
     <ClCompile Include="src\Asset\VertexShader.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\Debug\DebugGlobals.h" />
     <ClInclude Include="src\Scene\SceneManager.h" />
     <ClInclude Include="src\Scene\Scene2.h" />
     <ClInclude Include="src\Input.h" />

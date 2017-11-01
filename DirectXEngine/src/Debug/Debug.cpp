@@ -1,9 +1,5 @@
 #include "Debug.h"
 
-#include "../Util.h"
-#include "../Entity.h"
-#include "../Scene/Scene.h"
-
 SceneDebugWindow* Debug::sceneDebugWindow = nullptr;
 EntityDebugWindow* Debug::entityDebugWindow = nullptr;
 AssetDebugWindow* Debug::assetDebugWindow = nullptr;

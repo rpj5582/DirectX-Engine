@@ -39,24 +39,3 @@ void SceneDebugWindow::setupControls()
 
 	TwAddVarRW(m_window, "PlayButton", TW_TYPE_BOOLCPP, &Debug::inPlayMode, " label='Play' ");
 }
-
-void TW_CALL newSceneDebugEditor(void* clientData)
-{
-	SceneManager::clearActiveScene();
-}
-
-void TW_CALL loadSceneDebugEditor(void* clientData)
-{
-	if (SceneManager::d_sceneNameField.empty())
-	{
-		Debug::warning("No scene name given. Enter a scene to load.");
-		return;
-	}
-
-	SceneManager::loadScene(SceneManager::d_sceneNameField);
-}
-
-void TW_CALL saveSceneDebugEditor(void* clientData)
-{
-	SceneManager::saveActiveScene();
-}

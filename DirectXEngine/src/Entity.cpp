@@ -1,7 +1,6 @@
 #include "Entity.h"
 
 #include "Component/ComponentRegistry.h"
-#include "Scene/Scene.h"
 
 Entity::Entity(Scene& scene, std::string name) : m_scene(scene)
 {
@@ -285,46 +284,15 @@ void Entity::setParentNonRecursive(Entity* parent)
 	m_parent = parent;
 	Debug::entityDebugWindow->addEntity(this);
 
-	Transform* parentTransform = m_parent->getComponent<Transform>();
-	if (parentTransform)
+	Transform* transform = getComponent<Transform>();
+	if (transform)
 	{
-		parentTransform->setDirty();
+		transform->setDirty();
 	}
+	
 }
 
 void Entity::addChildNonRecursive(Entity* child)
 {
 	m_children.push_back(child);
-}
-
-void TW_CALL getEntityEnabledDebugEditor(void* value, void* clientData)
-{
-	Entity* entity = static_cast<Entity*>(clientData);
-	*static_cast<bool*>(value) = entity->getEnabled();
-}
-
-void TW_CALL setEntityEnabledDebugEditor(const void* value, void* clientData)
-{
-	Entity* entity = static_cast<Entity*>(clientData);
-	entity->setEnabled(*static_cast<const bool*>(value));
-}
-
-void TW_CALL addChildEntityDebugEditor(void* clientData)
-{
-	Entity* entity = static_cast<Entity*>(clientData);
-	Entity* child = entity->getScene().getEntityByName(entity->d_childNameInputField);
-	if (child)
-	{
-		entity->addChild(child);
-	}
-}
-
-void TW_CALL removeChildEntityDebugEditor(void* clientData)
-{
-	Entity* entity = static_cast<Entity*>(clientData);
-	Entity* child = entity->getScene().getEntityByName(entity->d_childNameInputField);
-	if (child)
-	{
-		entity->removeChild(child);
-	}
 }

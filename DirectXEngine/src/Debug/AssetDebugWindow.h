@@ -33,19 +33,3 @@ public:
 	void removeAsset(VertexShader* vertexShader);
 	void removeAsset(PixelShader* pixelShader);
 };
-
-void TW_CALL addTextureDebugEditor(void* clientData);
-void TW_CALL addMaterialDebugEditor(void* clientData);
-void TW_CALL addMeshDebugEditor(void* clientData);
-void TW_CALL addFontDebugEditor(void* clientData);
-void TW_CALL addSamplerDebugEditor(void* clientData);
-void TW_CALL addVertexShaderDebugEditor(void* clientData);
-void TW_CALL addPixelShaderDebugEditor(void* clientData);
-
-void TW_CALL removeTextureDebugEditor(void* clientData);
-void TW_CALL removeMaterialDebugEditor(void* clientData);
-void TW_CALL removeMeshDebugEditor(void* clientData);
-void TW_CALL removeFontDebugEditor(void* clientData);
-void TW_CALL removeSamplerDebugEditor(void* clientData);
-void TW_CALL removeVertexShaderDebugEditor(void* clientData);
-void TW_CALL removePixelShaderDebugEditor(void* clientData);

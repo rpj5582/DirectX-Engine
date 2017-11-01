@@ -13,6 +13,8 @@
 class Scene
 {
 public:
+	friend class SceneManager;
+
 	Scene(ID3D11Device* device, ID3D11DeviceContext* context, std::string name, std::string filepath, unsigned int windowWidth, unsigned int windowHeight, float nearZ, float farZ);
 	virtual ~Scene();
 
@@ -21,9 +23,6 @@ public:
 	void render();
 
 	std::string getName() const;
-
-	bool loadFromJSON();
-	void saveToJSON();
 
 	Entity* createEntity(std::string name);
 	void deleteEntity(Entity* entity);
@@ -67,6 +66,9 @@ protected:
 	virtual void onLoad() = 0;
 
 private:
+	bool loadFromJSON();
+	void saveToJSON();
+
 	void renderGeometry();
 	void renderGUI();
 

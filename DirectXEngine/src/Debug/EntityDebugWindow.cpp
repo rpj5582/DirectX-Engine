@@ -1,6 +1,5 @@
 #include "EntityDebugWindow.h"
 
-#include "Debug.h"
 #include "../Scene/SceneManager.h"
 
 EntityDebugWindow::EntityDebugWindow(std::string windowID, std::string windowLabel) : DebugWindow(windowID, windowLabel)
@@ -156,32 +155,4 @@ std::string EntityDebugWindow::getComponentDebugName(const Component* component,
 	if(out_entityDebugName)
 		*out_entityDebugName = entityName;
 	return entityName + spacelessComponentName;
-}
-
-void TW_CALL addEntityDebugEditor(void* clientData)
-{
-	Scene* scene = static_cast<Scene*>(clientData);
-	if (!scene->d_entityNameField.empty())
-		scene->createEntity(scene->d_entityNameField);
-	else
-		Debug::warning("Could not create entity because no name was given. Please entity a unique name for this entity.");
-}
-
-void TW_CALL removeEntityDebugEditor(void* clientData)
-{
-	Entity* entity = static_cast<Entity*>(clientData);
-	entity->getScene().deleteEntity(entity);
-}
-
-void TW_CALL addComponentDebugEditor(void* clientData)
-{
-	Entity* entity = static_cast<Entity*>(clientData);
-	entity->addComponentByStringType(entity->d_componentTypeField);
-}
-
-void TW_CALL removeComponentDebugEditor(void* clientData)
-{
-	Component* component = static_cast<Component*>(clientData);
-	component->getEntity().removeComponent(component);
-	
 }

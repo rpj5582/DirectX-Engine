@@ -1,6 +1,6 @@
 #pragma once
 
-#include "AntTweakBar\AntTweakBar.h"
+#include "../Debug/DebugGlobals.h"
 
 #include <string>
 
@@ -29,5 +29,3 @@ protected:
 
 	TwBar* m_window;
 };
-
-void TW_CALL copyStringToClient(std::string& destination, const std::string& source);
