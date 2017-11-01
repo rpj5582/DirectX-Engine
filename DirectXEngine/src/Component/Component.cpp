@@ -14,6 +14,10 @@ Component::~Component()
 void Component::init()
 {
 	typeName = ComponentRegistry::getTypeName(typeid(*this));
+}
+
+void Component::initDebugVariables()
+{
 	Debug::entityDebugWindow->addVariable(&enabled, TW_TYPE_BOOLCPP, "Enabled", this);
 }
 

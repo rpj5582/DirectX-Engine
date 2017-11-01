@@ -13,10 +13,7 @@ Entity::Entity(Scene& scene, std::string name) : m_scene(scene)
 	m_children = std::vector<Entity*>();
 
 	d_componentTypeField = "";
-
-	d_parentNameInputField = "";
 	d_childNameInputField = "";
-	d_childrenNames = std::vector<std::string>();
 }
 
 Entity::~Entity()
@@ -216,10 +213,18 @@ void Entity::addChild(Entity* child)
 		return;
 	}
 
-	if (this == child)
+	const Entity* current = this;
+	while (true)
 	{
-		Debug::warning("Child not added to " + m_name + " because the child given was itself.");
-		return;
+		if (!current) break;
+
+		if (current == child)
+		{
+			Debug::warning("Child " + child->getName() + " not added to entity " + m_name + " because the child was either itself or it is a parent of " + m_name + ".");
+			return;
+		}
+
+		current = current->m_parent;
 	}
 
 	addChildNonRecursive(child);
@@ -275,20 +280,20 @@ void Entity::removeAllChildren()
 
 void Entity::setParentNonRecursive(Entity* parent)
 {
-	//Debug::entityDebugWindow->removeEntity(this);
+	Debug::entityDebugWindow->removeEntity(this);
 	m_parent = parent;
-	//Debug::entityDebugWindow->addEntity(this);
+	Debug::entityDebugWindow->addEntity(this);
+
+	Transform* parentTransform = m_parent->getComponent<Transform>();
+	if (parentTransform)
+	{
+		parentTransform->setDirty();
+	}
 }
 
 void Entity::addChildNonRecursive(Entity* child)
 {
 	m_children.push_back(child);
-}
-
-void TW_CALL setEntityParentNameDebugEditor(void* clientData)
-{
-	Entity* entity = static_cast<Entity*>(clientData);
-	entity->setParent(entity->getScene().getEntityByName(entity->d_parentNameInputField));
 }
 
 void TW_CALL getEntityEnabledDebugEditor(void* value, void* clientData)
@@ -301,4 +306,24 @@ void TW_CALL setEntityEnabledDebugEditor(const void* value, void* clientData)
 {
 	Entity* entity = static_cast<Entity*>(clientData);
 	entity->setEnabled(*static_cast<const bool*>(value));
+}
+
+void TW_CALL addChildEntityDebugEditor(void* clientData)
+{
+	Entity* entity = static_cast<Entity*>(clientData);
+	Entity* child = entity->getScene().getEntityByName(entity->d_childNameInputField);
+	if (child)
+	{
+		entity->addChild(child);
+	}
+}
+
+void TW_CALL removeChildEntityDebugEditor(void* clientData)
+{
+	Entity* entity = static_cast<Entity*>(clientData);
+	Entity* child = entity->getScene().getEntityByName(entity->d_childNameInputField);
+	if (child)
+	{
+		entity->removeChild(child);
+	}
 }

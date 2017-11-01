@@ -6,7 +6,7 @@ GUITransform::GUITransform(Entity& entity) : Component(entity)
 {
 	m_position = XMFLOAT2();
 	m_rotation = 0.0f;
-	m_size = XMFLOAT2();
+	m_size = XMFLOAT2(1.0f, 1.0f);
 	m_origin = XMFLOAT2();
 }
 
@@ -14,16 +14,14 @@ GUITransform::~GUITransform()
 {
 }
 
-void GUITransform::init()
+void GUITransform::initDebugVariables()
 {
-	Component::init();
+	Component::initDebugVariables();
 
 	Debug::entityDebugWindow->addVariable(&m_position, Debug::TW_TYPE_VEC2F, "Position", this);
 	Debug::entityDebugWindow->addVariable(&m_rotation, TW_TYPE_FLOAT, "Rotation", this);
 	Debug::entityDebugWindow->addVariable(&m_size, Debug::TW_TYPE_VEC2F, "Size", this);
 	Debug::entityDebugWindow->addVariable(&m_origin, Debug::TW_TYPE_VEC2F, "Origin", this);
-
-	m_size = XMFLOAT2(1.0f, 1.0f);
 }
 
 void GUITransform::loadFromJSON(rapidjson::Value& dataObject)

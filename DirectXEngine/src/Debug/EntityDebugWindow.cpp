@@ -30,7 +30,12 @@ void EntityDebugWindow::addEntity(Entity* entity)
 	std::string entityName = getEntityDebugName(entity, &parentName);
 
 	addButton(entityName + "RemoveButton", "Remove Entity", entityName, &removeEntityDebugEditor, entity);
-	addSeparator(entityName + "SaveSeparator", entityName);
+	addSeparator(entityName + "RemoveSeparator", entityName);
+
+	TwAddVarRW(m_window, (entityName + "ChildNameField").c_str(), TW_TYPE_STDSTRING, &entity->d_childNameInputField, (" group='" + entityName + "' label='Child Name' ").c_str());
+	addButton(entityName + "AddChildButton", "Add Child", entityName, &addChildEntityDebugEditor, entity);
+	addButton(entityName + "RemoveChildButton", "Remove Child", entityName, &removeChildEntityDebugEditor, entity);
+	addSeparator(entityName + "ChildSeparator", entityName);
 
 	TwAddVarRW(m_window, (entityName + "ComponentTypeField").c_str(), TW_TYPE_STDSTRING, &entity->d_componentTypeField, (" group='" + entityName + "' label='Component Type' ").c_str());
 	addButton(entityName + "AddComponentButton", "Add Component", entityName, &addComponentDebugEditor, entity);
@@ -48,6 +53,12 @@ void EntityDebugWindow::addEntity(Entity* entity)
 	for (unsigned int i = 0; i < components.size(); i++)
 	{
 		addComponent(components[i]);
+	}
+
+	std::vector<Entity*> children = entity->getChildren();
+	for (unsigned int i = 0; i < children.size(); i++)
+	{
+		addEntity(children[i]);
 	}
 #endif
 }
@@ -67,6 +78,8 @@ void EntityDebugWindow::addComponent(Component* component)
 #if defined(DEBUG) || defined(_DEBUG)
 	if (!component) return;
 
+	component->initDebugVariables();
+
 	std::string entityName;
 	std::string componentName = getComponentDebugName(component, &entityName);
 
@@ -74,6 +87,7 @@ void EntityDebugWindow::addComponent(Component* component)
 	addButton(componentName + "RemoveButton", "Remove Component", componentName, &removeComponentDebugEditor, component);
 
 	TwDefine((" " + m_windowID + "/" + componentName + " label='" + component->getName() + "' group='" + entityName + "' ").c_str());
+
 #endif
 }
 
@@ -116,7 +130,7 @@ std::string EntityDebugWindow::getEntityDebugName(const Entity* entity, std::str
 		const Entity* parent = currentEntity->getParent();
 		if (!parent) break;
 
-		parentName = parent->getName();
+		parentName += parent->getName();
 		currentEntity = parent;
 	}
 

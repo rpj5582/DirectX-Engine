@@ -10,9 +10,9 @@ MeshRenderComponent::~MeshRenderComponent()
 {
 }
 
-void MeshRenderComponent::init()
+void MeshRenderComponent::initDebugVariables()
 {
-	RenderComponent::init();
+	RenderComponent::initDebugVariables();
 
 	Debug::entityDebugWindow->addVariableWithCallbacks(TW_TYPE_STDSTRING, "Mesh", this, &getMeshRenderComponentMeshDebugEditor, &setMeshRenderComponentMeshDebugEditor, this);
 }

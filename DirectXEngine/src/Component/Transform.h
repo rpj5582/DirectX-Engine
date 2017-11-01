@@ -7,7 +7,7 @@ public:
 	Transform(Entity& entity);
 	~Transform();
 
-	virtual void init() override;
+	virtual void initDebugVariables() override;
 	virtual void loadFromJSON(rapidjson::Value& dataObject) override;
 	virtual void saveToJSON(rapidjson::Writer<rapidjson::StringBuffer>& writer) override;
 
@@ -47,9 +47,10 @@ public:
 	void scaleY(float delta);
 	void scaleZ(float delta);
 
+	void setDirty();
+
 private:
 	DirectX::XMMATRIX calcWorldMatrix();
-	void setDirty();
 
 	DirectX::XMFLOAT3 m_localPosition;
 	DirectX::XMFLOAT3 m_localRotation;

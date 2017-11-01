@@ -19,6 +19,11 @@ void GUISpriteComponent::init()
 	GUIComponent::init();
 
 	setTexture(DEFAULT_TEXTURE_GUI);
+}
+
+void GUISpriteComponent::initDebugVariables()
+{
+	GUIComponent::initDebugVariables();
 
 	Debug::entityDebugWindow->addVariableWithCallbacks(TW_TYPE_STDSTRING, "Texture", this, &getGUISpriteComponentTextureDebugEditor, &setGUISpriteComponentTextureDebugEditor, this);
 }

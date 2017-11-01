@@ -60,10 +60,7 @@ public:
 	void removeAllChildren();
 	
 	std::string d_componentTypeField;
-
-	std::string d_parentNameInputField;
 	std::string d_childNameInputField;
-	std::vector<std::string> d_childrenNames;
 
 private:
 	Entity(Scene& scene, std::string name);
@@ -156,4 +153,5 @@ inline void Entity::removeComponent()
 void TW_CALL getEntityEnabledDebugEditor(void* value, void* clientData);
 void TW_CALL setEntityEnabledDebugEditor(const void* value, void* clientData);
 
-void TW_CALL setEntityParentNameDebugEditor(void* clientData);
+void TW_CALL addChildEntityDebugEditor(void* clientData);
+void TW_CALL removeChildEntityDebugEditor(void* clientData);

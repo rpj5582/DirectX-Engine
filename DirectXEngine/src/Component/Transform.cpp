@@ -17,9 +17,9 @@ Transform::~Transform()
 {
 }
 
-void Transform::init()
+void Transform::initDebugVariables()
 {
-	Component::init();
+	Component::initDebugVariables();
 
 	Debug::entityDebugWindow->addVariableWithCallbacks(Debug::TW_TYPE_VEC3F, "Position", this, &getTransformPositionDebugEditor, &setTransformPositionDebugEditor, this);
 	Debug::entityDebugWindow->addVariableWithCallbacks(Debug::TW_TYPE_VEC3F, "Rotation", this, &getTransformRotationDebugEditor, &setTransformRotationDebugEditor, this);

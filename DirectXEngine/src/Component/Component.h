@@ -17,6 +17,7 @@ public:
 	friend class Entity;
 
 	virtual void init();
+	virtual void initDebugVariables();
 	virtual void update(float deltaTime, float totalTime);
 	virtual void lateUpdate(float deltaTime, float totalTime);
 	virtual void loadFromJSON(rapidjson::Value& dataObject);

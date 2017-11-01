@@ -24,8 +24,13 @@ void RenderComponent::init()
 	Component::init();
 
 	setMaterial(DEFAULT_MATERIAL);
+}
 
-	if(TW_TYPE_RENDER_STLYE == TW_TYPE_UNDEF)
+void RenderComponent::initDebugVariables()
+{
+	Component::initDebugVariables();
+
+	if (TW_TYPE_RENDER_STLYE == TW_TYPE_UNDEF)
 		TW_TYPE_RENDER_STLYE = TwDefineEnum("TW_TYPE_RENDER_STLYE", d_renderStyleMembers, 3);
 
 	Debug::entityDebugWindow->addVariableWithCallbacks(TW_TYPE_STDSTRING, "Material", this, &getRenderComponentMaterialDebugEditor, &setRenderComponentMaterialDebugEditor, this);

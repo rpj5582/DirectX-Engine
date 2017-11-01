@@ -34,8 +34,13 @@ void LightComponent::init()
 
 	setLightType(DIRECTIONAL_LIGHT);
 	setSettingsDefault();
+}
 
-	if(TW_TYPE_LIGHT_SETTINGS == TW_TYPE_UNDEF)
+void LightComponent::initDebugVariables()
+{
+	Component::initDebugVariables();
+
+	if (TW_TYPE_LIGHT_SETTINGS == TW_TYPE_UNDEF)
 		TW_TYPE_LIGHT_SETTINGS = TwDefineStruct("TW_TYPE_LIGHT_SETTINGS", d_lightStructMembers, 5, sizeof(LightSettings), nullptr, nullptr);
 
 	if (TW_TYPE_LIGHT_TYPE == TW_TYPE_UNDEF)

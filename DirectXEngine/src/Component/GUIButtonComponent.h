@@ -10,6 +10,7 @@ public:
 	~GUIButtonComponent();
 
 	virtual void init() override;
+	virtual void initDebugVariables() override;
 	virtual void update(float deltaTime, float totalTime) override;
 	virtual void loadFromJSON(rapidjson::Value& dataObject) override;
 	virtual void saveToJSON(rapidjson::Writer<rapidjson::StringBuffer>& writer) override;

@@ -19,6 +19,11 @@ void GUITextComponent::init()
 	GUIComponent::init();
 
 	setFont(DEFAULT_FONT);
+}
+
+void GUITextComponent::initDebugVariables()
+{
+	GUIComponent::initDebugVariables();
 
 	Debug::entityDebugWindow->addVariableWithCallbacks(TW_TYPE_STDSTRING, "Font", this, &getGUITextComponentFontDebugEditor, &setGUITextComponentFontDebugEditor, this);
 	Debug::entityDebugWindow->addVariable(&m_text, TW_TYPE_STDSTRING, "Text", this);

@@ -24,6 +24,11 @@ void GUIButtonComponent::init()
 	GUISpriteComponent::init();
 
 	setFont(DEFAULT_FONT);
+}
+
+void GUIButtonComponent::initDebugVariables()
+{
+	GUISpriteComponent::initDebugVariables();
 
 	Debug::entityDebugWindow->addVariableWithCallbacks(TW_TYPE_STDSTRING, "Font", this, &getGUIButtonComponentFontDebugEditor, &setGUIButtonComponentFontDebugEditor, this);
 	Debug::entityDebugWindow->addVariable(&m_text, TW_TYPE_STDSTRING, "Text", this);

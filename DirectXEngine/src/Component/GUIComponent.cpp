@@ -4,18 +4,16 @@ using namespace DirectX;
 
 GUIComponent::GUIComponent(Entity& entity) : Component(entity)
 {
-	m_color = XMFLOAT4();
+	m_color = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
 }
 
 GUIComponent::~GUIComponent()
 {
 }
 
-void GUIComponent::init()
+void GUIComponent::initDebugVariables()
 {
-	Component::init();
-
-	m_color = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
+	Component::initDebugVariables();
 
 	Debug::entityDebugWindow->addVariable(&m_color, TW_TYPE_COLOR4F, "Color", this);
 }
