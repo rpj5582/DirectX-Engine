@@ -1,5 +1,6 @@
 #include "Entity.h"
 
+#include "Scene/Scene.h"
 #include "Component/ComponentRegistry.h"
 
 Entity::Entity(Scene& scene, std::string name) : m_scene(scene)
@@ -51,6 +52,16 @@ void Entity::saveToJSON(rapidjson::Writer<rapidjson::StringBuffer>& writer) cons
 
 	writer.Key("enabled");
 	writer.Bool(m_enabled);
+
+	writer.Key("children");
+	writer.StartArray();
+
+	for (unsigned int i = 0; i < m_children.size(); i++)
+	{
+		writer.String(m_children[i]->getName().c_str());
+	}
+
+	writer.EndArray();
 
 	writer.Key("components");
 	writer.StartArray();
@@ -229,6 +240,18 @@ void Entity::addChild(Entity* child)
 
 	addChildNonRecursive(child);
 	child->setParentNonRecursive(this);
+}
+
+void Entity::addChildByName(std::string childName)
+{
+	if (childName == "")
+	{
+		Debug::warning("Failed to add child to entity " + m_name + ": no child name specified.");
+		return;
+	}
+
+	Entity* child = m_scene.getEntityByName(childName);
+	addChild(child);
 }
 
 void Entity::removeChild(Entity* child)

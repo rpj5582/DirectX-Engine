@@ -23,7 +23,6 @@ void EntityDebugWindow::setupControls()
 		
 		addSeparator("MainCameraSeparator", "''");
 		TwAddVarCB(m_window, "MainCameraInputField", TW_TYPE_STDSTRING, &setMainCameraSceneDebugEditor, &getMainCameraSceneDebugEditor, activeScene, " label='Main Camera' ");
-		//addButton("MainCameraButton", "Set Main Camera", "''", &setMainCameraSceneDebugEditor, activeScene);
 	}
 #endif
 }

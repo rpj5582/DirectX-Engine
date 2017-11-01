@@ -230,12 +230,15 @@ bool Scene::loadFromJSON()
 	AssetManager::loadFromJSON(assets);
 
 	// Load the scene's entities.
+	std::unordered_map<Entity*, std::vector<std::string>> childrenNames;
+
 	rapidjson::Value& entities = dom["entities"];
 	for (rapidjson::SizeType i = 0; i < entities.Size(); i++)
 	{
 		rapidjson::Value& entity = entities[i];
 
 		rapidjson::Value& entityName = entity["name"];
+		rapidjson::Value& children = entity["children"];
 		rapidjson::Value& components = entity["components"];
 
 		Entity* e = createEntity(entityName.GetString());
@@ -244,6 +247,13 @@ bool Scene::loadFromJSON()
 		if (entityEnabled != entity.MemberEnd())
 		{
 			e->setEnabled(entityEnabled->value.GetBool());
+		}
+
+		childrenNames[e] = std::vector<std::string>();
+		for (rapidjson::SizeType j = 0; j < children.Size(); j++)
+		{
+			rapidjson::Value& childName = children[j];
+			childrenNames.at(e).push_back(childName.GetString());
 		}
 
 		for (rapidjson::SizeType j = 0; j < components.Size(); j++)
@@ -258,6 +268,14 @@ bool Scene::loadFromJSON()
 				c->loadFromJSON(dataObject);
 			else
 				Debug::warning("Skipping component of type " + std::string(componentType.GetString()) + " - either an invalid type or the component was not registered.");
+		}
+	}
+
+	for(auto it = childrenNames.begin(); it != childrenNames.end(); it++)
+	{
+		for (unsigned int i = 0; i < it->second.size(); i++)
+		{
+			it->first->addChildByName(it->second[i]);
 		}
 	}
 

@@ -54,6 +54,7 @@ public:
 	std::vector<Entity*> getChildren() const;
 
 	void addChild(Entity* child);
+	void addChildByName(std::string childName);
 	void removeChild(Entity* child);
 	void removeChildByIndex(unsigned int index);
 	void removeChildByName(std::string childName);

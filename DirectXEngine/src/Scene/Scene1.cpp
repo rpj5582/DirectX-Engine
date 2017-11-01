@@ -141,10 +141,10 @@ void Scene1::onLoad()
 
 	//saveToJSON("Assets/Scenes/scene1.json");
 
-	Entity* cone = getEntityByName("Cone");
-	Entity* cube = getEntityByName("Cube");
+	//Entity* cone = getEntityByName("Cone");
+	//Entity* cube = getEntityByName("Cube");
 
-	cone->setParent(cube);
+	//cone->setParent(cube);
 
 	//std::vector<Transform*> transforms = getAllComponentsByType<Transform>();
 }
