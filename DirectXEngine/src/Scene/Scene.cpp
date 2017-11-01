@@ -33,6 +33,7 @@ Scene::Scene(ID3D11Device* device, ID3D11DeviceContext* context, std::string nam
 	m_mainCamera = nullptr;
 
 	d_entityNameField = "";
+	d_mainCameraField = "";
 
 	d_textureNameField = "";
 	d_materialNameField = "";
@@ -265,18 +266,9 @@ bool Scene::loadFromJSON()
 
 	Entity* cameraEntity = getEntityByName(mainCamera.GetString());
 	if (cameraEntity)
-	{
-		m_mainCamera = cameraEntity->getComponent<CameraComponent>();
-
-		if (!m_mainCamera)
-		{
-			Debug::warning("Could not set main camera because given entity " + std::string(mainCamera.GetString()) + " does not have a Camera component.");
-		}
-	}
+		setMainCamera(cameraEntity);
 	else
-	{
 		Debug::warning("Could not set main camera because entity with name " + std::string(mainCamera.GetString()) + " does not exist.");
-	}
 	
 	Debug::message("Loaded scene from " + m_filepath);
 	onLoad();
@@ -381,7 +373,20 @@ CameraComponent* Scene::getMainCamera() const
 
 void Scene::setMainCamera(CameraComponent* camera)
 {
+	Debug::message("Set main camera for scene " + m_name + " to entity " + camera->getEntity().getName());
 	m_mainCamera = camera;
+}
+
+void Scene::setMainCamera(Entity* entity)
+{
+	CameraComponent* camera = entity->getComponent<CameraComponent>();
+	if (!camera)
+	{
+		Debug::warning("Failed to set main camera because entity" + entity->getName() + " does not have a camera component.");
+		return;
+	}
+
+	setMainCamera(camera);
 }
 
 void Scene::renderGeometry()

@@ -1,7 +1,6 @@
 TODO:
 Implement file loading for materials and samplers
 Convert pointers to smart pointers
-Parenting
 Tagging?
 Collision detection
 

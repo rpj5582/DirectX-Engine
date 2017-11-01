@@ -17,9 +17,13 @@ void EntityDebugWindow::setupControls()
 	Scene* activeScene = SceneManager::getActiveScene();
 	if (activeScene)
 	{
-		addSeparator("AddEntitySeparator", "");
+		addSeparator("AddEntitySeparator", "''");
 		TwAddVarRW(m_window, "AddEntityInputField", TW_TYPE_STDSTRING, &activeScene->d_entityNameField, " label='Entity Name' ");
 		addButton("AddEntityButton", "Add Entity", "''", &addEntityDebugEditor, activeScene);
+		
+		addSeparator("MainCameraSeparator", "''");
+		TwAddVarCB(m_window, "MainCameraInputField", TW_TYPE_STDSTRING, &setMainCameraSceneDebugEditor, &getMainCameraSceneDebugEditor, activeScene, " label='Main Camera' ");
+		//addButton("MainCameraButton", "Set Main Camera", "''", &setMainCameraSceneDebugEditor, activeScene);
 	}
 #endif
 }

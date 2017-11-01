@@ -179,6 +179,28 @@ void TW_CALL saveSceneDebugEditor(void* clientData)
 {
 	SceneManager::saveActiveScene();
 }
+
+void TW_CALL getMainCameraSceneDebugEditor(void* value, void* clientData)
+{
+	Scene* scene = static_cast<Scene*>(clientData);
+	std::string* mainCameraName = static_cast<std::string*>(value);
+	TwCopyStdStringToLibrary(*mainCameraName, scene->getMainCamera()->getEntity().getName());
+}
+
+void TW_CALL setMainCameraSceneDebugEditor(const void* value, void* clientData)
+{
+	Scene* scene = static_cast<Scene*>(clientData);
+	std::string cameraName = *static_cast<const std::string*>(value);
+
+	Entity* cameraEntity = scene->getEntityByName(cameraName);
+	if (!cameraEntity)
+	{
+		Debug::warning("Failed to set main camera because entity with name " + cameraName + " could not be found.");
+		return;
+	}
+
+	scene->setMainCamera(cameraEntity);
+}
 #pragma endregion
 
 

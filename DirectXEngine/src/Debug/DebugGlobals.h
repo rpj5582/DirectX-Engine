@@ -53,3 +53,7 @@ void TW_CALL newSceneDebugEditor(void* clientData);
 void TW_CALL loadSceneDebugEditor(void* clientData);
 
 void TW_CALL saveSceneDebugEditor(void* clientData);
+
+void TW_CALL getMainCameraSceneDebugEditor(void* value, void* clientData);
+
+void TW_CALL setMainCameraSceneDebugEditor(const void* value, void* clientData);

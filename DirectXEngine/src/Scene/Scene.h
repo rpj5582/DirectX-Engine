@@ -41,8 +41,11 @@ public:
 	std::vector<T*> getAllComponentsByType() const;
 
 	CameraComponent* getMainCamera() const;
+	void setMainCamera(CameraComponent* camera);
+	void setMainCamera(Entity* entity);
 
 	std::string d_entityNameField;
+	std::string d_mainCameraField;
 
 	std::string d_textureNameField;
 	std::string d_materialNameField;
@@ -61,8 +64,6 @@ public:
 	std::string d_pixelShaderPathField;
 
 protected:
-	void setMainCamera(CameraComponent* camera);
-
 	virtual void onLoad() = 0;
 
 private:
