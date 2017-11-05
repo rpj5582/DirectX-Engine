@@ -12,7 +12,7 @@ Component* ComponentRegistry::addComponentToEntity(Entity& entity, std::string c
 	}
 
 	CreateComponentFunc func = m_componentRegistry.at(componentType);
-	return (entity.*func)();
+	return (entity.*func)(true);
 }
 
 void ComponentRegistry::registerComponents()
@@ -39,6 +39,7 @@ void ComponentRegistry::registerEngineComponents()
 	registerComponent<CameraComponent>("Camera");
 	registerComponent<GUIButtonComponent>("GUIButtonComponent");
 	registerComponent<GUISpriteComponent>("GUISpriteComponent");
+	registerComponent<GUIDebugSpriteComponent>("GUIDebugSpriteComponent");
 	registerComponent<GUITextComponent>("GUITextComponent");
 	registerComponent<GUITransform>("GUITransform");
 	registerComponent<LightComponent>("LightComponent");

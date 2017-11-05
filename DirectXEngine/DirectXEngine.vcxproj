@@ -131,6 +131,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="src\Component\GUIDebugSpriteComponent.cpp" />
     <ClCompile Include="src\Debug\DebugGlobals.cpp" />
     <ClCompile Include="src\Scene\SceneManager.cpp" />
     <ClCompile Include="src\Scene\Scene2.cpp" />
@@ -171,8 +172,10 @@
     <ClCompile Include="src\Asset\Texture.cpp" />
     <ClCompile Include="src\Component\Transform.cpp" />
     <ClCompile Include="src\Asset\VertexShader.cpp" />
+    <ClCompile Include="src\Window.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\Component\GUIDebugSpriteComponent.h" />
     <ClInclude Include="src\Debug\DebugGlobals.h" />
     <ClInclude Include="src\Scene\SceneManager.h" />
     <ClInclude Include="src\Scene\Scene2.h" />
@@ -213,6 +216,7 @@
     <ClInclude Include="src\Component\Transform.h" />
     <ClInclude Include="src\Util.h" />
     <ClInclude Include="src\Asset\VertexShader.h" />
+    <ClInclude Include="src\Window.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="src\Asset\AssetClassDiagram.cd" />

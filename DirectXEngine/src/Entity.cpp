@@ -3,7 +3,9 @@
 #include "Scene/Scene.h"
 #include "Component/ComponentRegistry.h"
 
-Entity::Entity(Scene& scene, std::string name) : m_scene(scene)
+using namespace DirectX;
+
+Entity::Entity(Scene& scene, std::string name, bool hasDebugIcon) : m_scene(scene)
 {
 	m_name = name;
 	m_components = std::vector<Component*>();
@@ -12,12 +14,33 @@ Entity::Entity(Scene& scene, std::string name) : m_scene(scene)
 	m_parent = nullptr;
 	m_children = std::vector<Entity*>();
 
+	selected = false;
+
 	d_componentTypeField = "";
 	d_childNameInputField = "";
+
+#if defined(DEBUG) || defined(_DEBUG)
+	if (hasDebugIcon)
+	{
+		d_guiDebugTransform = new GUITransform(*this);
+		d_guiDebugTransform->init();
+		d_guiDebugTransform->setOrigin(XMFLOAT2(0.5f, 0.5f));
+		
+		d_guiDebugSpriteComponent = new GUIDebugSpriteComponent(*this);
+		d_guiDebugSpriteComponent->init();
+
+		d_guiDebugTransform->setSize(XMFLOAT2((float)d_guiDebugSpriteComponent->getTexture()->getWidth(), (float)d_guiDebugSpriteComponent->getTexture()->getHeight()));
+	}
+#endif
 }
 
 Entity::~Entity()
 {
+#if defined(DEBUG) || defined(_DEBUG)
+	delete d_guiDebugTransform;
+	delete d_guiDebugSpriteComponent;
+#endif
+
 	for (unsigned int i = 0; i < m_components.size(); i++)
 	{
 		delete m_components[i];
@@ -95,6 +118,14 @@ void Entity::onSceneLoaded()
 	{
 		m_components[i]->onSceneLoaded();
 	}
+
+#if defined(DEBUG) || defined(_DEBUG)
+	if (d_guiDebugTransform)
+		d_guiDebugTransform->onSceneLoaded();
+
+	if(d_guiDebugSpriteComponent)
+		d_guiDebugSpriteComponent->onSceneLoaded();
+#endif
 }
 
 Scene& Entity::getScene() const
@@ -301,6 +332,16 @@ void Entity::removeAllChildren()
 	m_children.clear();
 }
 
+GUITransform* Entity::getDebugIconTransform() const
+{
+	return d_guiDebugTransform;
+}
+
+GUIDebugSpriteComponent* Entity::getDebugIconSpriteComponent() const
+{
+	return d_guiDebugSpriteComponent;
+}
+
 void Entity::setParentNonRecursive(Entity* parent)
 {
 	Debug::entityDebugWindow->removeEntity(this);
@@ -312,7 +353,6 @@ void Entity::setParentNonRecursive(Entity* parent)
 	{
 		transform->setDirty();
 	}
-	
 }
 
 void Entity::addChildNonRecursive(Entity* child)

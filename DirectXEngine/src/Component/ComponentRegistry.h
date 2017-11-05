@@ -8,6 +8,7 @@
 #include "GUIButtonComponent.h"
 #include "GUIComponent.h"
 #include "GUISpriteComponent.h"
+#include "GUIDebugSpriteComponent.h"
 #include "GUITextComponent.h"
 #include "GUITransform.h"
 #include "LightComponent.h"
@@ -28,7 +29,7 @@ public:
 	static std::string getTypeName(std::type_index type);
 
 private:
-	typedef Component*(Entity::*CreateComponentFunc)();
+	typedef Component*(Entity::*CreateComponentFunc)(bool);
 
 	template<typename T>
 	bool registerComponent(std::string componentType);

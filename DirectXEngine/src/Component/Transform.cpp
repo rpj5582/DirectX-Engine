@@ -211,7 +211,7 @@ const XMFLOAT3 Transform::getForward()
 	return forward;
 }
 
-const XMMATRIX Transform::getWorldMatrix()
+const XMFLOAT4X4 Transform::getWorldMatrix()
 {
 	if (m_isDirty)
 	{
@@ -219,10 +219,10 @@ const XMMATRIX Transform::getWorldMatrix()
 		m_isDirty = false;
 	}
 	
-	return XMLoadFloat4x4(&m_worldMatrix);
+	return m_worldMatrix;
 }
 
-const DirectX::XMMATRIX Transform::getInverseWorldMatrix()
+const XMFLOAT4X4 Transform::getInverseWorldMatrix()
 {
 	if (m_isDirty)
 	{
@@ -230,7 +230,7 @@ const DirectX::XMMATRIX Transform::getInverseWorldMatrix()
 		m_isDirty = false;
 	}
 
-	return XMLoadFloat4x4(&m_inverseWorldMatrix);
+	return m_inverseWorldMatrix;
 }
 
 void Transform::move(XMFLOAT3 delta)

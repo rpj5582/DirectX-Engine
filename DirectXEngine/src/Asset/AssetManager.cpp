@@ -289,9 +289,7 @@ void AssetManager::saveToJSON(rapidjson::Writer<rapidjson::StringBuffer>& writer
 	for (auto it = m_instance->m_assets.begin(); it != m_instance->m_assets.end(); it++)
 	{
 		// Don't save default objects since they will be automatically loaded at the start of the program.
-		if (it->second->getAssetID() == DEFAULT_SHADER_VERTEX || it->second->getAssetID() == DEFAULT_SHADER_PIXEL || it->second->getAssetID() == DEFAULT_TEXTURE_DIFFUSE
-			|| it->second->getAssetID() == DEFAULT_TEXTURE_SPECULAR || it->second->getAssetID() == DEFAULT_TEXTURE_NORMAL || it->second->getAssetID() == DEFAULT_TEXTURE_GUI
-			|| it->second->getAssetID() == DEFAULT_MATERIAL || it->second->getAssetID() == DEFAULT_SAMPLER || it->second->getAssetID() == DEFAULT_FONT) continue;
+		if (m_instance->isDefaultAsset(it->second->getAssetID())) continue;
 
 		writer.StartObject();
 		it->second->saveToJSON(writer);
@@ -341,7 +339,26 @@ bool AssetManager::loadDefaultAssets()
 	// Load Arial font
 	if (!loadAsset<Font>(DEFAULT_FONT, "Assets/Fonts/Arial_16pt.spritefont")) return false;
 
+
+#if defined(DEBUG) || defined(_DEBUG)
+	// Textures
+	if (!loadAsset<Texture>(DEBUG_TEXTURE_DEFAULTICON, "Assets/Debug/defaulticon.png")) return false;
+	if (!loadAsset<Texture>(DEBUG_TEXTURE_LIGHTICON, "Assets/Debug/lighticon.png")) return false;
+	if (!loadAsset<Texture>(DEBUG_TEXTURE_CAMERAICON, "Assets/Debug/cameraicon.png")) return false;
+#endif
 	return true;
+}
+
+bool AssetManager::isDefaultAsset(std::string assetName) const
+{
+	if (   assetName == DEFAULT_SHADER_VERTEX || assetName == DEFAULT_SHADER_PIXEL
+		|| assetName == DEFAULT_TEXTURE_DIFFUSE || assetName == DEFAULT_TEXTURE_SPECULAR || assetName == DEFAULT_TEXTURE_NORMAL || assetName == DEFAULT_TEXTURE_GUI
+		|| assetName == DEFAULT_MATERIAL
+		|| assetName == DEFAULT_SAMPLER
+		|| assetName == DEFAULT_FONT
+		|| assetName == DEBUG_TEXTURE_DEFAULTICON || assetName == DEBUG_TEXTURE_CAMERAICON || assetName == DEBUG_TEXTURE_LIGHTICON) return true;
+
+	return false;
 }
 
 void AssetManager::deleteAssets()

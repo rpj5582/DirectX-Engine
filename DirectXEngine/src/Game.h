@@ -16,8 +16,7 @@ public:
 
 	// Overridden setup and game loop methods, which
 	// will be called automatically
-	bool Init();
-	void OnResize();
+	HRESULT Init();
 	void Update(float deltaTime, float totalTime);
 	void Draw(float deltaTime, float totalTime);
 

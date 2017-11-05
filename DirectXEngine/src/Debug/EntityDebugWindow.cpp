@@ -4,6 +4,8 @@
 
 EntityDebugWindow::EntityDebugWindow(std::string windowID, std::string windowLabel) : DebugWindow(windowID, windowLabel)
 {
+	m_entityNames = std::unordered_set<std::string>();
+
 	TwDefine((windowID + " position='20 195' size='250 250' ").c_str());
 }
 
@@ -53,6 +55,8 @@ void EntityDebugWindow::addEntity(Entity* entity)
 	std::string description = " " + m_windowID + "/" + entityName + " label='" + entity->getName() + "' opened=false group='" + parentName + "' ";
 	TwDefine(description.c_str());
 
+	m_entityNames.insert(entityName);
+
 	std::vector<Component*> components = entity->getAllComponents();
 	for (unsigned int i = 0; i < components.size(); i++)
 	{
@@ -74,6 +78,8 @@ void EntityDebugWindow::removeEntity(Entity* entity)
 
 	std::string entityName = getEntityDebugName(entity, nullptr);
 	TwRemoveVar(m_window, entityName.c_str());
+
+	m_entityNames.erase(entityName);
 #endif
 }
 
@@ -158,4 +164,53 @@ std::string EntityDebugWindow::getComponentDebugName(const Component* component,
 	if(out_entityDebugName)
 		*out_entityDebugName = entityName;
 	return entityName + spacelessComponentName;
+}
+
+void EntityDebugWindow::showEntity(const Entity* entity) const
+{
+	std::vector<const Entity*> parentList;
+	parentList.push_back(entity);
+
+	Entity* currentParent = entity->getParent();
+	while (currentParent)
+	{
+		parentList.push_back(currentParent);
+		currentParent = currentParent->getParent();
+	}
+
+	for (auto it = parentList.rbegin(); it != parentList.rend(); it++)
+	{
+		std::string entityDebugName = getEntityDebugName(*it, nullptr);
+
+		if (m_entityNames.find(entityDebugName) != m_entityNames.end())
+		{
+			TwDefine((" " + m_windowID + "/" + entityDebugName + " opened=true ").c_str());
+		}
+	}
+}
+
+void EntityDebugWindow::hideEntity(const Entity* entity) const
+{
+	std::string entityDebugName = getEntityDebugName(entity, nullptr);
+
+	if (m_entityNames.find(entityDebugName) != m_entityNames.end())
+	{
+		TwDefine((" " + m_windowID + "/" + entityDebugName + " opened=false ").c_str());
+	}
+}
+
+void EntityDebugWindow::showAllEntities() const
+{
+	for (auto it = m_entityNames.begin(); it != m_entityNames.end(); it++)
+	{
+		TwDefine((" " + m_windowID + "/" + *it + " opened=true ").c_str());
+	}
+}
+
+void EntityDebugWindow::hideAllEntities() const
+{
+	for (auto it = m_entityNames.begin(); it != m_entityNames.end(); it++)
+	{
+		TwDefine((" " + m_windowID + "/" + *it + " opened=false ").c_str());
+	}
 }

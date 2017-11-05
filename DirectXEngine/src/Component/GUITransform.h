@@ -11,7 +11,7 @@ public:
 	virtual void loadFromJSON(rapidjson::Value& dataObject) override;
 	virtual void saveToJSON(rapidjson::Writer<rapidjson::StringBuffer>& writer) override;
 
-	bool containsPoint(float x, float y) const;
+	bool containsPoint(DirectX::XMFLOAT2 point) const;
 
 	DirectX::XMFLOAT2 getPosition() const;
 	void setPosition(DirectX::XMFLOAT2 position);

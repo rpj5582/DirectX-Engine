@@ -1,6 +1,8 @@
 #pragma once
 #include "DebugWindow.h"
 
+#include <unordered_set>
+
 class Entity;
 class Component;
 
@@ -24,6 +26,14 @@ public:
 
 	std::string getEntityDebugName(const Entity* entity, std::string* out_parentDebugName) const;
 	std::string getComponentDebugName(const Component* component, std::string* out_entityDebugName) const;
+
+	void showEntity(const Entity* entity) const;
+	void hideEntity(const Entity* entity) const;
+	void showAllEntities() const;
+	void hideAllEntities() const;
+
+private:
+	std::unordered_set<std::string> m_entityNames;
 };
 
 template<typename T>

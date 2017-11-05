@@ -1,4 +1,5 @@
 #include "../Scene/SceneManager.h"
+#include "DebugGlobals.h"
 
 void TW_CALL copyStringToClient(std::string& destination, const std::string& source)
 {
@@ -180,6 +181,19 @@ void TW_CALL saveSceneDebugEditor(void* clientData)
 	SceneManager::saveActiveScene();
 }
 
+void TW_CALL toggleDebugIconsSceneDebugEditor(void* clientData)
+{
+	std::vector<Entity*> entities = SceneManager::getActiveScene()->getAllEntities();
+	for (unsigned int i = 0; i < entities.size(); i++)
+	{
+		GUITransform* debugIconTransform = entities[i]->getDebugIconTransform();
+		if (debugIconTransform)
+		{
+			debugIconTransform->enabled = !debugIconTransform->enabled;
+		}
+	}
+}
+
 void TW_CALL getMainCameraSceneDebugEditor(void* value, void* clientData)
 {
 	Scene* scene = static_cast<Scene*>(clientData);
@@ -200,6 +214,16 @@ void TW_CALL setMainCameraSceneDebugEditor(const void* value, void* clientData)
 	}
 
 	scene->setMainCamera(cameraEntity);
+}
+
+void TW_CALL showAllEntitiesSceneDebugEditor(void* clientData)
+{
+	Debug::entityDebugWindow->showAllEntities();
+}
+
+void TW_CALL hideAllEntitiesSceneDebugEditor(void* clientData)
+{
+	Debug::entityDebugWindow->hideAllEntities();
 }
 #pragma endregion
 

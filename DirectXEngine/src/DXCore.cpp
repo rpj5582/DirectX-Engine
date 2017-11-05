@@ -2,7 +2,6 @@
 
 #include "Debug/Debug.h"
 
-#include <WindowsX.h>
 #include <sstream>
 
 // Define the static instance variable so our OS-level 
@@ -24,17 +23,8 @@ LRESULT DXCore::WindowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 // Constructor - Set up fields and timer
 //
 // hInstance	- The application's OS-level handle (unique ID)
-// titleBarText - Text for the window's title bar
-// windowWidth	- Width of the window's client (internal) area
-// windowHeight - Height of the window's client (internal) area
-// debugTitleBarStats - Show debug stats in the title bar, like FPS?
 // --------------------------------------------------------
-DXCore::DXCore(
-	HINSTANCE hInstance,		// The application's handle
-	char* titleBarText,			// Text for the window's title bar
-	unsigned int windowWidth,	// Width of the window's client area
-	unsigned int windowHeight,	// Height of the window's client area
-	bool debugTitleBarStats)	// Show extra stats (fps) in title bar?
+DXCore::DXCore(HINSTANCE hInstance, unsigned int windowWidth, unsigned int windowHeight, char* titleBarText, bool debugTitleBarStats)
 {
 	// Save a static reference to this object.
 	//  - Since the OS-level message function must be a non-member (global) function, 
@@ -42,14 +32,11 @@ DXCore::DXCore(
 	//  - (Yes, a singleton might be a safer choice here).
 	DXCoreInstance = this;
 
-	// Save params
-	this->hInstance = hInstance;
-	this->titleBarText = titleBarText;
-	this->width = windowWidth;
-	this->height = windowHeight;
-	this->titleBarStats = debugTitleBarStats;
-
 	// Initialize fields
+	m_titleBarText = titleBarText;
+	m_titleBarStats = debugTitleBarStats;
+	m_window = new Window(hInstance, windowWidth, windowHeight);
+
 	fpsFrameCount = 0;
 	fpsTimeElapsed = 0.0f;
 	
@@ -77,85 +64,9 @@ DXCore::~DXCore()
 	if (swapChain) { swapChain->Release();}
 	if (context) { context->Release();}
 	if (device) { device->Release();}
+
+	delete m_window;
 }
-
-// --------------------------------------------------------
-// Created the actual window for our application
-// --------------------------------------------------------
-HRESULT DXCore::InitWindow()
-{
-	// Start window creation by filling out the
-	// appropriate window class struct
-	WNDCLASS wndClass		= {}; // Zero out the memory
-	wndClass.style			= CS_HREDRAW | CS_VREDRAW;	// Redraw on horizontal or vertical movement/adjustment
-	wndClass.lpfnWndProc	= DXCore::WindowProc;
-	wndClass.cbClsExtra		= 0;
-	wndClass.cbWndExtra		= 0;
-	wndClass.hInstance		= hInstance;						// Our app's handle
-	wndClass.hIcon			= LoadIcon(NULL, IDI_APPLICATION);	// Default icon
-	wndClass.hCursor		= LoadCursor(NULL, IDC_ARROW);		// Default arrow cursor
-	wndClass.hbrBackground	= (HBRUSH)GetStockObject(BLACK_BRUSH);
-	wndClass.lpszMenuName	= NULL;
-	wndClass.lpszClassName	= "Direct3DWindowClass";
-
-	// Attempt to register the window class we've defined
-	if (!RegisterClass(&wndClass))
-	{
-		// Get the most recent error
-		DWORD error = GetLastError();
-
-		// If the class exists, that's actually fine.  Otherwise,
-		// we can't proceed with the next step.
-		if (error != ERROR_CLASS_ALREADY_EXISTS)
-			return HRESULT_FROM_WIN32(error);
-	}
-
-	// Adjust the width and height so the "client size" matches
-	// the width and height given (the inner-area of the window)
-	RECT clientRect;
-	SetRect(&clientRect, 0, 0, width, height);
-	AdjustWindowRect(
-		&clientRect,
-		WS_OVERLAPPEDWINDOW,	// Has a title bar, border, min and max buttons, etc.
-		false);					// No menu bar
-
-	// Center the window to the screen
-	RECT desktopRect;
-	GetClientRect(GetDesktopWindow(), &desktopRect);
-	int centeredX = (desktopRect.right / 2) - (clientRect.right / 2);
-	int centeredY = (desktopRect.bottom / 2) - (clientRect.bottom / 2);
-
-	// Actually ask Windows to create the window itself
-	// using our settings so far.  This will return the
-	// handle of the window, which we'll keep around for later
-	hWnd = CreateWindow(
-		wndClass.lpszClassName,
-		titleBarText.c_str(),
-		WS_OVERLAPPEDWINDOW,
-		centeredX,
-		centeredY,
-		clientRect.right - clientRect.left,	// Calculated width
-		clientRect.bottom - clientRect.top,	// Calculated height
-		0,			// No parent window
-		0,			// No menu
-		hInstance,	// The app's handle
-		0);			// No other windows in our application
-
-	// Ensure the window was created properly
-	if (hWnd == NULL)
-	{
-		DWORD error = GetLastError();
-		return HRESULT_FROM_WIN32(error);
-	}
-
-	// The window exists but is not visible yet
-	// We need to tell Windows to show it, and how to show it
-	ShowWindow(hWnd, SW_SHOW);
-
-	// Return an "everything is ok" HRESULT value
-	return S_OK;
-}
-
 
 // --------------------------------------------------------
 // Initializes DirectX, which requires a window.  This method
@@ -175,12 +86,15 @@ HRESULT DXCore::InitDirectX()
 	deviceFlags |= D3D11_CREATE_DEVICE_DEBUG;
 #endif
 
+	unsigned int windowWidth = Window::getWidth();
+	unsigned int windowHeight = Window::getHeight();
+
 	// Create a description of how our swap
 	// chain should work
 	DXGI_SWAP_CHAIN_DESC swapDesc = {};
 	swapDesc.BufferCount = 1;
-	swapDesc.BufferDesc.Width = width;
-	swapDesc.BufferDesc.Height = height;
+	swapDesc.BufferDesc.Width = windowWidth;
+	swapDesc.BufferDesc.Height = windowHeight;
 	swapDesc.BufferDesc.RefreshRate.Numerator = 60;
 	swapDesc.BufferDesc.RefreshRate.Denominator = 1;
 	swapDesc.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
@@ -188,7 +102,7 @@ HRESULT DXCore::InitDirectX()
 	swapDesc.BufferDesc.Scaling = DXGI_MODE_SCALING_UNSPECIFIED;
 	swapDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
 	swapDesc.Flags = 0;
-	swapDesc.OutputWindow = hWnd;
+	swapDesc.OutputWindow = m_window->getWindowHandle();
 	swapDesc.SampleDesc.Count = 1;
 	swapDesc.SampleDesc.Quality = 0;
 	swapDesc.SwapEffect = DXGI_SWAP_EFFECT_DISCARD;
@@ -232,8 +146,8 @@ HRESULT DXCore::InitDirectX()
 
 	// Set up the description of the texture to use for the depth buffer
 	D3D11_TEXTURE2D_DESC depthStencilTextureDesc = {};
-	depthStencilTextureDesc.Width				= width;
-	depthStencilTextureDesc.Height				= height;
+	depthStencilTextureDesc.Width				= windowWidth;
+	depthStencilTextureDesc.Height				= windowHeight;
 	depthStencilTextureDesc.MipLevels			= 1;
 	depthStencilTextureDesc.ArraySize			= 1;
 	depthStencilTextureDesc.Format				= DXGI_FORMAT_D24_UNORM_S8_UINT;
@@ -260,8 +174,8 @@ HRESULT DXCore::InitDirectX()
 	D3D11_VIEWPORT viewport = {};
 	viewport.TopLeftX	= 0;
 	viewport.TopLeftY	= 0;
-	viewport.Width		= (float)width;
-	viewport.Height		= (float)height;
+	viewport.Width		= (float)windowWidth;
+	viewport.Height		= (float)windowHeight;
 	viewport.MinDepth	= 0.0f;
 	viewport.MaxDepth	= 1.0f;
 	context->RSSetViewports(1, &viewport);
@@ -280,6 +194,9 @@ HRESULT DXCore::InitDirectX()
 // --------------------------------------------------------
 void DXCore::OnResize()
 {
+	unsigned int windowWidth = Window::getWidth();
+	unsigned int windowHeight = Window::getHeight();
+
 	// Release existing DirectX views and buffers
 	if (depthStencilView) { depthStencilView->Release(); }
 	if (backBufferRTV) { backBufferRTV->Release(); }
@@ -287,8 +204,8 @@ void DXCore::OnResize()
 	// Resize the underlying swap chain buffers
 	swapChain->ResizeBuffers(
 		1,
-		width,
-		height,
+		windowWidth,
+		windowHeight,
 		DXGI_FORMAT_R8G8B8A8_UNORM,
 		0);
 
@@ -301,8 +218,8 @@ void DXCore::OnResize()
 
 	// Set up the description of the texture to use for the depth buffer
 	D3D11_TEXTURE2D_DESC depthStencilDesc;
-	depthStencilDesc.Width				= width;
-	depthStencilDesc.Height				= height;
+	depthStencilDesc.Width				= windowWidth;
+	depthStencilDesc.Height				= windowHeight;
 	depthStencilDesc.MipLevels			= 1;
 	depthStencilDesc.ArraySize			= 1;
 	depthStencilDesc.Format				= DXGI_FORMAT_D24_UNORM_S8_UINT;
@@ -329,11 +246,37 @@ void DXCore::OnResize()
 	D3D11_VIEWPORT viewport = {};
 	viewport.TopLeftX = 0;
 	viewport.TopLeftY = 0;
-	viewport.Width = (float)width;
-	viewport.Height = (float)height;
+	viewport.Width = (float)windowWidth;
+	viewport.Height = (float)windowHeight;
 	viewport.MinDepth = 0.0f;
 	viewport.MaxDepth = 1.0f;
 	context->RSSetViewports(1, &viewport);
+}
+
+HRESULT DXCore::Init()
+{
+	HRESULT hr = S_OK;
+
+	hr = m_window->init();
+	if (FAILED(hr))
+	{
+		Debug::error("Failed to initialize window.");
+		return hr;
+	}
+
+	hr = InitDirectX();
+	if (FAILED(hr))
+	{
+		Debug::error("Failed to initialize Direct3D.");
+		return hr;
+	}
+
+	// Tell the input assembler stage of the pipeline what kind of
+	// geometric primitives (points, lines or triangles) we want to draw.  
+	// Essentially: "What kind of shape should the GPU draw with our data?"
+	context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
+	return S_OK;
 }
 
 
@@ -352,9 +295,6 @@ HRESULT DXCore::Run()
 	currentTime = now;
 	previousTime = now;
 
-	// Give subclass a chance to initialize
-	if(!Init()) return S_OK;
-
 	// Our overall game and message loop
 	MSG msg = {};
 	while (msg.message != WM_QUIT)
@@ -371,7 +311,7 @@ HRESULT DXCore::Run()
 		{
 			// Update timer and title bar (if necessary)
 			UpdateTimer();
-			if(titleBarStats)
+			if(m_titleBarStats)
 				UpdateTitleBarStats();
 
 			// The game loop
@@ -392,7 +332,7 @@ HRESULT DXCore::Run()
 // --------------------------------------------------------
 void DXCore::Quit()
 {
-	PostMessage(this->hWnd, WM_CLOSE, NULL, NULL);
+	PostMessage(DXCoreInstance->m_window->getWindowHandle(), WM_CLOSE, NULL, NULL);
 }
 
 
@@ -442,11 +382,11 @@ void DXCore::UpdateTitleBarStats()
 	// Quick and dirty title bar text (mostly for debugging)
 	std::ostringstream output;
 	output.precision(6);
-	output << titleBarText <<
-		"    Width: "		<< width <<
-		"    Height: "		<< height <<
-		"    FPS: "			<< fpsFrameCount <<
-		"    Frame Time: "	<< mspf << "ms";
+	output << m_titleBarText <<
+		"    Width: " << m_window->getWidth() <<
+		"    Height: " << m_window->getHeight() <<
+		"    FPS: " << fpsFrameCount <<
+		"    Frame Time: " << mspf << "ms";
 
 	// Append the version of DirectX the app is using
 	switch (dxFeatureLevel)
@@ -462,7 +402,8 @@ void DXCore::UpdateTitleBarStats()
 	}
 
 	// Actually update the title bar and reset fps data
-	SetWindowText(hWnd, output.str().c_str());
+	m_window->setTitleText(output.str().c_str());
+
 	fpsFrameCount = 0;
 	fpsTimeElapsed += 1.0f;
 }
@@ -499,8 +440,7 @@ LRESULT DXCore::ProcessMessage(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPara
 			return 0;
 
 		// Save the new client area dimensions.
-		width = LOWORD(lParam);
-		height = HIWORD(lParam);
+		m_window->resize(LOWORD(lParam), HIWORD(lParam));
 
 		// If DX is initialized, resize 
 		// our required buffers

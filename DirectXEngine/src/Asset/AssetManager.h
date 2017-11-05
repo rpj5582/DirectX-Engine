@@ -15,13 +15,23 @@
 
 #define DEFAULT_SHADER_VERTEX "defaultVertex"
 #define DEFAULT_SHADER_PIXEL "defaultPixel"
+
 #define DEFAULT_TEXTURE_DIFFUSE "defaultDiffuse"
 #define DEFAULT_TEXTURE_SPECULAR "defaultSpecular"
 #define DEFAULT_TEXTURE_NORMAL "defaultNormal"
 #define DEFAULT_TEXTURE_GUI "defaultGUI"
+
 #define DEFAULT_MATERIAL "defaultMaterial"
+
 #define DEFAULT_SAMPLER "defaultSampler"
+
 #define DEFAULT_FONT "arial_16pt"
+
+#if defined(DEBUG) || defined(_DEBUG)
+#define DEBUG_TEXTURE_DEFAULTICON "debugDefaultIcon"
+#define DEBUG_TEXTURE_LIGHTICON "debugLightIcon"
+#define DEBUG_TEXTURE_CAMERAICON "debugCameraIcon"
+#endif
 
 class AssetManager
 {
@@ -50,6 +60,7 @@ public:
 
 private:
 	bool loadDefaultAssets();
+	bool isDefaultAsset(std::string assetName) const;
 	void deleteAssets();
 
 	static AssetManager* m_instance;

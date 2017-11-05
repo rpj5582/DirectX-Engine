@@ -16,18 +16,19 @@ bool Renderer::init()
 	return true;
 }
 
-void Renderer::render(const CameraComponent& mainCamera, const XMMATRIX& projectionMatrix, Entity** entities, unsigned int entityCount, const GPU_LIGHT_DATA* lightData)
+void Renderer::render(const CameraComponent& mainCamera, XMFLOAT4X4 projectionMatrix, Entity** entities, size_t entityCount, const GPU_LIGHT_DATA* lightData)
 {
 	Transform* mainCameraTransform = mainCamera.getEntity().getComponent<Transform>();
 	if (!mainCameraTransform) return;
 
-	XMMATRIX viewMatrixT = XMMatrixTranspose(mainCamera.getViewMatrix());
-	XMFLOAT4X4 viewMatrix4x4;
-	XMStoreFloat4x4(&viewMatrix4x4, viewMatrixT);
+	XMFLOAT4X4 view = mainCamera.getViewMatrix();
+	XMMATRIX viewMatrixT = XMMatrixTranspose(XMLoadFloat4x4(&view));
+	XMFLOAT4X4 viewT;
+	XMStoreFloat4x4(&viewT, viewMatrixT);
 
-	XMMATRIX projectionMatrixT = XMMatrixTranspose(projectionMatrix);
-	XMFLOAT4X4 projectionMatrix4x4;
-	XMStoreFloat4x4(&projectionMatrix4x4, projectionMatrixT);
+	XMMATRIX projectionMatrixT = XMMatrixTranspose(XMLoadFloat4x4(&projectionMatrix));
+	XMFLOAT4X4 projT;
+	XMStoreFloat4x4(&projT, projectionMatrixT);
 
 	for (unsigned int i = 0; i < entityCount; i++)
 	{
@@ -45,18 +46,17 @@ void Renderer::render(const CameraComponent& mainCamera, const XMMATRIX& project
 				SimpleVertexShader* vertexShader = material->getVertexShader();
 				SimplePixelShader* pixelShader = material->getPixelShader();
 
-				XMMATRIX worldMatrixT = XMMatrixTranspose(transform->getWorldMatrix());
-				XMFLOAT4X4 worldMatrix4x4;
-				XMStoreFloat4x4(&worldMatrix4x4, worldMatrixT);
+				XMFLOAT4X4 world = transform->getWorldMatrix();
+				XMMATRIX worldMatrixT = XMMatrixTranspose(XMLoadFloat4x4(&world));
+				XMFLOAT4X4 worldT;
+				XMStoreFloat4x4(&worldT, worldMatrixT);
 
-				XMMATRIX worldMatrixIT = transform->getInverseWorldMatrix();
-				XMFLOAT4X4 worldMatrixInverseTranspose4x4;
-				XMStoreFloat4x4(&worldMatrixInverseTranspose4x4, worldMatrixIT);
+				XMFLOAT4X4 worldMatrixInverse = transform->getInverseWorldMatrix();
 
-				vertexShader->SetMatrix4x4("world", worldMatrix4x4);
-				vertexShader->SetMatrix4x4("view", viewMatrix4x4);
-				vertexShader->SetMatrix4x4("projection", projectionMatrix4x4);
-				vertexShader->SetMatrix4x4("worldInverseTranspose", worldMatrixInverseTranspose4x4);
+				vertexShader->SetMatrix4x4("world", worldT);
+				vertexShader->SetMatrix4x4("view", viewT);
+				vertexShader->SetMatrix4x4("projection", projT);
+				vertexShader->SetMatrix4x4("worldInverseTranspose", worldMatrixInverse);
 				vertexShader->CopyBufferData("matrices");
 
 				// Don't draw the entity if it can't be seen anyway
@@ -66,8 +66,20 @@ void Renderer::render(const CameraComponent& mainCamera, const XMMATRIX& project
 					pixelShader->SetFloat3("cameraWorldPosition", mainCameraTransform->getPosition());
 					pixelShader->CopyBufferData("camera");
 
-					pixelShader->SetInt("renderStyle", (int)meshRenderComponent->getRenderStyle());
+					if (entities[i]->selected)
+					{
+						pixelShader->SetInt("renderStyle", (int)SOLID_WIREFRAME);
+						pixelShader->SetFloat4("wireColor", XMFLOAT4(1.0f, 1.0f, 0.0f, 1.0f));
+					}
+					else
+					{
+						pixelShader->SetInt("renderStyle", (int)meshRenderComponent->getRenderStyle());
+						pixelShader->SetFloat4("wireColor", meshRenderComponent->getWireframeColor());
+					}
+
 					pixelShader->CopyBufferData("renderStyle");
+
+					
 
 					Mesh* mesh = meshRenderComponent->getMesh();
 					if (mesh)
@@ -90,7 +102,7 @@ void Renderer::render(const CameraComponent& mainCamera, const XMMATRIX& project
 						//  - DrawIndexed() uses the currently set INDEX BUFFER to look up corresponding
 						//     vertices in the currently set VERTEX BUFFER
 						m_context->DrawIndexed(
-							mesh->getIndexCount(),			// The number of indices to use (we could draw a subset if we wanted)
+							(UINT)mesh->getIndexCount(),			// The number of indices to use (we could draw a subset if we wanted)
 							0,								// Offset to the first index we want to use
 							0);								// Offset to add to each index when looking up vertices
 					}

@@ -1,9 +1,8 @@
 #pragma once
 
-#include <Windows.h>
-#include <d3d11.h>
+#include "Window.h"
 
-#include <string>
+#include <d3d11.h>
 
 // We can include the correct library files here
 // instead of in Visual Studio settings if we want
@@ -12,12 +11,11 @@
 class DXCore
 {
 public:
-	DXCore(
-		HINSTANCE hInstance,		// The application's handle
-		char* titleBarText,			// Text for the window's title bar
+	DXCore(HINSTANCE hInstance,
 		unsigned int windowWidth,	// Width of the window's client area
 		unsigned int windowHeight,	// Height of the window's client area
-		bool debugTitleBarStats);	// Show extra stats (fps) in title bar?
+		char* titleBarText,			// Text for the window's title bar
+		bool debugTitleBarStats);	// The application's handle
 	~DXCore();
 
 	// Static requirements for OS-level message processing
@@ -33,27 +31,19 @@ public:
 	virtual LRESULT ProcessMessage(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
 	// Initialization and game-loop related methods
-	HRESULT InitWindow();
 	HRESULT InitDirectX();
 	HRESULT Run();				
-	void Quit();
+	static void Quit();
 	virtual void OnResize();
 	
 	// Pure virtual methods for setup and game functionality
-	virtual bool Init()										= 0;
+	virtual HRESULT Init();
 	virtual void Update(float deltaTime, float totalTime)	= 0;
 	virtual void Draw(float deltaTime, float totalTime)		= 0;
 	
 protected:
-	HINSTANCE	hInstance;		// The handle to the application
-	HWND		hWnd;			// The handle to the window itself
-	std::string titleBarText;	// Custom text in window's title bar
-	bool		titleBarStats;	// Show extra stats in title bar?
-	
-	// Size of the window's client area
-	unsigned int width;
-	unsigned int height;
-	
+	Window* m_window;
+
 	// DirectX related objects and variables
 	D3D_FEATURE_LEVEL		dxFeatureLevel;
 	IDXGISwapChain*			swapChain;
@@ -64,6 +54,9 @@ protected:
 	ID3D11DepthStencilView* depthStencilView;
 
 private:
+	std::string m_titleBarText;	// Custom text in window's title bar
+	bool m_titleBarStats;	// Show extra stats in title bar?
+
 	// Timing related data
 	double perfCounterSeconds;
 	float totalTime;

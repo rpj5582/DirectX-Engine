@@ -1,5 +1,7 @@
 #include "RenderComponent.h"
 
+using namespace DirectX;
+
 TwEnumVal RenderComponent::d_renderStyleMembers[3] = 
 {
 	{ SOLID, "Solid" }, 
@@ -13,6 +15,7 @@ RenderComponent::RenderComponent(Entity& entity) : Component(entity)
 {
 	m_material = nullptr;
 	m_renderStyle = RenderStyle::SOLID;
+	m_wireColor = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
 }
 
 RenderComponent::~RenderComponent()
@@ -35,6 +38,7 @@ void RenderComponent::initDebugVariables()
 
 	Debug::entityDebugWindow->addVariableWithCallbacks(TW_TYPE_STDSTRING, "Material", this, &getRenderComponentMaterialDebugEditor, &setRenderComponentMaterialDebugEditor, this);
 	Debug::entityDebugWindow->addVariable(&m_renderStyle, TW_TYPE_RENDER_STLYE, "Render Style", this);
+	Debug::entityDebugWindow->addVariable(&m_wireColor, TW_TYPE_COLOR4F, "Wireframe Color", this);
 }
 
 void RenderComponent::loadFromJSON(rapidjson::Value& dataObject)
@@ -76,6 +80,12 @@ void RenderComponent::loadFromJSON(rapidjson::Value& dataObject)
 			break;
 		}
 	}
+
+	rapidjson::Value::MemberIterator wireColor = dataObject.FindMember("wireColor");
+	if (wireColor != dataObject.MemberEnd())
+	{
+		m_wireColor = XMFLOAT4(wireColor->value["r"].GetFloat(), wireColor->value["g"].GetFloat(), wireColor->value["b"].GetFloat(), wireColor->value["a"].GetFloat());
+	}
 }
 
 void RenderComponent::saveToJSON(rapidjson::Writer<rapidjson::StringBuffer>& writer)
@@ -105,6 +115,23 @@ void RenderComponent::saveToJSON(rapidjson::Writer<rapidjson::StringBuffer>& wri
 		writer.String("solid");
 		break;
 	}
+
+	writer.Key("wireColor");
+	writer.StartObject();
+
+	writer.Key("r");
+	writer.Double((double)m_wireColor.x);
+
+	writer.Key("g");
+	writer.Double((double)m_wireColor.y);
+
+	writer.Key("b");
+	writer.Double((double)m_wireColor.z);
+
+	writer.Key("a");
+	writer.Double((double)m_wireColor.w);
+
+	writer.EndObject();
 }
 
 Material* RenderComponent::getMaterial() const
@@ -141,6 +168,16 @@ RenderStyle RenderComponent::getRenderStyle() const
 void RenderComponent::setRenderStyle(RenderStyle renderStyle)
 {
 	m_renderStyle = renderStyle;
+}
+
+XMFLOAT4 RenderComponent::getWireframeColor() const
+{
+	return m_wireColor;
+}
+
+void RenderComponent::setWireframeColor(XMFLOAT4 color)
+{
+	m_wireColor = color;
 }
 
 void TW_CALL getRenderComponentMaterialDebugEditor(void* value, void* clientData)

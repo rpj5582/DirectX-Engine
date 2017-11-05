@@ -73,7 +73,7 @@ void FreeCamControls::update(float deltaTime, float totalTime)
 		transform->moveY(moveSpeed * deltaTime);
 	}
 
-	if (Input::isMouseButtonDown(MOUSE_LEFT))
+	if (Input::isMouseButtonDown(MOUSE_RIGHT))
 	{
 		XMFLOAT2 mouseDelta = Input::getMouseDelta();
 

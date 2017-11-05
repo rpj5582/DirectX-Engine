@@ -2,6 +2,7 @@
 
 #include "../Entity.h"
 #include "../Asset/AssetManager.h"
+#include "../Window.h"
 
 #include "../rapidjson/document.h"
 #include "../rapidjson/writer.h"

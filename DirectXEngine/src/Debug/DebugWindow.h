@@ -4,8 +4,6 @@
 
 #include <string>
 
-class Scene;
-
 class DebugWindow
 {
 public:

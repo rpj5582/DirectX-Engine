@@ -26,15 +26,15 @@ public:
 	ID3D11Buffer* getVertexBuffer() const;
 	ID3D11Buffer* getIndexBuffer() const;
 
-	unsigned int getIndexCount() const;
+	size_t getIndexCount() const;
 
 private:
-	void createBuffers(ID3D11Device* device, Vertex* vertices, unsigned int vertexCount, UINT* indices, unsigned int indexCount);
+	void createBuffers(ID3D11Device* device, Vertex* vertices, size_t vertexCount, UINT* indices, size_t indexCount);
 
 	// A helper function when loading meshes to calculate tangents for the normal map lighting calculation and assigns barycentric coordinates for solid wireframe rendering.
-	void calculateTangentsAndBarycentric(Vertex* vertices, unsigned int vertexCount, unsigned int* indices);
+	void calculateTangentsAndBarycentric(Vertex* vertices, size_t vertexCount, unsigned int* indices);
 
 	ID3D11Buffer* m_vertexBuffer;
 	ID3D11Buffer* m_indexBuffer;
-	unsigned int m_indexCount;
+	size_t m_indexCount;
 };

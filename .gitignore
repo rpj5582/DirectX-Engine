@@ -20,6 +20,7 @@ bld/
 # Debug objects
 DirectXEngine/Debug/
 DirectXEngine/Release/
+DirectXEngine/x64/
 
 # Executables
 *.exe

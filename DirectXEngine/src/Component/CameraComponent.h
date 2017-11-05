@@ -9,7 +9,11 @@ public:
 
 	virtual void lateUpdate(float deltaTime, float totalTime) override;
 
-	DirectX::XMMATRIX getViewMatrix() const;
+	DirectX::XMFLOAT4X4 getViewMatrix() const;
+
+	DirectX::XMFLOAT3 screenToWorld(DirectX::XMFLOAT2 screenPoint);
+	DirectX::XMFLOAT2 worldToScreen(DirectX::XMFLOAT3 worldPoint);
+	bool isVisible(DirectX::XMFLOAT3 worldPoint);
 
 private:
 	void updateViewMatrix();

@@ -22,7 +22,7 @@ SceneManager::~SceneManager()
 	m_activeScene = nullptr;
 }
 
-unsigned int SceneManager::getSceneCount() const
+size_t SceneManager::getSceneCount() const
 {
 	return m_sceneList.size();
 }

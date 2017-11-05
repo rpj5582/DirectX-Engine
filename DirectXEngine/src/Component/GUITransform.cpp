@@ -95,10 +95,10 @@ void GUITransform::saveToJSON(rapidjson::Writer<rapidjson::StringBuffer>& writer
 	writer.EndObject();
 }
 
-bool GUITransform::containsPoint(float x, float y) const
+bool GUITransform::containsPoint(XMFLOAT2 point) const
 {
-	if (x >= m_position.x - m_origin.x * m_size.x && x <= m_position.x - m_origin.x * m_size.x + m_size.x &&
-		y >= m_position.y - m_origin.y * m_size.y && y <= m_position.y - m_origin.y * m_size.y + m_size.y)
+	if (point.x >= m_position.x - m_origin.x * m_size.x && point.x <= m_position.x - m_origin.x * m_size.x + m_size.x &&
+		point.y >= m_position.y - m_origin.y * m_size.y && point.y <= m_position.y - m_origin.y * m_size.y + m_size.y)
 		return true;
 
 	return false;

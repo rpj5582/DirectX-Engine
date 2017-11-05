@@ -53,12 +53,7 @@ int WINAPI WinMain(
 
 	// Attempt to create the window for our program, and
 	// exit early if something failed
-	hr = dxGame.InitWindow();
-	if(FAILED(hr)) return hr;
-
-	// Attempt to initialize DirectX, and exit
-	// early if something failed
-	hr = dxGame.InitDirectX();
+	hr = dxGame.Init();
 	if(FAILED(hr)) return hr;
 
 	// Begin the message and game loop, and then return

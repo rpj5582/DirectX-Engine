@@ -8,7 +8,7 @@ public:
 	SceneManager();
 	~SceneManager();
 
-	unsigned int getSceneCount() const;
+	size_t getSceneCount() const;
 
 	static Scene* getActiveScene();
 

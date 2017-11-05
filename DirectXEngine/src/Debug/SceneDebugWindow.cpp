@@ -37,5 +37,8 @@ void SceneDebugWindow::setupControls()
 	addButton("ClearSceneButton", "Clear Scene", "''", &newSceneDebugEditor, nullptr);
 	addSeparator("ClearSceneSeparator", "''");
 
-	TwAddVarRW(m_window, "PlayButton", TW_TYPE_BOOLCPP, &Debug::inPlayMode, " label='Play' ");
+	addButton("ToggleDebugIconsButton", "Toggle Debug Icons", "'Settings'", &toggleDebugIconsSceneDebugEditor, nullptr);
+	addSeparator("ToggleDebugIconsSeparator", "'Settings'");
+	addButton("ShowEntitiesButton", "Expand All Entities", "'Settings'", &showAllEntitiesSceneDebugEditor, nullptr);
+	addButton("HideEntitiesButton", "Hide All Entities", "'Settings'", &hideAllEntitiesSceneDebugEditor, nullptr);
 }

@@ -14,7 +14,7 @@ public:
 	~GUIRenderer();
 
 	void begin(ID3D11BlendState* blendState, ID3D11DepthStencilState* depthStencilState);
-	void render(const GUIComponent* const* guiComponents, unsigned int guiCount);
+	void render(const GUIComponent* const* guiComponents, size_t guiCount);
 	void end();
 
 private:

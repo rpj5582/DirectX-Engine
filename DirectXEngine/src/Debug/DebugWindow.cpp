@@ -8,6 +8,7 @@ DebugWindow::DebugWindow(std::string windowID, std::string windowLabel)
 	m_windowID = windowID;
 	m_windowLabel = windowLabel;
 	m_window = TwNewBar(m_windowID.c_str());
+
 	TwDefine((m_windowID + " label='" + m_windowLabel + "' iconified=true color='50 50 50' alpha=200 ").c_str());
 #endif
 }

@@ -15,7 +15,7 @@ public:
 
 	bool init();
 
-	void render(const CameraComponent& mainCamera, const DirectX::XMMATRIX& projectionMatrix, Entity** entities, unsigned int entityCount, const GPU_LIGHT_DATA* lightData);
+	void render(const CameraComponent& mainCamera, DirectX::XMFLOAT4X4 projectionMatrix, Entity** entities, size_t entityCount, const GPU_LIGHT_DATA* lightData);
 
 private:
 	ID3D11DeviceContext* m_context;

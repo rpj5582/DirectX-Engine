@@ -6,7 +6,7 @@
 
 using namespace DirectX;
 
-Scene::Scene(ID3D11Device* device, ID3D11DeviceContext* context, std::string name, std::string filepath, unsigned int windowWidth, unsigned int windowHeight, float nearZ, float farZ)
+Scene::Scene(ID3D11Device* device, ID3D11DeviceContext* context, std::string name, std::string filepath)
 {
 	m_device = device;
 	m_context = context;
@@ -20,12 +20,6 @@ Scene::Scene(ID3D11Device* device, ID3D11DeviceContext* context, std::string nam
 	m_blendState = nullptr;
 	m_depthStencilStateDefault = nullptr;
 	m_depthStencilStateRead = nullptr;
-
-	XMStoreFloat4x4(&m_projectionMatrix, XMMatrixIdentity());
-	m_windowWidth = windowWidth;
-	m_windowHeight = windowHeight;
-	m_near = nearZ;
-	m_far = farZ;
 
 	m_entities = std::vector<Entity*>();
 
@@ -72,13 +66,12 @@ Scene::~Scene()
 
 bool Scene::init()
 {
-	m_debugCamera = new Entity(*this, "DebugCamera");
-	Transform* debugCameraTransform = m_debugCamera->addComponent<Transform>();
+	m_debugCamera = new Entity(*this, "DebugCamera", false);
+	Transform* debugCameraTransform = m_debugCamera->addComponent<Transform>(false);
 	debugCameraTransform->move(XMFLOAT3(0, 10, -10));
 	debugCameraTransform->rotateLocalX(30);
-	m_debugCamera->addComponent<CameraComponent>();
-	m_debugCamera->addComponent<FreeCamControls>();
-	Debug::entityDebugWindow->removeEntity(m_debugCamera);
+	m_debugCamera->addComponent<CameraComponent>(false);
+	m_debugCamera->addComponent<FreeCamControls>(false);
 
 	m_renderer = new Renderer(m_context);
 	if (!m_renderer->init()) return false;
@@ -141,8 +134,6 @@ bool Scene::init()
 	m_context->OMSetBlendState(m_blendState, nullptr, 0xffffffff);
 	m_context->OMSetDepthStencilState(m_depthStencilStateDefault, 0);
 
-	updateProjectionMatrix(m_windowWidth, m_windowHeight, m_near, m_far);
-
 	return true;
 }
 
@@ -166,8 +157,22 @@ void Scene::update(float deltaTime, float totalTime)
 	}
 	else
 	{
+#if defined(DEBUG) || defined(_DEBUG)
 		m_debugCamera->update(deltaTime, totalTime);
 		m_debugCamera->lateUpdate(deltaTime, totalTime);
+
+		for (unsigned int i = 0; i < m_entities.size(); i++)
+		{
+			Transform* entityTransform = m_entities[i]->getComponent<Transform>();
+			GUIDebugSpriteComponent* debugIconSpriteComponent = m_entities[i]->getDebugIconSpriteComponent();
+
+			if (entityTransform && entityTransform->enabled && debugIconSpriteComponent)
+			{
+				debugIconSpriteComponent->update(deltaTime, totalTime);
+				debugIconSpriteComponent->calculatePosition(entityTransform->getPosition());
+			}
+		}
+#endif
 	}
 }
 
@@ -358,32 +363,6 @@ void Scene::saveToJSON()
 	Debug::message("Saved scene to " + m_filepath);
 }
 
-DirectX::XMMATRIX Scene::getProjectionMatrix() const
-{
-	return XMLoadFloat4x4(&m_projectionMatrix);
-}
-
-void Scene::updateProjectionMatrix(unsigned int windowWidth, unsigned int windowHeight, float nearZ, float farZ)
-{
-	m_windowWidth = windowWidth;
-	m_windowHeight = windowHeight;
-	m_near = nearZ;
-	m_far = farZ;
-
-	XMMATRIX perspective = XMMatrixPerspectiveFovLH(XM_PIDIV4, (float)m_windowWidth / m_windowHeight, m_near, m_far);
-	XMStoreFloat4x4(&m_projectionMatrix, perspective);
-}
-
-float Scene::getNearZ() const
-{
-	return m_near;
-}
-
-float Scene::getFarZ() const
-{
-	return m_far;
-}
-
 CameraComponent* Scene::getMainCamera() const
 {
 	return m_mainCamera;
@@ -405,6 +384,15 @@ void Scene::setMainCamera(Entity* entity)
 	}
 
 	setMainCamera(camera);
+}
+
+CameraComponent* Scene::getDebugCamera() const
+{
+#if defined(DEBUG) || defined(_DEBUG)
+	return m_debugCamera->getComponent<CameraComponent>();
+#endif
+
+	return nullptr;
 }
 
 void Scene::renderGeometry()
@@ -471,7 +459,7 @@ void Scene::renderGeometry()
 
 	if (m_entities.size() > 0)
 	{
-		m_renderer->render(*camera, getProjectionMatrix(), &m_entities[0], m_entities.size(), &lightData[0]);
+		m_renderer->render(*camera, Window::getProjectionMatrix(), &m_entities[0], m_entities.size(), &lightData[0]);
 	}
 }
 
@@ -498,6 +486,22 @@ void Scene::renderGUI()
 		guis.push_back(guiComponent);
 	}
 
+#if defined(DEBUG) || defined(_DEBUG)
+	if (!Debug::inPlayMode)
+	{
+		for (unsigned int i = 0; i < m_entities.size(); i++)
+		{
+			GUITransform* debugIconTransform = m_entities[i]->getDebugIconTransform();
+			GUIDebugSpriteComponent* debugIconSpriteComponent = m_entities[i]->getDebugIconSpriteComponent();
+
+			if (debugIconTransform && debugIconTransform->enabled && debugIconSpriteComponent && debugIconSpriteComponent->enabled)
+			{
+				guis.push_back(debugIconSpriteComponent);
+			}
+		}
+	}
+#endif
+
 	m_guiRenderer->begin(m_blendState, m_depthStencilStateRead);
 
 	if (guis.size() > 0)
@@ -519,7 +523,7 @@ Entity* Scene::createEntity(std::string name)
 		}
 	}
 
-	Entity* entity = new Entity(*this, name);
+	Entity* entity = new Entity(*this, name, true);
 	m_entities.push_back(entity);
 
 	Debug::entityDebugWindow->addEntity(entity);
@@ -600,4 +604,9 @@ Entity* Scene::getEntityByName(std::string name)
 
 	Debug::warning("Failed to find entity with name " + name);
 	return nullptr;
+}
+
+std::vector<Entity*> Scene::getAllEntities() const
+{
+	return m_entities;
 }

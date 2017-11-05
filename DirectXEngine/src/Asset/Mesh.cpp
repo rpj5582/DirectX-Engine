@@ -201,7 +201,7 @@ bool Mesh::loadAsset()
 	return true;
 }
 
-void Mesh::createBuffers(ID3D11Device* device, Vertex* vertices, unsigned int vertexCount, UINT* indices, unsigned int indexCount)
+void Mesh::createBuffers(ID3D11Device* device, Vertex* vertices, size_t vertexCount, UINT* indices, size_t indexCount)
 {
 	assert(vertexCount > 0);
 	assert(indexCount > 0);
@@ -215,7 +215,7 @@ void Mesh::createBuffers(ID3D11Device* device, Vertex* vertices, unsigned int ve
 	//    it to create the buffer.  The description is then useless.
 	D3D11_BUFFER_DESC vbd;
 	vbd.Usage = D3D11_USAGE_IMMUTABLE;
-	vbd.ByteWidth = sizeof(Vertex) * vertexCount; // number of vertices in the buffer
+	vbd.ByteWidth = (UINT)(sizeof(Vertex) * vertexCount); // number of vertices in the buffer
 	vbd.BindFlags = D3D11_BIND_VERTEX_BUFFER; // Tells DirectX this is a vertex buffer
 	vbd.CPUAccessFlags = 0;
 	vbd.MiscFlags = 0;
@@ -235,7 +235,7 @@ void Mesh::createBuffers(ID3D11Device* device, Vertex* vertices, unsigned int ve
 	//    it to create the buffer.  The description is then useless.
 	D3D11_BUFFER_DESC ibd;
 	ibd.Usage = D3D11_USAGE_IMMUTABLE;
-	ibd.ByteWidth = sizeof(UINT) * indexCount; // number of indices in the buffer
+	ibd.ByteWidth = (UINT)(sizeof(UINT) * indexCount); // number of indices in the buffer
 	ibd.BindFlags = D3D11_BIND_INDEX_BUFFER; // Tells DirectX this is an index buffer
 	ibd.CPUAccessFlags = 0;
 	ibd.MiscFlags = 0;
@@ -261,13 +261,13 @@ ID3D11Buffer* Mesh::getIndexBuffer() const
 	return m_indexBuffer;
 }
 
-unsigned int Mesh::getIndexCount() const
+size_t Mesh::getIndexCount() const
 {
 	return m_indexCount;
 }
 
 // Code adapted from: http://www.terathon.com/code/tangent.html
-void Mesh::calculateTangentsAndBarycentric(Vertex* vertices, unsigned int vertexCount, unsigned int* indices)
+void Mesh::calculateTangentsAndBarycentric(Vertex* vertices, size_t vertexCount, unsigned int* indices)
 {
 	for (unsigned int i = 0; i < vertexCount;)
 	{

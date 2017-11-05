@@ -4,6 +4,7 @@
 
 #include "../Component/CameraComponent.h"
 #include "../Component/FreeCamControls.h"
+#include "../Component/GUIDebugSpriteComponent.h"
 
 #include "../Render/Renderer.h"
 #include "../Render/GUIRenderer.h"
@@ -15,7 +16,7 @@ class Scene
 public:
 	friend class SceneManager;
 
-	Scene(ID3D11Device* device, ID3D11DeviceContext* context, std::string name, std::string filepath, unsigned int windowWidth, unsigned int windowHeight, float nearZ, float farZ);
+	Scene(ID3D11Device* device, ID3D11DeviceContext* context, std::string name, std::string filepath);
 	virtual ~Scene();
 
 	virtual bool init();
@@ -29,13 +30,8 @@ public:
 
 	void clear();
 
-	DirectX::XMMATRIX getProjectionMatrix() const;
-	void updateProjectionMatrix(unsigned int windowWidth, unsigned int windowHeight, float nearZ, float farZ);
-
-	float getNearZ() const;
-	float getFarZ() const;
-
 	Entity* getEntityByName(std::string name);
+	std::vector<Entity*> getAllEntities() const;
 
 	template<typename T>
 	std::vector<T*> getAllComponentsByType() const;
@@ -43,6 +39,8 @@ public:
 	CameraComponent* getMainCamera() const;
 	void setMainCamera(CameraComponent* camera);
 	void setMainCamera(Entity* entity);
+
+	CameraComponent* getDebugCamera() const;
 
 	std::string d_entityNameField;
 	std::string d_mainCameraField;
@@ -85,12 +83,6 @@ private:
 	ID3D11BlendState* m_blendState;
 	ID3D11DepthStencilState* m_depthStencilStateDefault;
 	ID3D11DepthStencilState* m_depthStencilStateRead;
-
-	DirectX::XMFLOAT4X4 m_projectionMatrix;
-	unsigned int m_windowWidth;
-	unsigned int m_windowHeight;
-	float m_near;
-	float m_far;
 
 	std::vector<Entity*> m_entities;
 

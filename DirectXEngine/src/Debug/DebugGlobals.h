@@ -54,6 +54,12 @@ void TW_CALL loadSceneDebugEditor(void* clientData);
 
 void TW_CALL saveSceneDebugEditor(void* clientData);
 
+void TW_CALL toggleDebugIconsSceneDebugEditor(void* clientData);
+
 void TW_CALL getMainCameraSceneDebugEditor(void* value, void* clientData);
 
 void TW_CALL setMainCameraSceneDebugEditor(const void* value, void* clientData);
+
+void TW_CALL showAllEntitiesSceneDebugEditor(void* clientData);
+
+void TW_CALL hideAllEntitiesSceneDebugEditor(void* clientData);

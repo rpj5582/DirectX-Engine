@@ -18,7 +18,7 @@ void GUIRenderer::begin(ID3D11BlendState* blendState, ID3D11DepthStencilState* d
 	m_spriteBatch->Begin(SpriteSortMode_Deferred, blendState, nullptr, depthStencilState);
 }
 
-void GUIRenderer::render(const GUIComponent* const* guiComponents, unsigned int guiCount)
+void GUIRenderer::render(const GUIComponent* const* guiComponents, size_t guiCount)
 {
 	for (unsigned int i = 0; i < guiCount; i++)
 	{

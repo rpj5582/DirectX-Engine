@@ -26,11 +26,15 @@ public:
 	RenderStyle getRenderStyle() const;
 	void setRenderStyle(RenderStyle renderStyle);
 
+	DirectX::XMFLOAT4 getWireframeColor() const;
+	void setWireframeColor(DirectX::XMFLOAT4 color);
+
 private:
 	std::string m_materialID;
 	Material* m_material;
 
 	RenderStyle m_renderStyle;
+	DirectX::XMFLOAT4 m_wireColor;
 
 	static TwEnumVal d_renderStyleMembers[3];
 	static TwType TW_TYPE_RENDER_STLYE;

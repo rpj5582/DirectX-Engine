@@ -7,12 +7,17 @@ using namespace DirectX;
 
 Texture::Texture(ID3D11Device* device, ID3D11DeviceContext* context, std::string assetID, unsigned int hexColor) : Asset(device, context, assetID, "")
 {
+	m_width = 1;
+	m_height = 1;
+
 	createSolidColor(hexColor);
 }
 
 Texture::Texture(ID3D11Device* device, ID3D11DeviceContext* context, std::string assetID, std::string filepath) : Asset(device, context, assetID, filepath)
 {
 	m_textureSRV = nullptr;
+	m_width = 0;
+	m_height = 0;
 }
 
 Texture::~Texture()
@@ -33,7 +38,9 @@ bool Texture::loadAsset()
 {
 	HRESULT hr = S_OK;
 	std::wstring wideFilePath = std::wstring(m_filepath.begin(), m_filepath.end());
-	hr = CreateWICTextureFromFile(m_device, m_context, wideFilePath.c_str(), nullptr, &m_textureSRV);
+
+	ID3D11Resource* resource;
+	hr = CreateWICTextureFromFile(m_device, m_context, wideFilePath.c_str(), &resource, &m_textureSRV);
 	if (FAILED(hr) || !m_textureSRV)
 	{
 		char* errorMsg;
@@ -50,6 +57,19 @@ bool Texture::loadAsset()
 		return false;
 	}
 
+	ID3D11Texture2D* texture;
+	resource->QueryInterface<ID3D11Texture2D>(&texture);
+
+	resource->Release();
+
+	D3D11_TEXTURE2D_DESC desc;
+	texture->GetDesc(&desc);
+
+	m_width = desc.Width;
+	m_height = desc.Height;
+
+	texture->Release();
+
 	return true;
 }
 
@@ -59,7 +79,9 @@ void Texture::createSolidColor(unsigned int hexColor)
 
 	// Creates the texture resource
 	D3D11_TEXTURE2D_DESC desc = {};
-	desc.Width = desc.Height = desc.MipLevels = desc.ArraySize = 1;
+	desc.Width = m_width;
+	desc.Height = m_height;
+	desc.MipLevels = desc.ArraySize = 1;
 	desc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
 	desc.SampleDesc.Count = 1;
 	desc.Usage = D3D11_USAGE_IMMUTABLE;
@@ -103,4 +125,14 @@ void Texture::createSolidColor(unsigned int hexColor)
 ID3D11ShaderResourceView* Texture::getSRV() const
 {
 	return m_textureSRV;
+}
+
+unsigned int Texture::getWidth() const
+{
+	return m_width;
+}
+
+unsigned int Texture::getHeight() const
+{
+	return m_height;
 }

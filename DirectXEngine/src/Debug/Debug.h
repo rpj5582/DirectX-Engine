@@ -39,7 +39,9 @@ public:
 	static EntityDebugWindow* entityDebugWindow;
 	static AssetDebugWindow* assetDebugWindow;
 
+#if defined(DEBUG) || defined(_DEBUG)
 	static bool inPlayMode;
+#endif
 
 private:
 	Debug();

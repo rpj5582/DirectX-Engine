@@ -18,6 +18,7 @@ cbuffer camera : register(b1)
 cbuffer renderStyle : register(b2)
 {
 	int renderStyle;
+	float4 wireColor;
 }
 
 Texture2D diffuseTexture : register(t0);
@@ -150,10 +151,10 @@ float4 main(VertexToPixel input) : SV_TARGET
 		return finalLightColor;
 
 	case WIREFRAME:
-		return float4(1.0f, 1.0f, 1.0f, 1.0f - edgeFactor(input.barycentric, 2.0f));
+		return float4(wireColor.r, wireColor.g, wireColor.b, wireColor.a - edgeFactor(input.barycentric, 2.0f));
 
 	case SOLID_WIREFRAME:
-		return lerp(float4(1.0f, 1.0f, 1.0f, 1.0f), finalLightColor, edgeFactor(input.barycentric, 2.0f));
+		return lerp(wireColor, finalLightColor, edgeFactor(input.barycentric, 2.0f));
 
 	default: // Invalid render style
 		return float4(1.0f, 0.0f, 1.0f, 1.0f);

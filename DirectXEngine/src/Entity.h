@@ -1,15 +1,18 @@
 #pragma once
 
+#include "Asset/AssetManager.h"
+#include "Debug/Debug.h"
+
 #include "rapidjson/document.h"
 #include "rapidjson/writer.h"
-
-#include "Debug/Debug.h"
 
 #include <string>
 #include <vector>
 #include <Windows.h>
 
 class Component;
+class GUITransform;
+class GUIDebugSpriteComponent;
 
 class Entity
 {
@@ -28,7 +31,7 @@ public:
 	std::string getName() const;
 
 	template<typename T>
-	T* addComponent();
+	T* addComponent(bool showInDebugWindow = true);
 	Component* addComponentByStringType(std::string componentType);
 
 	template<typename T>
@@ -59,12 +62,19 @@ public:
 	void removeChildByIndex(unsigned int index);
 	void removeChildByName(std::string childName);
 	void removeAllChildren();
-	
+
+	bool selected;
+
+#if defined(DEBUG) || defined(_DEBUG)
+	GUITransform* getDebugIconTransform() const;
+	GUIDebugSpriteComponent* getDebugIconSpriteComponent() const;
+#endif
+
 	std::string d_componentTypeField;
 	std::string d_childNameInputField;
 
 private:
-	Entity(Scene& scene, std::string name);
+	Entity(Scene& scene, std::string name, bool hasDebugIcon);
 	~Entity();
 
 	void setParentNonRecursive(Entity* parent);
@@ -79,10 +89,15 @@ private:
 
 	Entity* m_parent;
 	std::vector<Entity*> m_children;
+
+#if defined(DEBUG) || defined(_DEBUG)
+	GUITransform* d_guiDebugTransform;
+	GUIDebugSpriteComponent* d_guiDebugSpriteComponent;
+#endif
 };
 
 template<typename T>
-inline T* Entity::addComponent()
+inline T* Entity::addComponent(bool showInDebugWindow)
 {
 	static_assert(std::is_base_of<Component, T>::value, "Given type is not a Component.");
 
@@ -100,7 +115,27 @@ inline T* Entity::addComponent()
 	T* component = new T(*this);
 	m_components.push_back(component);
 	component->init();
-	Debug::entityDebugWindow->addComponent(component);
+
+	if(showInDebugWindow)
+		Debug::entityDebugWindow->addComponent(component);
+
+#if defined(DEBUG) || defined(_DEBUG)
+	if (d_guiDebugSpriteComponent)
+	{
+		CameraComponent* camera = getComponent<CameraComponent>();
+		LightComponent* light = getComponent<LightComponent>();
+
+		if (camera)
+		{
+			d_guiDebugSpriteComponent->setTexture(DEBUG_TEXTURE_CAMERAICON);
+		}
+		else if (light)
+		{
+			d_guiDebugSpriteComponent->setTexture(DEBUG_TEXTURE_LIGHTICON);
+		}
+	}
+#endif
+
 	return component;
 }
 

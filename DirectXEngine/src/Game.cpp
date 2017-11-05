@@ -3,9 +3,6 @@
 #include "Scene/Scene1.h"
 #include "Scene/Scene2.h"
 
-#define NEAR_Z 0.1f
-#define FAR_Z 100.0f
-
 // For the DirectX Math library
 using namespace DirectX;
 
@@ -20,9 +17,9 @@ using namespace DirectX;
 Game::Game(HINSTANCE hInstance)
 	: DXCore(
 		hInstance,		   // The application's handle
-		"DirectX Game",	   // Text for the window's title bar
 		1280,			   // Width of the window's client area
 		720,			   // Height of the window's client area
+		"DirectX Game",	   // Text for the window's title bar
 		true)			   // Show extra stats (fps) in title bar?
 {
 	m_assetManager = nullptr;
@@ -50,55 +47,39 @@ Game::~Game()
 // Called once per program, after DirectX and the window
 // are initialized but before the game loop.
 // --------------------------------------------------------
-bool Game::Init()
+HRESULT Game::Init()
 {
-	// Tell the input assembler stage of the pipeline what kind of
-	// geometric primitives (points, lines or triangles) we want to draw.  
-	// Essentially: "What kind of shape should the GPU draw with our data?"
-	context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+	HRESULT hr = DXCore::Init();
+	if (FAILED(hr))
+	{
+		return hr;
+	}
 
-	Debug::initDebugWindows(device, width, height);
+	Debug::initDebugWindows(device, m_window->getWidth(), m_window->getHeight());
 
 	ComponentRegistry registry;
 	registry.registerComponents();
 
 	m_assetManager = new AssetManager(device, context);
-	if (!m_assetManager->init()) return false;
+	if (!m_assetManager->init()) return E_ABORT;
 
-	m_input = new Input(hWnd);
+	m_input = new Input(m_window->getWindowHandle());
 
 	m_sceneManager = new SceneManager();
-	m_sceneManager->addScene(new Scene1(device, context, "testscene", "Assets/Scenes/testscene.json", width, height, NEAR_Z, FAR_Z));
-	m_sceneManager->addScene(new Scene2(device, context, "testscene2", "Assets/Scenes/testscene2.json", width, height, NEAR_Z, FAR_Z));
+	m_sceneManager->addScene(new Scene1(device, context, "testscene", "Assets/Scenes/testscene.json"));
+	m_sceneManager->addScene(new Scene2(device, context, "testscene2", "Assets/Scenes/testscene2.json"));
 
 	if (m_sceneManager->getSceneCount() == 0)
 	{
 		Debug::error("No scenes added to the scene list!");
-		return false;
+		return E_ABORT;
 	}
 	else
 	{
 		m_sceneManager->loadScene(0U);
 	}
 
-	return true;
-}
-
-
-// --------------------------------------------------------
-// Handle resizing DirectX "stuff" to match the new window size.
-// For instance, updating our projection matrix's aspect ratio.
-// --------------------------------------------------------
-void Game::OnResize()
-{
-	// Handle base-level DX resize stuff
-	DXCore::OnResize();
-
-	Scene* activeScene = m_sceneManager->getActiveScene();
-	if (activeScene)
-	{
-		activeScene->updateProjectionMatrix(width, height, NEAR_Z, FAR_Z);
-	}
+	return S_OK;
 }
 
 // --------------------------------------------------------
@@ -127,10 +108,7 @@ void Game::Update(float deltaTime, float totalTime)
 // --------------------------------------------------------
 void Game::Draw(float deltaTime, float totalTime)
 {
-	// Background color (Cornflower Blue in this case) for clearing
-	const float backgroundColor[4] = { 0.4f, 0.6f, 0.75f, 0.0f };
-
-	context->ClearRenderTargetView(backBufferRTV, backgroundColor);
+	context->ClearRenderTargetView(backBufferRTV, Colors::CornflowerBlue);
 	context->ClearDepthStencilView(depthStencilView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 
 	Scene* activeScene = m_sceneManager->getActiveScene();
@@ -151,7 +129,7 @@ void Game::Draw(float deltaTime, float totalTime)
 LRESULT Game::ProcessMessage(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
 	// Pass the message over to AntTweakBar so the UI can react to user input
-	if (!Debug::inPlayMode && TwEventWin(hWnd, msg, wParam, lParam))
+	if (!Debug::inPlayMode && TwEventWin(m_window->getWindowHandle(), msg, wParam, lParam))
 	{
 		return 0;
 	}

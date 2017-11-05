@@ -1,5 +1,6 @@
 #include "GUISpriteComponent.h"
 
+#include "GUIDebugSpriteComponent.h"
 #include "GUITransform.h"
 
 using namespace DirectX;
@@ -28,6 +29,15 @@ void GUISpriteComponent::initDebugVariables()
 	Debug::entityDebugWindow->addVariableWithCallbacks(TW_TYPE_STDSTRING, "Texture", this, &getGUISpriteComponentTextureDebugEditor, &setGUISpriteComponentTextureDebugEditor, this);
 }
 
+void GUISpriteComponent::onSceneLoaded()
+{
+	GUITransform* guiTransform = entity.getComponent<GUITransform>();
+	if (guiTransform)
+	{
+		guiTransform->setSize(XMFLOAT2((float)m_texture->getWidth(), (float)m_texture->getHeight()));
+	}
+}
+
 void GUISpriteComponent::loadFromJSON(rapidjson::Value& dataObject)
 {
 	GUIComponent::loadFromJSON(dataObject);
@@ -49,17 +59,38 @@ void GUISpriteComponent::saveToJSON(rapidjson::Writer<rapidjson::StringBuffer>& 
 
 void GUISpriteComponent::draw(DirectX::SpriteBatch& spriteBatch) const
 {
-	GUITransform* guiTransform = entity.getComponent<GUITransform>();
-	if (!guiTransform) return;
+	GUITransform* guiTransform = nullptr;
+	GUISpriteComponent* guiSpriteComponent = nullptr;
 
+	guiTransform = entity.getDebugIconTransform();
+	guiSpriteComponent = entity.getDebugIconSpriteComponent();
+	if (this != guiSpriteComponent)
+	{
+		guiTransform = entity.getComponent<GUITransform>();
+	}
+
+	if (!guiTransform) return;
 	if (!m_texture) return;
 
 	XMFLOAT2 position = guiTransform->getPosition();
 	float rotation = guiTransform->getRotation();
-	XMFLOAT2 size = guiTransform->getSize();
 	XMFLOAT2 origin = guiTransform->getOrigin();
 	XMVECTORF32 color = { m_color.x, m_color.y, m_color.z, m_color.w };
-	spriteBatch.Draw(m_texture->getSRV(), position, nullptr, color, sinf(XMConvertToRadians(rotation)), origin, size);
+
+	XMFLOAT2 size = guiTransform->getSize();
+	XMFLOAT2 textureSize = XMFLOAT2((float)m_texture->getWidth(), (float)m_texture->getHeight());
+
+	XMVECTOR textureSizeVec = XMLoadFloat2(&textureSize);
+
+	XMVECTOR scaledSizeVec = XMVectorDivide(XMLoadFloat2(&size), textureSizeVec);
+	XMFLOAT2 scaledSize;
+	XMStoreFloat2(&scaledSize, scaledSizeVec);
+
+	XMVECTOR scaledOriginVec = XMVectorMultiply(XMLoadFloat2(&origin), textureSizeVec);
+	XMFLOAT2 scaledOrigin;
+	XMStoreFloat2(&scaledOrigin, scaledOriginVec);
+
+	spriteBatch.Draw(m_texture->getSRV(), position, nullptr, color, sinf(XMConvertToRadians(rotation)), scaledOrigin, scaledSize);
 }
 
 Texture* GUISpriteComponent::getTexture() const

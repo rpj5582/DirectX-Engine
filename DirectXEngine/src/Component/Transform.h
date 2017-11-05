@@ -24,8 +24,8 @@ public:
 	const DirectX::XMFLOAT3 getUp();
 	const DirectX::XMFLOAT3 getForward();
 
-	const DirectX::XMMATRIX getWorldMatrix();
-	const DirectX::XMMATRIX getInverseWorldMatrix();
+	const DirectX::XMFLOAT4X4 getWorldMatrix();
+	const DirectX::XMFLOAT4X4 getInverseWorldMatrix();
 
 	void move(DirectX::XMFLOAT3 delta);
 	void moveX(float delta);

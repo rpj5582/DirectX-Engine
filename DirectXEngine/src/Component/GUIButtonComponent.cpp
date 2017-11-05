@@ -46,7 +46,7 @@ void GUIButtonComponent::update(float deltaTime, float totalTime)
 		GUITransform* guiTransform = entity.getComponent<GUITransform>();
 		if (!guiTransform) return;
 
-		if (guiTransform->containsPoint(mousePosition.x, mousePosition.y))
+		if (guiTransform->containsPoint(mousePosition))
 		{
 			m_onClick();
 		}

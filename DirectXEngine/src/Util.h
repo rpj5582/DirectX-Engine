@@ -15,7 +15,7 @@ inline constexpr unsigned int stringHash(const char* string, unsigned int h = fn
 
 inline std::string removeSpacesFromString(std::string string)
 {
-	for (int i = 0; (i = string.find(' ', i)) != -1;)
+	for (size_t i = 0; (i = string.find(' ', i)) != -1;)
 	{
 		string.erase(i, 1);
 	}
