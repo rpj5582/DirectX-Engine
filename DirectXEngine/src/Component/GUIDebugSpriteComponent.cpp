@@ -15,8 +15,6 @@ GUIDebugSpriteComponent::~GUIDebugSpriteComponent()
 
 void GUIDebugSpriteComponent::init()
 {
-	GUISpriteComponent::init();
-
 	setTexture(DEBUG_TEXTURE_DEFAULTICON);
 }
 

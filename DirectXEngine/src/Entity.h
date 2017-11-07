@@ -10,6 +10,9 @@
 #include <vector>
 #include <Windows.h>
 
+#define TAG_LIGHT "light"
+#define TAG_GUI "gui"
+
 class Component;
 class GUITransform;
 class GUIDebugSpriteComponent;
@@ -63,6 +66,10 @@ public:
 	void removeChildByName(std::string childName);
 	void removeAllChildren();
 
+	void addTag(std::string tag);
+	void removeTag(std::string tag);
+	bool hasTag(std::string tag) const;
+
 	bool selected;
 
 #if defined(DEBUG) || defined(_DEBUG)
@@ -80,6 +87,9 @@ private:
 	void setParentNonRecursive(Entity* parent);
 	void addChildNonRecursive(Entity* child);
 
+	void addTagNonResursive(std::string tag);
+	void removeTagNonRecursive(std::string tag);
+
 	Scene& m_scene;
 
 	std::string m_name;
@@ -89,6 +99,8 @@ private:
 
 	Entity* m_parent;
 	std::vector<Entity*> m_children;
+
+	std::unordered_set<std::string> m_tags;
 
 #if defined(DEBUG) || defined(_DEBUG)
 	GUITransform* d_guiDebugTransform;

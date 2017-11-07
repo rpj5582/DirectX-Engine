@@ -26,11 +26,19 @@ LightComponent::LightComponent(Entity& entity) : Component(entity)
 
 LightComponent::~LightComponent()
 {
+	if (!entity.getComponent<LightComponent>())
+	{
+		if (entity.hasTag(TAG_LIGHT))
+			entity.removeTag(TAG_LIGHT);
+	}
 }
 
 void LightComponent::init()
 {
 	Component::init();
+
+	if (!entity.hasTag(TAG_LIGHT))
+		entity.addTag(TAG_LIGHT);
 
 	setLightType(DIRECTIONAL_LIGHT);
 	setSettingsDefault();

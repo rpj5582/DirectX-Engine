@@ -29,15 +29,6 @@ void GUISpriteComponent::initDebugVariables()
 	Debug::entityDebugWindow->addVariableWithCallbacks(TW_TYPE_STDSTRING, "Texture", this, &getGUISpriteComponentTextureDebugEditor, &setGUISpriteComponentTextureDebugEditor, this);
 }
 
-void GUISpriteComponent::onSceneLoaded()
-{
-	GUITransform* guiTransform = entity.getComponent<GUITransform>();
-	if (guiTransform)
-	{
-		guiTransform->setSize(XMFLOAT2((float)m_texture->getWidth(), (float)m_texture->getHeight()));
-	}
-}
-
 void GUISpriteComponent::loadFromJSON(rapidjson::Value& dataObject)
 {
 	GUIComponent::loadFromJSON(dataObject);

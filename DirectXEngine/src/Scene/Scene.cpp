@@ -1,5 +1,8 @@
 #include "Scene.h"
 
+#include "../Component/FreeCamControls.h"
+#include "../Component/GUIDebugSpriteComponent.h"
+
 #include "../rapidjson/error/en.h"
 #include <fstream>
 #include <string>
@@ -22,6 +25,7 @@ Scene::Scene(ID3D11Device* device, ID3D11DeviceContext* context, std::string nam
 	m_depthStencilStateRead = nullptr;
 
 	m_entities = std::vector<Entity*>();
+	m_taggedEntities = std::unordered_map<std::string, std::vector<Entity*>>();
 
 	m_debugCamera = nullptr;
 	m_mainCamera = nullptr;
@@ -55,6 +59,7 @@ Scene::~Scene()
 		delete m_entities[i];
 	}
 	m_entities.clear();
+	m_taggedEntities.clear();
 
 	if (m_blendState) m_blendState->Release();
 	if (m_depthStencilStateDefault) m_depthStencilStateDefault->Release();
@@ -66,6 +71,9 @@ Scene::~Scene()
 
 bool Scene::init()
 {
+	addTag(TAG_LIGHT);
+	addTag(TAG_GUI);
+
 	m_debugCamera = new Entity(*this, "DebugCamera", false);
 	Transform* debugCameraTransform = m_debugCamera->addComponent<Transform>(false);
 	debugCameraTransform->move(XMFLOAT3(0, 10, -10));
@@ -363,6 +371,56 @@ void Scene::saveToJSON()
 	Debug::message("Saved scene to " + m_filepath);
 }
 
+void Scene::addTag(std::string tag)
+{
+	if (m_taggedEntities.find(tag) != m_taggedEntities.end())
+	{
+		Debug::warning("Tag " + tag + " not added because the tag already exists.");
+		return;
+	}
+
+	m_taggedEntities[tag] = std::vector<Entity*>();
+}
+
+void Scene::addTagToEntity(Entity& entity, std::string tag)
+{
+	if (m_taggedEntities.find(tag) == m_taggedEntities.end())
+	{
+		addTag(tag);
+	}
+
+	if (entity.hasTag(tag))
+	{
+		Debug::warning("Tag " + tag + " not added to entity " + entity.getName() + " because the entity already has this tag.");
+		return;
+	}
+
+	m_taggedEntities[tag].push_back(&entity);
+	entity.addTagNonResursive(tag);
+}
+
+void Scene::removeTagFromEntity(Entity& entity, std::string tag)
+{
+	if (m_taggedEntities.find(tag) == m_taggedEntities.end())
+	{
+		Debug::warning("Could not remove tag " + tag + " from entity " + entity.getName() + " because the tag doesn't exist.");
+		return;
+	}
+
+	std::vector<Entity*>& entities = m_taggedEntities.at(tag);
+	for (unsigned int i = 0; i < entities.size(); i++)
+	{
+		if (entities[i] == &entity)
+		{
+			entities[i]->removeTagNonRecursive(tag);
+			entities.erase(entities.begin() + i);
+			break;
+		}
+	}
+
+	Debug::warning("Tag " + tag + " not removed from entity " + entity.getName() + " because the entity does not have this tag.");
+}
+
 CameraComponent* Scene::getMainCamera() const
 {
 	return m_mainCamera;
@@ -414,13 +472,14 @@ void Scene::renderGeometry()
 
 	// Preprocess each light entity to get it's position and direction (for forward rendering).
 	std::vector<GPU_LIGHT_DATA> lightData = std::vector<GPU_LIGHT_DATA>(MAX_LIGHTS);
-	unsigned int lightCount = 0;
-	for (unsigned int i = 0; i < m_entities.size(); i++)
+
+	std::vector<Entity*> lightEntities = m_taggedEntities.at(TAG_LIGHT);
+	for (unsigned int i = 0; i < lightEntities.size() && i < MAX_LIGHTS; i++)
 	{
-		if (!m_entities[i]->getEnabled()) continue;
+		if (!lightEntities[i]->getEnabled()) continue;
 
 		LightComponent* lightComponent = nullptr;
-		std::vector<Component*>& components = m_entities[i]->getAllComponents();
+		std::vector<Component*>& components = lightEntities[i]->getAllComponents();
 		for (unsigned int j = 0; j < components.size(); j++)
 		{
 			lightComponent = dynamic_cast<LightComponent*>(components[j]);
@@ -433,7 +492,7 @@ void Scene::renderGeometry()
 		const LightSettings lightSettings = lightComponent->getLightSettings();
 
 		// Get position, direction, and type of each light
-		Transform* lightTransform = m_entities[i]->getComponent<Transform>();
+		Transform* lightTransform = lightEntities[i]->getComponent<Transform>();
 		if (!lightTransform) continue;
 
 		XMFLOAT3 lightPosition = lightTransform->getPosition();
@@ -442,8 +501,7 @@ void Scene::renderGeometry()
 		unsigned int lightType = (unsigned int)lightComponent->getLightType();
 
 		// Creates the final memory-aligned struct that is sent to the GPU
-		lightCount = (lightCount + 1) % MAX_LIGHTS;
-		lightData[lightCount] =
+		lightData[i] =
 		{
 			lightSettings.color,
 			lightDirection,
@@ -466,24 +524,16 @@ void Scene::renderGeometry()
 void Scene::renderGUI()
 {
 	std::vector<GUIComponent*> guis;
-
-	for (unsigned int i = 0; i < m_entities.size(); i++)
+	std::vector<Entity*>& guiEntities = m_taggedEntities.at(TAG_GUI);
+	for (unsigned int i = 0; i < guiEntities.size(); i++)
 	{
 		if (!m_entities[i]->getEnabled()) continue;
 
-		GUIComponent* guiComponent = nullptr;
-		std::vector<Component*>& components = m_entities[i]->getAllComponents();
-		for (unsigned int j = 0; j < components.size(); j++)
+		GUIComponent* gui = guiEntities[i]->getComponent<GUIComponent>();
+		if (gui && gui->enabled)
 		{
-			guiComponent = dynamic_cast<GUIComponent*>(components[j]);
-			if (guiComponent)
-				break;
-				
+			guis.push_back(gui);
 		}
-
-		if (!guiComponent || !guiComponent->enabled) continue;
-
-		guis.push_back(guiComponent);
 	}
 
 #if defined(DEBUG) || defined(_DEBUG)
@@ -606,7 +656,30 @@ Entity* Scene::getEntityByName(std::string name)
 	return nullptr;
 }
 
+Entity* Scene::getEntityWithTag(std::string tag)
+{
+	std::vector<Entity*> entities = getAllEntitiesWithTag(tag);
+	if (entities.size() == 0)
+	{
+		Debug::warning("No entities in the scene have a tag " + tag + ".");
+		return nullptr;
+	}
+
+	return entities[0];
+}
+
 std::vector<Entity*> Scene::getAllEntities() const
 {
 	return m_entities;
+}
+
+std::vector<Entity*> Scene::getAllEntitiesWithTag(std::string tag) const
+{
+	if (m_taggedEntities.find(tag) == m_taggedEntities.end())
+	{
+		Debug::warning("Tag " + tag + " doesn't exist.");
+		return std::vector<Entity*>();
+	}
+
+	return m_taggedEntities.at(tag);
 }

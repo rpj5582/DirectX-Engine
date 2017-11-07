@@ -16,6 +16,8 @@ Entity::Entity(Scene& scene, std::string name, bool hasDebugIcon) : m_scene(scen
 
 	selected = false;
 
+	m_tags = std::unordered_set<std::string>();
+
 	d_componentTypeField = "";
 	d_childNameInputField = "";
 
@@ -41,11 +43,16 @@ Entity::~Entity()
 	delete d_guiDebugSpriteComponent;
 #endif
 
-	for (unsigned int i = 0; i < m_components.size(); i++)
+	while (m_components.size() > 0)
 	{
-		delete m_components[i];
+		delete m_components.back();
+		m_components.pop_back();
 	}
-	m_components.clear();
+
+	m_parent = nullptr;
+	m_children.clear();
+
+	m_tags.clear();
 }
 
 void Entity::update(float deltaTime, float totalTime)
@@ -82,6 +89,16 @@ void Entity::saveToJSON(rapidjson::Writer<rapidjson::StringBuffer>& writer) cons
 	for (unsigned int i = 0; i < m_children.size(); i++)
 	{
 		writer.String(m_children[i]->getName().c_str());
+	}
+
+	writer.EndArray();
+
+	writer.Key("tags");
+	writer.StartArray();
+
+	for (auto it = m_tags.begin(); it != m_tags.end(); it++)
+	{
+		writer.String(it->c_str());
 	}
 
 	writer.EndArray();
@@ -161,8 +178,8 @@ void Entity::removeComponent(Component* component)
 		if (m_components[i] == component)
 		{
 			Debug::entityDebugWindow->removeComponent(component);
-			delete component;
 			m_components.erase(m_components.begin() + i);
+			delete component;
 			return;
 		}
 	}
@@ -332,6 +349,21 @@ void Entity::removeAllChildren()
 	m_children.clear();
 }
 
+void Entity::addTag(std::string tag)
+{
+	m_scene.addTagToEntity(*this, tag);
+}
+
+void Entity::removeTag(std::string tag)
+{
+	m_scene.removeTagFromEntity(*this, tag);
+}
+
+bool Entity::hasTag(std::string tag) const
+{
+	return m_tags.find(tag) != m_tags.end();
+}
+
 GUITransform* Entity::getDebugIconTransform() const
 {
 	return d_guiDebugTransform;
@@ -358,4 +390,14 @@ void Entity::setParentNonRecursive(Entity* parent)
 void Entity::addChildNonRecursive(Entity* child)
 {
 	m_children.push_back(child);
+}
+
+void Entity::addTagNonResursive(std::string tag)
+{
+	m_tags.insert(tag);
+}
+
+void Entity::removeTagNonRecursive(std::string tag)
+{
+	m_tags.erase(tag);
 }

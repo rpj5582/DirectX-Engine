@@ -2,10 +2,6 @@
 
 #include "../Entity.h"
 
-#include "../Component/CameraComponent.h"
-#include "../Component/FreeCamControls.h"
-#include "../Component/GUIDebugSpriteComponent.h"
-
 #include "../Render/Renderer.h"
 #include "../Render/GUIRenderer.h"
 
@@ -31,10 +27,17 @@ public:
 	void clear();
 
 	Entity* getEntityByName(std::string name);
+	Entity* getEntityWithTag(std::string tag);
 	std::vector<Entity*> getAllEntities() const;
+	std::vector<Entity*> getAllEntitiesWithTag(std::string tag) const;
 
 	template<typename T>
 	std::vector<T*> getAllComponentsByType() const;
+
+	void addTag(std::string tag);
+
+	void addTagToEntity(Entity& entity, std::string tag);
+	void removeTagFromEntity(Entity& entity, std::string tag);
 
 	CameraComponent* getMainCamera() const;
 	void setMainCamera(CameraComponent* camera);
@@ -85,6 +88,8 @@ private:
 	ID3D11DepthStencilState* m_depthStencilStateRead;
 
 	std::vector<Entity*> m_entities;
+
+	std::unordered_map<std::string, std::vector<Entity*>> m_taggedEntities;
 
 	Entity* m_debugCamera;
 	CameraComponent* m_mainCamera;
