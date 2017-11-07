@@ -73,6 +73,8 @@ public:
 	bool selected;
 
 #if defined(DEBUG) || defined(_DEBUG)
+	void enableDebugIcon();
+	void disableDebugIcon();
 	GUITransform* getDebugIconTransform() const;
 	GUIDebugSpriteComponent* getDebugIconSpriteComponent() const;
 #endif

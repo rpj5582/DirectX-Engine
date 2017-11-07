@@ -15,6 +15,18 @@ Transform::Transform(Entity& entity) : Component(entity)
 
 Transform::~Transform()
 {
+#if defined(DEBUG) || defined(_DEBUG)
+	entity.disableDebugIcon();
+#endif
+}
+
+void Transform::init()
+{
+	Component::init();
+
+#if defined(DEBUG) || defined(_DEBUG)
+	entity.enableDebugIcon();
+#endif
 }
 
 void Transform::initDebugVariables()

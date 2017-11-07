@@ -32,6 +32,9 @@ Entity::Entity(Scene& scene, std::string name, bool hasDebugIcon) : m_scene(scen
 		d_guiDebugSpriteComponent->init();
 
 		d_guiDebugTransform->setSize(XMFLOAT2((float)d_guiDebugSpriteComponent->getTexture()->getWidth(), (float)d_guiDebugSpriteComponent->getTexture()->getHeight()));
+
+		d_guiDebugTransform->enabled = false;
+		d_guiDebugSpriteComponent->enabled = false;
 	}
 #endif
 }
@@ -362,6 +365,24 @@ void Entity::removeTag(std::string tag)
 bool Entity::hasTag(std::string tag) const
 {
 	return m_tags.find(tag) != m_tags.end();
+}
+
+void Entity::enableDebugIcon()
+{
+	if (d_guiDebugTransform && d_guiDebugSpriteComponent)
+	{
+		d_guiDebugTransform->enabled = true;
+		d_guiDebugSpriteComponent->enabled = true;
+	}
+}
+
+void Entity::disableDebugIcon()
+{
+	if (d_guiDebugTransform && d_guiDebugSpriteComponent)
+	{
+		d_guiDebugTransform->enabled = false;
+		d_guiDebugSpriteComponent->enabled = false;
+	}
 }
 
 GUITransform* Entity::getDebugIconTransform() const
