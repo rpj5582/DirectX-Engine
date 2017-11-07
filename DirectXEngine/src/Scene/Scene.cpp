@@ -252,6 +252,7 @@ bool Scene::loadFromJSON()
 
 		rapidjson::Value& entityName = entity["name"];
 		rapidjson::Value& children = entity["children"];
+		rapidjson::Value& tags = entity["tags"];
 		rapidjson::Value& components = entity["components"];
 
 		Entity* e = createEntity(entityName.GetString());
@@ -267,6 +268,11 @@ bool Scene::loadFromJSON()
 		{
 			rapidjson::Value& childName = children[j];
 			childrenNames.at(e).push_back(childName.GetString());
+		}
+
+		for (rapidjson::SizeType j = 0; j < tags.Size(); j++)
+		{
+			e->addTag(tags[j].GetString());
 		}
 
 		for (rapidjson::SizeType j = 0; j < components.Size(); j++)
