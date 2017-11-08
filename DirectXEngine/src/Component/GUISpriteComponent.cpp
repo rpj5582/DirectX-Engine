@@ -51,11 +51,11 @@ void GUISpriteComponent::saveToJSON(rapidjson::Writer<rapidjson::StringBuffer>& 
 void GUISpriteComponent::draw(DirectX::SpriteBatch& spriteBatch) const
 {
 	GUITransform* guiTransform = nullptr;
-	GUISpriteComponent* guiSpriteComponent = nullptr;
+	GUIDebugSpriteComponent* guiDebugSpriteComponent = nullptr;
 
 	guiTransform = entity.getDebugIconTransform();
-	guiSpriteComponent = entity.getDebugIconSpriteComponent();
-	if (this != guiSpriteComponent)
+	guiDebugSpriteComponent = entity.getDebugIconSpriteComponent();
+	if (this != guiDebugSpriteComponent)
 	{
 		guiTransform = entity.getComponent<GUITransform>();
 	}

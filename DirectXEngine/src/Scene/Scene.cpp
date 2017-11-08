@@ -420,7 +420,7 @@ void Scene::removeTagFromEntity(Entity& entity, std::string tag)
 		{
 			entities[i]->removeTagNonRecursive(tag);
 			entities.erase(entities.begin() + i);
-			break;
+			return;
 		}
 	}
 
@@ -484,14 +484,7 @@ void Scene::renderGeometry()
 	{
 		if (!lightEntities[i]->getEnabled()) continue;
 
-		LightComponent* lightComponent = nullptr;
-		std::vector<Component*>& components = lightEntities[i]->getAllComponents();
-		for (unsigned int j = 0; j < components.size(); j++)
-		{
-			lightComponent = dynamic_cast<LightComponent*>(components[j]);
-			if (lightComponent)
-				break;
-		}
+		LightComponent* lightComponent = lightEntities[i]->getComponent<LightComponent>();
 
 		if (!lightComponent || !lightComponent->enabled) continue;
 
