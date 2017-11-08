@@ -66,7 +66,7 @@ void Renderer::render(const CameraComponent& mainCamera, XMFLOAT4X4 projectionMa
 					pixelShader->SetFloat3("cameraWorldPosition", mainCameraTransform->getPosition());
 					pixelShader->CopyBufferData("camera");
 
-					if (entities[i]->selected)
+					if (!Debug::inPlayMode && entities[i]->selected)
 					{
 						pixelShader->SetInt("renderStyle", (int)SOLID_WIREFRAME);
 						pixelShader->SetFloat4("wireColor", XMFLOAT4(1.0f, 1.0f, 0.0f, 1.0f));
