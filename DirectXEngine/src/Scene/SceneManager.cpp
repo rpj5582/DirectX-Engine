@@ -80,6 +80,8 @@ bool SceneManager::loadScene(unsigned int index)
 		return false;
 	}
 
+	if(m_instance->m_activeScene)
+		m_instance->m_activeScene->clear();
 	m_instance->m_activeScene = m_instance->m_sceneList[index];
 
 	Debug::sceneDebugWindow->setupControls();

@@ -74,6 +74,8 @@ private:
 	void renderGeometry();
 	void renderGUI();
 
+	unsigned int getEntityIndex(const Entity& entity) const;
+
 	ID3D11Device* m_device;
 	ID3D11DeviceContext* m_context;
 

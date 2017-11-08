@@ -236,8 +236,6 @@ bool Scene::loadFromJSON()
 
 	ifs.close();
 
-	clear();
-
 	// Load the scene's dependent assets.
 	rapidjson::Value& assets = dom["assets"];
 	AssetManager::loadFromJSON(assets);
@@ -576,6 +574,21 @@ void Scene::renderGUI()
 	m_guiRenderer->end();
 }
 
+unsigned int Scene::getEntityIndex(const Entity& entity) const
+{
+	unsigned int index = 0;
+	for (; index < m_entities.size(); index++)
+	{
+		if (m_entities[index] == &entity)
+		{
+			return index;
+		}
+	}
+
+	Debug::warning("Could not get the index of entity " + entity.getName() + " because it wasn't found in the scene's entity list (How did that happen???).");
+	return -1;
+}
+
 Entity* Scene::createEntity(std::string name)
 {
 	for (unsigned int i = 0; i < m_entities.size(); i++)
@@ -603,18 +616,10 @@ void Scene::deleteEntity(Entity* entity)
 		return;
 	}
 
-	unsigned int index = 0;
-	for (; index < m_entities.size(); index++)
+	unsigned int index = getEntityIndex(*entity);
+	if (index < 0)
 	{
-		if (m_entities[index] == entity)
-		{
-			break;
-		}
-	}
-
-	if (index == m_entities.size())
-	{
-		Debug::warning("Could not delete entity " + entity->getName() + " because it wasn't found in the scene's entity list (How did that happen???).");
+		Debug::warning("Failed to delete entity " + entity->getName() + ".");
 		return;
 	}
 
@@ -632,6 +637,14 @@ void Scene::deleteEntity(Entity* entity)
 		}
 	}
 	children.clear();
+
+	// Recalculate the index since deleting children may have shifted the entity list
+	index = getEntityIndex(*entity);
+	if (index < 0)
+	{
+		Debug::warning("Failed to delete entity " + entity->getName() + ".");
+		return;
+	}
 
 	// Remove entity from tag lists
 	std::unordered_set<std::string> entityTags = m_entities[index]->getTags();
