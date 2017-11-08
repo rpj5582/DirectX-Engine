@@ -434,12 +434,27 @@ CameraComponent* Scene::getMainCamera() const
 
 void Scene::setMainCamera(CameraComponent* camera)
 {
+	if (!camera)
+	{
+		if(m_mainCamera)
+			Debug::warning("Scene no longer has a main camera.");
+
+		m_mainCamera = camera;
+		return;
+	}
+
 	Debug::message("Set main camera for scene " + m_name + " to entity " + camera->getEntity().getName());
 	m_mainCamera = camera;
 }
 
 void Scene::setMainCamera(Entity* entity)
 {
+	if (!entity)
+	{
+		setMainCamera((CameraComponent*)nullptr);
+		return;
+	}
+
 	CameraComponent* camera = entity->getComponent<CameraComponent>();
 	if (!camera)
 	{
@@ -611,13 +626,19 @@ void Scene::deleteEntity(Entity* entity)
 		{
 			if (m_entities[j] == children[i])
 			{
-				m_entities.erase(m_entities.begin() + j);
-				delete children[i];
+				deleteEntity(children[i]);
 				break;
 			}
 		}
 	}
 	children.clear();
+
+	// Remove entity from tag lists
+	std::unordered_set<std::string> entityTags = m_entities[index]->getTags();
+	for (auto it = entityTags.begin(); it != entityTags.end(); it++)
+	{
+		removeTagFromEntity(*m_entities[index], *it);
+	}
 
 	Debug::entityDebugWindow->removeEntity(entity);
 	delete m_entities[index];
@@ -629,11 +650,10 @@ void Scene::clear()
 {
 	while (m_entities.size() > 0)
 	{
-		delete m_entities.back();
-		m_entities.pop_back();
+		deleteEntity(m_entities.back());
 	}
 
-	m_mainCamera = nullptr;
+	setMainCamera((CameraComponent*)nullptr);
 	
 	AssetManager::unloadAllAssets();
 

@@ -58,9 +58,10 @@ public:
 
 	static void unloadAllAssets();
 
+	static bool isDefaultAsset(std::string assetName);
+
 private:
 	bool loadDefaultAssets();
-	bool isDefaultAsset(std::string assetName) const;
 	void deleteAssets();
 
 	static AssetManager* m_instance;

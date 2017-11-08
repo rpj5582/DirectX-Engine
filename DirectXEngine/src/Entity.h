@@ -69,6 +69,7 @@ public:
 	void addTag(std::string tag);
 	void removeTag(std::string tag);
 	bool hasTag(std::string tag) const;
+	std::unordered_set<std::string> getTags() const;
 
 	bool selected;
 

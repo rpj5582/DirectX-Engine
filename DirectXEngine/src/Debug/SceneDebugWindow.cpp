@@ -41,4 +41,6 @@ void SceneDebugWindow::setupControls()
 	addSeparator("ToggleDebugIconsSeparator", "'Settings'");
 	addButton("ShowEntitiesButton", "Expand All Entities", "'Settings'", &showAllEntitiesSceneDebugEditor, nullptr);
 	addButton("HideEntitiesButton", "Hide All Entities", "'Settings'", &hideAllEntitiesSceneDebugEditor, nullptr);
+
+	TwDefine((" " + m_windowID + "/Settings opened=false").c_str());
 }

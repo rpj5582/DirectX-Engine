@@ -367,6 +367,11 @@ bool Entity::hasTag(std::string tag) const
 	return m_tags.find(tag) != m_tags.end();
 }
 
+std::unordered_set<std::string> Entity::getTags() const
+{
+	return m_tags;
+}
+
 void Entity::enableDebugIcon()
 {
 	if (d_guiDebugTransform && d_guiDebugSpriteComponent)

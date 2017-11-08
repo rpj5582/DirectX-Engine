@@ -197,8 +197,13 @@ void TW_CALL toggleDebugIconsSceneDebugEditor(void* clientData)
 void TW_CALL getMainCameraSceneDebugEditor(void* value, void* clientData)
 {
 	Scene* scene = static_cast<Scene*>(clientData);
-	std::string* mainCameraName = static_cast<std::string*>(value);
-	TwCopyStdStringToLibrary(*mainCameraName, scene->getMainCamera()->getEntity().getName());
+
+	CameraComponent* mainCamera = scene->getMainCamera();
+	if (mainCamera)
+	{
+		std::string* mainCameraName = static_cast<std::string*>(value);
+		TwCopyStdStringToLibrary(*mainCameraName, mainCamera->getEntity().getName());
+	}
 }
 
 void TW_CALL setMainCameraSceneDebugEditor(const void* value, void* clientData)

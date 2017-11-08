@@ -349,9 +349,9 @@ bool AssetManager::loadDefaultAssets()
 	return true;
 }
 
-bool AssetManager::isDefaultAsset(std::string assetName) const
+bool AssetManager::isDefaultAsset(std::string assetName)
 {
-	if (   assetName == DEFAULT_SHADER_VERTEX || assetName == DEFAULT_SHADER_PIXEL
+	if (assetName == DEFAULT_SHADER_VERTEX || assetName == DEFAULT_SHADER_PIXEL
 		|| assetName == DEFAULT_TEXTURE_DIFFUSE || assetName == DEFAULT_TEXTURE_SPECULAR || assetName == DEFAULT_TEXTURE_NORMAL || assetName == DEFAULT_TEXTURE_GUI
 		|| assetName == DEFAULT_MATERIAL
 		|| assetName == DEFAULT_SAMPLER

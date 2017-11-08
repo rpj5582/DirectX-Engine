@@ -80,17 +80,17 @@ bool SceneManager::loadScene(unsigned int index)
 		return false;
 	}
 
-	if (!m_instance->m_sceneList[index]->loadFromJSON())
-	{
-		Debug::warning("Failed to load scene " + m_instance->m_sceneList[index]->getName() + ".");
-		return false;
-	}
-
 	m_instance->m_activeScene = m_instance->m_sceneList[index];
 
 	Debug::sceneDebugWindow->setupControls();
 	Debug::entityDebugWindow->setupControls();
 	Debug::assetDebugWindow->setupControls();
+
+	if (!m_instance->m_sceneList[index]->loadFromJSON())
+	{
+		Debug::warning("Failed to load scene " + m_instance->m_sceneList[index]->getName() + ".");
+		return false;
+	}
 
 	return true;
 }

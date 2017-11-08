@@ -19,12 +19,12 @@ void EntityDebugWindow::setupControls()
 	Scene* activeScene = SceneManager::getActiveScene();
 	if (activeScene)
 	{
-		addSeparator("AddEntitySeparator", "''");
 		TwAddVarRW(m_window, "AddEntityInputField", TW_TYPE_STDSTRING, &activeScene->d_entityNameField, " label='Entity Name' ");
 		addButton("AddEntityButton", "Add Entity", "''", &addEntityDebugEditor, activeScene);
+		addSeparator("AddEntitySeparator", "''");
 		
-		addSeparator("MainCameraSeparator", "''");
 		TwAddVarCB(m_window, "MainCameraInputField", TW_TYPE_STDSTRING, &setMainCameraSceneDebugEditor, &getMainCameraSceneDebugEditor, activeScene, " label='Main Camera' ");
+		addSeparator("MainCameraSeparator", "''");
 	}
 #endif
 }
@@ -40,20 +40,26 @@ void EntityDebugWindow::addEntity(Entity* entity)
 	addButton(entityName + "RemoveButton", "Remove Entity", entityName, &removeEntityDebugEditor, entity);
 	addSeparator(entityName + "RemoveSeparator", entityName);
 
-	TwAddVarRW(m_window, (entityName + "ChildNameField").c_str(), TW_TYPE_STDSTRING, &entity->d_childNameInputField, (" group='" + entityName + "' label='Child Name' ").c_str());
-	addButton(entityName + "AddChildButton", "Add Child", entityName, &addChildEntityDebugEditor, entity);
-	addButton(entityName + "RemoveChildButton", "Remove Child", entityName, &removeChildEntityDebugEditor, entity);
-	addSeparator(entityName + "ChildSeparator", entityName);
-
-	TwAddVarRW(m_window, (entityName + "ComponentTypeField").c_str(), TW_TYPE_STDSTRING, &entity->d_componentTypeField, (" group='" + entityName + "' label='Component Type' ").c_str());
-	addButton(entityName + "AddComponentButton", "Add Component", entityName, &addComponentDebugEditor, entity);
-	addSeparator(entityName + "AddComponentSeparator", entityName);
-
 	TwAddVarCB(m_window, (entityName + "Enabled").c_str(), TW_TYPE_BOOLCPP, &setEntityEnabledDebugEditor, &getEntityEnabledDebugEditor, entity, (" label='Enabled' group='" + entityName + "' ").c_str());
 	addSeparator(entityName + "EnabledSeparator", entityName);
 
-	std::string description = " " + m_windowID + "/" + entityName + " label='" + entity->getName() + "' opened=false group='" + parentName + "' ";
-	TwDefine(description.c_str());
+	TwAddVarRW(m_window, (entityName + "ChildNameField").c_str(), TW_TYPE_STDSTRING, &entity->d_childNameInputField, (" group='" + entityName + "Children' label='Child Name' ").c_str());
+	addButton(entityName + "AddChildButton", "Add Child", entityName + "Children", &addChildEntityDebugEditor, entity);
+	addButton(entityName + "RemoveChildButton", "Remove Child", entityName + "Children", &removeChildEntityDebugEditor, entity);
+	addSeparator(entityName + "ChildSeparator", entityName + "Children");
+
+	TwDefine((" " + m_windowID + "/" + entityName + "Children group='" + entityName + "' label='Children' opened=false ").c_str());
+
+	TwAddVarRW(m_window, (entityName + "ComponentTypeField").c_str(), TW_TYPE_STDSTRING, &entity->d_componentTypeField, (" group='" + entityName + "Components' label='Component Type' ").c_str());
+	addButton(entityName + "AddComponentButton", "Add Component", entityName + "Components", &addComponentDebugEditor, entity);
+	addSeparator(entityName + "AddComponentSeparator", entityName + "Components");
+
+	TwDefine((" " + m_windowID + "/" + entityName + "Components group='" + entityName + "' label='Components' opened=false ").c_str());
+
+	if(parentName.empty())
+		TwDefine((" " + m_windowID + "/" + entityName + " label='" + entity->getName() + "' opened=false group='' ").c_str());
+	else
+		TwDefine((" " + m_windowID + "/" + entityName + " label='" + entity->getName() + "' opened=false group='" + parentName + "Children' ").c_str());
 
 	m_entityNames.insert(entityName);
 
@@ -96,7 +102,7 @@ void EntityDebugWindow::addComponent(Component* component)
 	addSeparator(componentName + "RemoveSeparator", componentName);
 	addButton(componentName + "RemoveButton", "Remove Component", componentName, &removeComponentDebugEditor, component);
 
-	TwDefine((" " + m_windowID + "/" + componentName + " label='" + component->getName() + "' group='" + entityName + "' ").c_str());
+	TwDefine((" " + m_windowID + "/" + componentName + " label='" + component->getName() + "' group='" + entityName + "Components' ").c_str());
 
 #endif
 }
