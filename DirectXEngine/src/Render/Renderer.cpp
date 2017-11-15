@@ -2,14 +2,14 @@
 
 using namespace DirectX;
 
-Renderer::Renderer(ID3D11Device* device, ID3D11DeviceContext* context, ID3D11DepthStencilView* shadowMapDSV, ID3D11ShaderResourceView* shadowMapSRV)
+Renderer::Renderer(ID3D11Device* device, ID3D11DeviceContext* context)
 {
 	m_device = device;
 	m_context = context;
 
 	m_defaultShadowMap = nullptr;
-	m_shadowMapDSV = shadowMapDSV;
-	m_shadowMapSRV = shadowMapSRV;
+	m_shadowMapDSV = nullptr;
+	m_shadowMapSRV = nullptr;
 
 	m_basicVertexShader = nullptr;
 	m_shadowMapSampler = nullptr;
@@ -31,6 +31,57 @@ Renderer::~Renderer()
 bool Renderer::init()
 {
 	m_defaultShadowMap = AssetManager::getAsset<Texture>(DEFAULT_TEXTURE_WHITE);
+
+	D3D11_TEXTURE2D_DESC shadowMapDesc = {};
+	shadowMapDesc.Width = SHADOW_MAP_SIZE;
+	shadowMapDesc.Height = SHADOW_MAP_SIZE;
+	shadowMapDesc.MipLevels = 1;
+	shadowMapDesc.ArraySize = 1;
+	shadowMapDesc.Format = DXGI_FORMAT_R32_TYPELESS;
+	shadowMapDesc.Usage = D3D11_USAGE_DEFAULT;
+	shadowMapDesc.BindFlags = D3D11_BIND_DEPTH_STENCIL | D3D11_BIND_SHADER_RESOURCE;
+	shadowMapDesc.CPUAccessFlags = 0;
+	shadowMapDesc.MiscFlags = 0;
+	shadowMapDesc.SampleDesc.Count = 1;
+	shadowMapDesc.SampleDesc.Quality = 0;
+
+	D3D11_SHADER_RESOURCE_VIEW_DESC shadowMapSRVDesc = {};
+	shadowMapSRVDesc.Format = DXGI_FORMAT_R32_FLOAT;
+	shadowMapSRVDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+	shadowMapSRVDesc.Texture2D.MipLevels = 1;
+	shadowMapSRVDesc.Texture2D.MostDetailedMip = 0;
+
+	D3D11_DEPTH_STENCIL_VIEW_DESC shadowMapDSVDesc = {};
+	shadowMapDSVDesc.Format = DXGI_FORMAT_D32_FLOAT;
+	shadowMapDSVDesc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
+	shadowMapDSVDesc.Flags = 0;
+	shadowMapDSVDesc.Texture2D.MipSlice = 0;
+
+	HRESULT hr = S_OK;
+
+	ID3D11Texture2D* shadowMap;
+	hr = m_device->CreateTexture2D(&shadowMapDesc, nullptr, &shadowMap);
+	if (FAILED(hr))
+	{
+		Debug::error("Failed to create shadow map texture.");
+		return false;
+	}
+
+	hr = m_device->CreateDepthStencilView(shadowMap, &shadowMapDSVDesc, &m_shadowMapDSV);
+	if (FAILED(hr))
+	{
+		Debug::error("Failed to create shadow map depth stencil view.");
+		return false;
+	}
+
+	hr = m_device->CreateShaderResourceView(shadowMap, &shadowMapSRVDesc, &m_shadowMapSRV);
+	if (FAILED(hr))
+	{
+		Debug::error("Failed to create shadow map shader resource view.");
+		return false;
+	}
+
+	shadowMap->Release();
 
 	m_basicVertexShader = AssetManager::getAsset<VertexShader>(BASIC_SHADER_VERTEX);
 	if (!m_basicVertexShader)
