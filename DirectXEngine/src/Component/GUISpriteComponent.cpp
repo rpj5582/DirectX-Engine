@@ -1,6 +1,5 @@
 #include "GUISpriteComponent.h"
 
-#include "GUIDebugSpriteComponent.h"
 #include "GUITransform.h"
 
 using namespace DirectX;
@@ -50,14 +49,12 @@ void GUISpriteComponent::saveToJSON(rapidjson::Writer<rapidjson::StringBuffer>& 
 
 void GUISpriteComponent::draw(DirectX::SpriteBatch& spriteBatch) const
 {
-	GUITransform* guiTransform = nullptr;
-	GUIDebugSpriteComponent* guiDebugSpriteComponent = nullptr;
+	GUITransform* guiDebugTransform = entity.getDebugIconTransform();
+	GUITransform* guiTransform = entity.getComponent<GUITransform>();
 
-	guiTransform = entity.getDebugIconTransform();
-	guiDebugSpriteComponent = entity.getDebugIconSpriteComponent();
-	if (this != guiDebugSpriteComponent)
+	if (guiDebugTransform)
 	{
-		guiTransform = entity.getComponent<GUITransform>();
+		guiTransform = guiDebugTransform;
 	}
 
 	if (!guiTransform) return;
