@@ -7,16 +7,30 @@
 
 #include <DirectXMath.h>
 
+#define SHADOW_MAP_SIZE 2048
+
 class Renderer
 {
 public:
-	Renderer(ID3D11DeviceContext* context);
+	Renderer(ID3D11Device* device, ID3D11DeviceContext* context, ID3D11DepthStencilView* shadowMapDSV, ID3D11ShaderResourceView* shadowMapSRV);
 	~Renderer();
 
 	bool init();
 
-	void render(const CameraComponent& mainCamera, DirectX::XMFLOAT4X4 projectionMatrix, Entity** entities, size_t entityCount, const GPU_LIGHT_DATA* lightData);
+	void prepareShadowMapPass();
+	void renderShadowMapPass(Entity** entities, size_t entityCount, const LightComponent& light);
+
+	void prepareMainPass(ID3D11RenderTargetView* backBufferRTV, ID3D11DepthStencilView* backBufferDSV);
+	void renderMainPass(const CameraComponent& mainCamera, DirectX::XMFLOAT4X4 projectionMatrix, Entity** entities, size_t entityCount, const LightComponent* shadowMapLight, const GPU_LIGHT_DATA* lightData);
 
 private:
+	ID3D11Device* m_device;
 	ID3D11DeviceContext* m_context;
+
+	Texture* m_defaultShadowMap;
+	ID3D11DepthStencilView* m_shadowMapDSV;
+	ID3D11ShaderResourceView* m_shadowMapSRV;
+
+	VertexShader* m_basicVertexShader;
+	Sampler* m_shadowMapSampler;
 };

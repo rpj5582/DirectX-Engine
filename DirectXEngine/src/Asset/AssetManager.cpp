@@ -17,7 +17,7 @@ AssetManager::AssetManager(ID3D11Device* device, ID3D11DeviceContext* context)
 
 AssetManager::~AssetManager()
 {
-	deleteAssets();
+	deleteAssets(true);
 	m_instance = nullptr;
 }
 
@@ -28,8 +28,6 @@ bool AssetManager::init()
 
 void AssetManager::loadFromJSON(rapidjson::Value& assetsArray)
 {
-	unloadAllAssets();
-
 	for (rapidjson::SizeType i = 0; i < assetsArray.Size(); i++)
 	{
 		rapidjson::Value& asset = assetsArray[i];
@@ -87,7 +85,7 @@ void AssetManager::loadFromJSON(rapidjson::Value& assetsArray)
 			rapidjson::Value::MemberIterator pixelShaderIter = asset.FindMember("pixelShader");
 
 			std::string diffuseID = DEFAULT_TEXTURE_DIFFUSE;
-			std::string specularID = DEFAULT_TEXTURE_SPECULAR;
+			std::string specularID = DEFAULT_TEXTURE_WHITE;
 			std::string normalID = DEFAULT_TEXTURE_NORMAL;
 			std::string samplerID = DEFAULT_SAMPLER;
 			std::string vertexShaderID = DEFAULT_SHADER_VERTEX;
@@ -299,46 +297,62 @@ void AssetManager::saveToJSON(rapidjson::Writer<rapidjson::StringBuffer>& writer
 
 void AssetManager::unloadAllAssets()
 {
-	m_instance->deleteAssets();
-	m_instance->loadDefaultAssets();
+	m_instance->deleteAssets(false);
 }
 
 bool AssetManager::loadDefaultAssets()
 {
 	// Loads the default shaders
-	VertexShader* vertexShader = loadAsset<VertexShader>(DEFAULT_SHADER_VERTEX, "Assets/Shaders/VertexShader.cso");
-	if (!vertexShader) return false;
+	VertexShader* defaultVertexShader = loadAsset<VertexShader>(DEFAULT_SHADER_VERTEX, "Assets/Shaders/VertexShader.cso");
+	if (!defaultVertexShader) return false;
 
-	PixelShader* pixelShader = loadAsset<PixelShader>(DEFAULT_SHADER_PIXEL, "Assets/Shaders/PixelShader.cso");
-	if (!pixelShader) return false;
+	PixelShader* defaultPixelShader = loadAsset<PixelShader>(DEFAULT_SHADER_PIXEL, "Assets/Shaders/PixelShader.cso");
+	if (!defaultPixelShader) return false;
+
+	VertexShader* basicVertexShader = loadAsset<VertexShader>(BASIC_SHADER_VERTEX, "Assets/Shaders/BasicVertexShader.cso");
+	if (!basicVertexShader) return false;
 
 	// Creates the default textures
 	if (!createAsset<Texture>(DEFAULT_TEXTURE_DIFFUSE, 0xff808080)) return false;
-	if (!createAsset<Texture>(DEFAULT_TEXTURE_SPECULAR, 0xffffffff)) return false;
+	if (!createAsset<Texture>(DEFAULT_TEXTURE_WHITE, 0xffffffff)) return false;
 	if (!createAsset<Texture>(DEFAULT_TEXTURE_NORMAL, 0xffff8080)) return false;
 	if (!createAsset<Texture>(DEFAULT_TEXTURE_GUI, 0xffffffff)) return false;
 
 	// Creates the default sampler
-	D3D11_SAMPLER_DESC samplerDesc = {};
-	samplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_MODE::D3D11_TEXTURE_ADDRESS_WRAP;
-	samplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_MODE::D3D11_TEXTURE_ADDRESS_WRAP;
-	samplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_MODE::D3D11_TEXTURE_ADDRESS_WRAP;
-	samplerDesc.Filter = D3D11_FILTER::D3D11_FILTER_MIN_MAG_MIP_LINEAR;
-	samplerDesc.MaxLOD = D3D11_FLOAT32_MAX;
+	D3D11_SAMPLER_DESC defaultSamplerDesc = {};
+	defaultSamplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
+	defaultSamplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
+	defaultSamplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
+	defaultSamplerDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
+	defaultSamplerDesc.MaxLOD = D3D11_FLOAT32_MAX;
 
-	if (!createAsset<Sampler>(DEFAULT_SAMPLER, samplerDesc)) return false;
+	if (!createAsset<Sampler>(DEFAULT_SAMPLER, defaultSamplerDesc)) return false;
+
+	// Creates the shadow map sampler
+	D3D11_SAMPLER_DESC shadowMapSamplerDesc = {};
+	shadowMapSamplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_BORDER;
+	shadowMapSamplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_BORDER;
+	shadowMapSamplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_BORDER;
+	shadowMapSamplerDesc.Filter = D3D11_FILTER_COMPARISON_MIN_MAG_MIP_LINEAR;
+	shadowMapSamplerDesc.ComparisonFunc = D3D11_COMPARISON_LESS;
+	shadowMapSamplerDesc.BorderColor[0] = 1.0f;
+	shadowMapSamplerDesc.BorderColor[1] = 1.0f;
+	shadowMapSamplerDesc.BorderColor[2] = 1.0f;
+	shadowMapSamplerDesc.BorderColor[3] = 1.0f;
+	shadowMapSamplerDesc.MaxLOD = D3D11_FLOAT32_MAX;
+
+	if (!createAsset<Sampler>(SHADOWMAP_SAMPLER, shadowMapSamplerDesc)) return false;
 
 	// Creates the default material
 	MaterialSettings defaultMaterialSettings;
 	defaultMaterialSettings.diffuseTextureID = DEFAULT_TEXTURE_DIFFUSE;
-	defaultMaterialSettings.specularTextureID = DEFAULT_TEXTURE_SPECULAR;
+	defaultMaterialSettings.specularTextureID = DEFAULT_TEXTURE_WHITE;
 	defaultMaterialSettings.normalTextureID = DEFAULT_TEXTURE_NORMAL;
 	defaultMaterialSettings.samplerID = DEFAULT_SAMPLER;
-	if (!createAsset<Material>(DEFAULT_MATERIAL, vertexShader, pixelShader, defaultMaterialSettings)) return false;
+	if (!createAsset<Material>(DEFAULT_MATERIAL, defaultVertexShader, defaultPixelShader, defaultMaterialSettings)) return false;
 
 	// Load Arial font
 	if (!loadAsset<Font>(DEFAULT_FONT, "Assets/Fonts/Arial_16pt.spritefont")) return false;
-
 
 #if defined(DEBUG) || defined(_DEBUG)
 	// Textures
@@ -351,21 +365,27 @@ bool AssetManager::loadDefaultAssets()
 
 bool AssetManager::isDefaultAsset(std::string assetName)
 {
-	if (assetName == DEFAULT_SHADER_VERTEX || assetName == DEFAULT_SHADER_PIXEL
-		|| assetName == DEFAULT_TEXTURE_DIFFUSE || assetName == DEFAULT_TEXTURE_SPECULAR || assetName == DEFAULT_TEXTURE_NORMAL || assetName == DEFAULT_TEXTURE_GUI
+	if (assetName == DEFAULT_SHADER_VERTEX || assetName == DEFAULT_SHADER_PIXEL || assetName == BASIC_SHADER_VERTEX
+		|| assetName == DEFAULT_TEXTURE_DIFFUSE || assetName == DEFAULT_TEXTURE_WHITE || assetName == DEFAULT_TEXTURE_NORMAL || assetName == DEFAULT_TEXTURE_GUI
 		|| assetName == DEFAULT_MATERIAL
-		|| assetName == DEFAULT_SAMPLER
+		|| assetName == DEFAULT_SAMPLER || assetName == SHADOWMAP_SAMPLER
 		|| assetName == DEFAULT_FONT
 		|| assetName == DEBUG_TEXTURE_DEFAULTICON || assetName == DEBUG_TEXTURE_CAMERAICON || assetName == DEBUG_TEXTURE_LIGHTICON) return true;
 
 	return false;
 }
 
-void AssetManager::deleteAssets()
+void AssetManager::deleteAssets(bool defaults)
 {
+	std::unordered_map<std::string, Asset*> defaultAssets = {};
+
 	for (auto it = m_assets.begin(); it != m_assets.end(); it++)
 	{
-		delete it->second;
+		if (!defaults && isDefaultAsset(it->first))
+			defaultAssets[it->first] = it->second;
+		else
+			delete it->second;
 	}
-	m_assets.clear();
+
+	m_assets = defaultAssets;
 }

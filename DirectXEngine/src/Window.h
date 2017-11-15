@@ -4,6 +4,9 @@
 #include <Windows.h>
 #include <string>
 
+#define NEAR_Z 0.1f
+#define FAR_Z 100.0f
+
 class Window
 {
 public:

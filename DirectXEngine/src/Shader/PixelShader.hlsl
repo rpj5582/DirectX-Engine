@@ -5,6 +5,8 @@
 #define WIREFRAME 1
 #define SOLID_WIREFRAME 2
 
+#define SHADOWMAP_SIZE 2048.0f
+
 cbuffer lighting : register(b0)
 {
 	Light lights[MAX_LIGHTS];
@@ -24,7 +26,9 @@ cbuffer renderStyle : register(b2)
 Texture2D diffuseTexture : register(t0);
 Texture2D specularTexture : register(t1);
 Texture2D normalTexture : register(t2);
+Texture2D shadowMap : register(t3);
 SamplerState materialSampler : register(s0);
+SamplerComparisonState shadowMapSampler : register(s1);
 
 // Struct representing the data we expect to receive from earlier pipeline stages
 // - Should match the output of our corresponding vertex shader
@@ -40,6 +44,7 @@ struct VertexToPixel
 	//  v    v                v
 	float4 position		: SV_POSITION;
 	float3 worldPosition : WORLD_POSITION;
+	float4 shadowPosition : SHADOW_POSITION;
 	float2 uv			: TEXCOORD;
 	float3 normal		: NORMAL;
 	float3 tangent		: TANGENT;
@@ -108,6 +113,34 @@ float edgeFactor(float3 barycentric, float width)
 
 }
 
+// Calculates the amount a pixel is in shadow using PCF. Sample width must be an odd positive integer.
+float calculateShadowAmount(float4 shadowPosition, const unsigned int sampleWidth)
+{
+	const float pixel = 1.0f / SHADOWMAP_SIZE;
+
+	float distanceToLight = shadowPosition.z / shadowPosition.w;
+
+	float2 shadowMapUV = packFloat2(shadowPosition.xy / shadowPosition.w);
+	shadowMapUV.y = 1.0f - shadowMapUV.y;
+
+	float totalShadowAmount = 0;
+	float sampleRadius = sampleWidth / 2.0f;
+	int lowerBound = ceil(-sampleRadius);
+	int upperBound = floor(sampleRadius);
+
+	[unroll]
+	for (int i = lowerBound; i <= upperBound; i++)
+	{
+		[unroll]
+		for (int j = lowerBound; j <= upperBound; j++)
+		{
+			totalShadowAmount += shadowMap.SampleCmpLevelZero(shadowMapSampler, shadowMapUV + float2(i, j) * pixel, distanceToLight);
+		}
+	}
+	
+	return totalShadowAmount / (sampleWidth * sampleWidth);
+}
+
 // --------------------------------------------------------
 // The entry point (main method) for our pixel shader
 // 
@@ -136,13 +169,19 @@ float4 main(VertexToPixel input) : SV_TARGET
 	// Convert the normal from the normal map to world space.
 	float3 finalNormal = normalize(mul(unpackedNormal, TBN));
 
+	// Must be an odd positive integer
+	const unsigned int shadowSampleWidth = 3;
+	float shadowAmount = calculateShadowAmount(input.shadowPosition, shadowSampleWidth);
+
 	// Calculates the lighting for each valid light
 	float4 globalAmbient = float4(0.1f, 0.1f, 0.1f, 1.0f);
 	float4 finalLightColor = globalAmbient  * diffuseColor;
+
+	[unroll]
 	for (unsigned int i = 0; i < MAX_LIGHTS; i++)
 	{
 		float4 lightColor = calculateLight(lights[i], finalNormal, input.worldPosition, diffuseColor, specularColor);
-		finalLightColor += lightColor;
+		finalLightColor += lightColor * shadowAmount;
 	}
 
 	switch (renderStyle)

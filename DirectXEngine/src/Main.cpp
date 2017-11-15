@@ -54,7 +54,11 @@ int WINAPI WinMain(
 	// Attempt to create the window for our program, and
 	// exit early if something failed
 	hr = dxGame.Init();
-	if(FAILED(hr)) return hr;
+	if (FAILED(hr))
+	{
+		Debug::error("Failed to start game.");
+		return hr;
+	}
 
 	// Begin the message and game loop, and then return
 	// whatever we get back once the game loop is over

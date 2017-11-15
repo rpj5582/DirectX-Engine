@@ -1,6 +1,8 @@
 #include "Scene1.h"
 
 #include "../Component/FreeCamControls.h"
+#include "../Component/GUITransform.h"
+#include "../Component/GUISpriteComponent.h"
 
 using namespace DirectX;
 

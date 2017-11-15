@@ -15,6 +15,8 @@ public:
 	std::string getMeshID() const;
 	void setMesh(std::string meshID);
 
+	bool receiveShadows;
+
 private:
 	std::string m_meshID;
 	Mesh* m_mesh;

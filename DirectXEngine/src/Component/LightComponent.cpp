@@ -1,5 +1,8 @@
 #include "LightComponent.h"
 
+#include "Transform.h"
+#include "../Scene/Scene.h"
+
 using namespace DirectX;
 
 TwStructMember LightComponent::d_lightStructMembers[5] = {
@@ -22,6 +25,10 @@ TwType LightComponent::TW_TYPE_LIGHT_TYPE = TW_TYPE_UNDEF;
 
 LightComponent::LightComponent(Entity& entity) : Component(entity)
 {
+	XMStoreFloat4x4(&m_viewMatrix, XMMatrixIdentity());
+	XMStoreFloat4x4(&m_projectionMatrix, XMMatrixIdentity());
+
+	castShadows = false;
 }
 
 LightComponent::~LightComponent()
@@ -42,6 +49,8 @@ void LightComponent::init()
 
 	setLightType(DIRECTIONAL_LIGHT);
 	setSettingsDefault();
+
+	updateProjectionMatrix(NEAR_Z, FAR_Z, 100.0f, 100.0f);
 }
 
 void LightComponent::initDebugVariables()
@@ -56,6 +65,12 @@ void LightComponent::initDebugVariables()
 
 	Debug::entityDebugWindow->addVariable(&m_light, TW_TYPE_LIGHT_SETTINGS, "Light Settings", this);
 	Debug::entityDebugWindow->addVariable(&m_lightType, TW_TYPE_LIGHT_TYPE, "Light Type", this);
+	Debug::entityDebugWindow->addVariable(&castShadows, TW_TYPE_BOOLCPP, "Cast Shadows", this);
+}
+
+void LightComponent::lateUpdate(float deltaTime, float totalTime)
+{
+	updateViewMatrix();
 }
 
 void LightComponent::loadFromJSON(rapidjson::Value& dataObject)
@@ -87,36 +102,42 @@ void LightComponent::loadFromJSON(rapidjson::Value& dataObject)
 		}
 	}
 
-		rapidjson::Value::MemberIterator color = dataObject.FindMember("color");
-		rapidjson::Value::MemberIterator brightness = dataObject.FindMember("brightness");
-		rapidjson::Value::MemberIterator specularity = dataObject.FindMember("specularity");
-		rapidjson::Value::MemberIterator radius = dataObject.FindMember("radius");
-		rapidjson::Value::MemberIterator spotAngle = dataObject.FindMember("spotAngle");
+	rapidjson::Value::MemberIterator color = dataObject.FindMember("color");
+	rapidjson::Value::MemberIterator brightness = dataObject.FindMember("brightness");
+	rapidjson::Value::MemberIterator specularity = dataObject.FindMember("specularity");
+	rapidjson::Value::MemberIterator radius = dataObject.FindMember("radius");
+	rapidjson::Value::MemberIterator spotAngle = dataObject.FindMember("spotAngle");
 
-		if (color != dataObject.MemberEnd())
-		{
-			m_light.color = XMFLOAT4(color->value["r"].GetFloat(), color->value["g"].GetFloat(), color->value["b"].GetFloat(), color->value["a"].GetFloat());
-		}
+	if (color != dataObject.MemberEnd())
+	{
+		m_light.color = XMFLOAT4(color->value["r"].GetFloat(), color->value["g"].GetFloat(), color->value["b"].GetFloat(), color->value["a"].GetFloat());
+	}
 
-		if (brightness != dataObject.MemberEnd())
-		{
-			m_light.brightness = brightness->value.GetFloat();
-		}
+	if (brightness != dataObject.MemberEnd())
+	{
+		m_light.brightness = brightness->value.GetFloat();
+	}
 
-		if (specularity != dataObject.MemberEnd())
-		{
-			m_light.specularity = specularity->value.GetFloat();
-		}
+	if (specularity != dataObject.MemberEnd())
+	{
+		m_light.specularity = specularity->value.GetFloat();
+	}
 
-		if (radius != dataObject.MemberEnd())
-		{
-			m_light.radius = radius->value.GetFloat();
-		}
+	if (radius != dataObject.MemberEnd())
+	{
+		m_light.radius = radius->value.GetFloat();
+	}
 
-		if (spotAngle != dataObject.MemberEnd())
-		{
-			m_light.spotAngle = spotAngle->value.GetFloat();
-		}
+	if (spotAngle != dataObject.MemberEnd())
+	{
+		m_light.spotAngle = spotAngle->value.GetFloat();
+	}
+
+	rapidjson::Value::MemberIterator castShadowsIter = dataObject.FindMember("castShadows");
+	if (castShadowsIter != dataObject.MemberEnd())
+	{
+		castShadows = castShadowsIter->value.GetBool();
+	}
 }
 
 void LightComponent::saveToJSON(rapidjson::Writer<rapidjson::StringBuffer>& writer)
@@ -172,6 +193,9 @@ void LightComponent::saveToJSON(rapidjson::Writer<rapidjson::StringBuffer>& writ
 
 	writer.Key("spotAngle");
 	writer.Double(m_light.spotAngle);
+
+	writer.Key("castShadows");
+	writer.Bool(castShadows);
 }
 
 LightType LightComponent::getLightType() const
@@ -199,6 +223,16 @@ void LightComponent::useDefaultSettings()
 	setSettingsDefault();
 }
 
+DirectX::XMFLOAT4X4 LightComponent::getViewMatrix() const
+{
+	return m_viewMatrix;
+}
+
+DirectX::XMFLOAT4X4 LightComponent::getProjectionMatrix() const
+{
+	return m_projectionMatrix;
+}
+
 void LightComponent::setSettingsDefault()
 {
 	m_light.color = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
@@ -206,4 +240,104 @@ void LightComponent::setSettingsDefault()
 	m_light.specularity = 32.0f;
 	m_light.radius = 1.0f;
 	m_light.spotAngle = 15.0f;
+}
+
+void LightComponent::updateViewMatrix()
+{
+	Transform* transform = entity.getComponent<Transform>();
+	if (!transform) return;
+
+	switch (m_lightType)
+	{
+	case POINT_LIGHT:
+	{
+		Debug::error("Point light view matrices are not yet implemented.");
+		XMStoreFloat4x4(&m_viewMatrix, XMMatrixIdentity());
+		break;
+	}
+
+	case DIRECTIONAL_LIGHT:
+	{
+		CameraComponent* mainCamera = entity.getScene().getMainCamera();
+		if (!mainCamera)
+		{
+			Debug::warning("No main camera - could not build valid view matrix for directional light entity " + entity.getName());
+			XMStoreFloat4x4(&m_viewMatrix, XMMatrixIdentity());
+			return;
+		}
+		Transform* mainCameraTransform = mainCamera->getEntity().getComponent<Transform>();
+		if (!mainCameraTransform)
+		{
+			Debug::warning("Main camera does not have a transform component - could not build valid view matrix for directional light entity " + entity.getName());
+			XMStoreFloat4x4(&m_viewMatrix, XMMatrixIdentity());
+			return;
+		}
+
+		XMFLOAT3 mainCameraPosition = mainCameraTransform->getPosition();
+		XMVECTOR eye = XMLoadFloat3(&mainCameraPosition);
+
+		XMFLOAT3 forwardFloat3 = transform->getForward();
+		XMVECTOR forward = XMLoadFloat3(&forwardFloat3);
+
+		XMFLOAT3 upFloat3 = transform->getUp();
+		XMVECTOR up = XMLoadFloat3(&upFloat3);
+
+		eye = XMVectorMultiplyAdd(forward, XMVectorSet(-10.0f, -10.0f, -10.0f, -10.0f), eye);
+
+		XMMatrixLookToLH(eye, forward, up);
+
+		XMMATRIX viewMatrix = XMMatrixLookToLH(eye, forward, up);
+		XMStoreFloat4x4(&m_viewMatrix, viewMatrix);
+		break;
+	}
+
+	case SPOT_LIGHT:
+	{
+		XMFLOAT3 position = transform->getPosition();
+
+		XMFLOAT3 forwardFloat3 = transform->getForward();
+		XMFLOAT3 upFloat3 = transform->getUp();
+
+		XMVECTOR eye = XMLoadFloat3(&position);
+		XMVECTOR forward = XMLoadFloat3(&forwardFloat3);
+		XMVECTOR up = XMLoadFloat3(&upFloat3);
+
+		XMMATRIX viewMatrix = XMMatrixLookToLH(eye, forward, up);
+		XMStoreFloat4x4(&m_viewMatrix, viewMatrix);
+		break;
+	}
+
+	default:
+	{
+		Debug::error("Invalid light type " + std::to_string(m_lightType));
+		break;
+	}
+	}
+}
+
+void LightComponent::updateProjectionMatrix(float nearZ, float farZ, float width, float height)
+{
+	switch (m_lightType)
+	{
+	case SPOT_LIGHT:
+	case POINT_LIGHT:
+	{
+		XMMATRIX perspective = XMMatrixPerspectiveFovLH(XM_PIDIV4, (float)Window::getWidth() / Window::getHeight(), nearZ, farZ);
+		XMStoreFloat4x4(&m_projectionMatrix, perspective);
+		break;
+	}
+		
+
+	case DIRECTIONAL_LIGHT:
+	{
+		XMMATRIX orthographic = XMMatrixOrthographicLH(width, height, nearZ, farZ);
+		XMStoreFloat4x4(&m_projectionMatrix, orthographic);
+		break;
+	}
+
+	default:
+		break;
+	}
+
+	
 }

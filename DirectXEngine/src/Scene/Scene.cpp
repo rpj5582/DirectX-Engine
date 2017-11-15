@@ -20,6 +20,9 @@ Scene::Scene(ID3D11Device* device, ID3D11DeviceContext* context, std::string nam
 	m_renderer = nullptr;
 	m_guiRenderer = nullptr;
 
+	m_defaultRasterizerState = nullptr;
+	m_cullFrontRasterizerState = nullptr;
+
 	m_blendState = nullptr;
 	m_depthStencilStateDefault = nullptr;
 	m_depthStencilStateRead = nullptr;
@@ -61,6 +64,9 @@ Scene::~Scene()
 	m_entities.clear();
 	m_taggedEntities.clear();
 
+	if (m_defaultRasterizerState) m_defaultRasterizerState->Release();
+	if (m_cullFrontRasterizerState) m_cullFrontRasterizerState->Release();
+
 	if (m_blendState) m_blendState->Release();
 	if (m_depthStencilStateDefault) m_depthStencilStateDefault->Release();
 	if (m_depthStencilStateRead) m_depthStencilStateRead->Release();
@@ -71,6 +77,64 @@ Scene::~Scene()
 
 bool Scene::init()
 {
+	HRESULT hr = S_OK;
+
+	D3D11_TEXTURE2D_DESC shadowMapDesc = {};
+	shadowMapDesc.Width = SHADOW_MAP_SIZE;
+	shadowMapDesc.Height = SHADOW_MAP_SIZE;
+	shadowMapDesc.MipLevels = 1;
+	shadowMapDesc.ArraySize = 1;
+	shadowMapDesc.Format = DXGI_FORMAT_R32_TYPELESS;
+	shadowMapDesc.Usage = D3D11_USAGE_DEFAULT;
+	shadowMapDesc.BindFlags = D3D11_BIND_DEPTH_STENCIL | D3D11_BIND_SHADER_RESOURCE;
+	shadowMapDesc.CPUAccessFlags = 0;
+	shadowMapDesc.MiscFlags = 0;
+	shadowMapDesc.SampleDesc.Count = 1;
+	shadowMapDesc.SampleDesc.Quality = 0;
+
+	D3D11_SHADER_RESOURCE_VIEW_DESC shadowMapSRVDesc = {};
+	shadowMapSRVDesc.Format = DXGI_FORMAT_R32_FLOAT;
+	shadowMapSRVDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+	shadowMapSRVDesc.Texture2D.MipLevels = 1;
+	shadowMapSRVDesc.Texture2D.MostDetailedMip = 0;
+
+	D3D11_DEPTH_STENCIL_VIEW_DESC shadowMapDSVDesc = {};
+	shadowMapDSVDesc.Format = DXGI_FORMAT_D32_FLOAT;
+	shadowMapDSVDesc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
+	shadowMapDSVDesc.Flags = 0;
+	shadowMapDSVDesc.Texture2D.MipSlice = 0;
+
+	ID3D11Texture2D* shadowMap;
+	hr = m_device->CreateTexture2D(&shadowMapDesc, nullptr, &shadowMap);
+	if (FAILED(hr))
+	{
+		Debug::error("Failed to create shadow map texture.");
+		return false;
+	}
+
+	ID3D11DepthStencilView* shadowMapDSV;
+	hr = m_device->CreateDepthStencilView(shadowMap, &shadowMapDSVDesc, &shadowMapDSV);
+	if (FAILED(hr))
+	{
+		Debug::error("Failed to create shadow map depth stencil view.");
+		return false;
+	}
+
+	ID3D11ShaderResourceView* shadowMapSRV;
+	hr = m_device->CreateShaderResourceView(shadowMap, &shadowMapSRVDesc, &shadowMapSRV);
+	if (FAILED(hr))
+	{
+		Debug::error("Failed to create shadow map shader resource view.");
+		return false;
+	}
+
+	shadowMap->Release();
+
+	m_renderer = new Renderer(m_device, m_context, shadowMapDSV, shadowMapSRV);
+	if (!m_renderer->init()) return false;
+
+	m_guiRenderer = new GUIRenderer(m_context);
+
 	addTag(TAG_LIGHT);
 	addTag(TAG_GUI);
 
@@ -81,10 +145,36 @@ bool Scene::init()
 	m_debugCamera->addComponent<CameraComponent>(false);
 	m_debugCamera->addComponent<FreeCamControls>(false);
 
-	m_renderer = new Renderer(m_context);
-	if (!m_renderer->init()) return false;
+	D3D11_RASTERIZER_DESC defaultRasterizerDesc = {};
+	defaultRasterizerDesc.FillMode = D3D11_FILL_SOLID;
+	defaultRasterizerDesc.CullMode = D3D11_CULL_BACK;
+	defaultRasterizerDesc.FrontCounterClockwise = FALSE;
+	defaultRasterizerDesc.DepthClipEnable = TRUE;
+	defaultRasterizerDesc.ScissorEnable = FALSE;
+	defaultRasterizerDesc.MultisampleEnable = FALSE;
+	defaultRasterizerDesc.AntialiasedLineEnable = FALSE;
+	defaultRasterizerDesc.DepthBias = 1000;
+	defaultRasterizerDesc.DepthBiasClamp = 0.0f;
+	defaultRasterizerDesc.SlopeScaledDepthBias = 1.0f;
 
-	m_guiRenderer = new GUIRenderer(m_context);
+	D3D11_RASTERIZER_DESC cullFrontRasterizerDesc = defaultRasterizerDesc;
+	cullFrontRasterizerDesc.CullMode = D3D11_CULL_BACK;
+
+	hr = m_device->CreateRasterizerState(&defaultRasterizerDesc, &m_defaultRasterizerState);
+	if (FAILED(hr))
+	{
+		Debug::error("Failed to create default rasterizer state.");
+		return false;
+	}
+
+	hr = m_device->CreateRasterizerState(&cullFrontRasterizerDesc, &m_cullFrontRasterizerState);
+	if (FAILED(hr))
+	{
+		Debug::error("Failed to create rasterizer state for front face culling.");
+		return false;
+	}
+
+	m_context->RSSetState(m_defaultRasterizerState);
 
 	D3D11_BLEND_DESC blendDesc = {};
 	blendDesc.AlphaToCoverageEnable = false;
@@ -117,7 +207,6 @@ bool Scene::init()
 	D3D11_DEPTH_STENCIL_DESC depthStencilReadDesc = depthStencilDefaultDesc;
 	depthStencilReadDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ZERO;
 
-	HRESULT hr = S_OK;
 	hr = m_device->CreateBlendState(&blendDesc, &m_blendState);
 	if (FAILED(hr))
 	{
@@ -174,20 +263,27 @@ void Scene::update(float deltaTime, float totalTime)
 			Transform* entityTransform = m_entities[i]->getComponent<Transform>();
 			GUIDebugSpriteComponent* debugIconSpriteComponent = m_entities[i]->getDebugIconSpriteComponent();
 
-			if (entityTransform && entityTransform->enabled && debugIconSpriteComponent)
+			if (entityTransform && debugIconSpriteComponent)
 			{
 				debugIconSpriteComponent->update(deltaTime, totalTime);
 				debugIconSpriteComponent->calculatePosition(entityTransform->getPosition());
+			}
+
+			// Run lateUpdate for light components regardless if they're enabled since they need to update in debug mode.
+			LightComponent* lightComponent = m_entities[i]->getComponent<LightComponent>();
+			if (lightComponent)
+			{
+				lightComponent->lateUpdate(deltaTime, totalTime);
 			}
 		}
 #endif
 	}
 }
 
-void Scene::render()
+void Scene::render(ID3D11RenderTargetView* backBufferRTV, ID3D11DepthStencilView* backBufferDSV)
 {
 	m_context->OMSetDepthStencilState(m_depthStencilStateDefault, 0);
-	renderGeometry();
+	renderGeometry(backBufferRTV, backBufferDSV);
 
 	m_context->OMSetDepthStencilState(m_depthStencilStateRead, 0);
 	renderGUI();
@@ -472,7 +568,7 @@ CameraComponent* Scene::getDebugCamera() const
 	return nullptr;
 }
 
-void Scene::renderGeometry()
+void Scene::renderGeometry(ID3D11RenderTargetView* backBufferRTV, ID3D11DepthStencilView* backBufferDSV)
 {
 	CameraComponent* camera = nullptr;
 
@@ -488,8 +584,11 @@ void Scene::renderGeometry()
 		camera = m_debugCamera->getComponent<CameraComponent>();
 	}
 	
+	LightComponent* shadowMapLight = nullptr; // Only support one light with real time shadows for now
+	m_context->RSSetState(m_cullFrontRasterizerState);
+	m_renderer->prepareShadowMapPass();
 
-	// Preprocess each light entity to get it's position and direction (for forward rendering).
+	// Preprocess each light entity to get it's position and direction, and see if it should cast shadows.
 	std::vector<GPU_LIGHT_DATA> lightData = std::vector<GPU_LIGHT_DATA>(MAX_LIGHTS);
 
 	std::vector<Entity*> lightEntities = m_taggedEntities.at(TAG_LIGHT);
@@ -525,11 +624,19 @@ void Scene::renderGeometry()
 			lightComponent->enabled,
 			lightType,
 		};
+
+		if (!shadowMapLight && lightComponent->castShadows)
+		{
+			shadowMapLight = lightComponent;
+			m_renderer->renderShadowMapPass(&m_entities[0], m_entities.size(), *lightComponent);
+		}
 	}
 
 	if (m_entities.size() > 0)
 	{
-		m_renderer->render(*camera, Window::getProjectionMatrix(), &m_entities[0], m_entities.size(), &lightData[0]);
+		m_context->RSSetState(m_defaultRasterizerState);
+		m_renderer->prepareMainPass(backBufferRTV, backBufferDSV);
+		m_renderer->renderMainPass(*camera, Window::getProjectionMatrix(), &m_entities[0], m_entities.size(), shadowMapLight, &lightData[0]);
 	}
 }
 
@@ -668,10 +775,11 @@ void Scene::clear()
 
 	setMainCamera((CameraComponent*)nullptr);
 	
-	AssetManager::unloadAllAssets();
-
+	Debug::sceneDebugWindow->clear();
 	Debug::entityDebugWindow->clear();
 	Debug::assetDebugWindow->clear();
+
+	AssetManager::unloadAllAssets();
 }
 
 Entity* Scene::getEntityByName(std::string name)

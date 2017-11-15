@@ -1,4 +1,3 @@
-
 // Constant Buffer
 // - Allows us to define a buffer of individual variables 
 //    which will (eventually) hold data from our C++ code
@@ -11,6 +10,9 @@ cbuffer matrices : register(b0)
 	matrix view;
 	matrix projection;
 	matrix worldInverseTranspose;
+
+	matrix lightView;
+	matrix lightProjection;
 };
 
 // Struct representing a single vertex worth of data
@@ -46,6 +48,7 @@ struct VertexToPixel
 	//  v    v                v
 	float4 position		: SV_POSITION;	// XYZW position (System Value Position)	
 	float3 worldPosition : WORLD_POSITION;
+	float4 shadowPosition : SHADOW_POSITION;
 	float2 uv			: TEXCOORD;
 	float3 normal		: NORMAL;
 	float3 tangent		: TANGENT;
@@ -83,6 +86,9 @@ VertexToPixel main( VertexShaderInput input )
 	// The result is essentially the position (XY) of the vertex on our 2D 
 	// screen and the distance (Z) from the camera (the "depth" of the pixel)
 	output.position = mul(float4(input.position, 1.0f), worldViewProj);
+
+	matrix shadowWorldViewProj = mul(mul(world, lightView), lightProjection);
+	output.shadowPosition = mul(float4(input.position, 1.0f), shadowWorldViewProj);
 
 	output.uv = input.uv;
 

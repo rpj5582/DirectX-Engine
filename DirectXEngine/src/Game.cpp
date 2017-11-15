@@ -108,13 +108,10 @@ void Game::Update(float deltaTime, float totalTime)
 // --------------------------------------------------------
 void Game::Draw(float deltaTime, float totalTime)
 {
-	context->ClearRenderTargetView(backBufferRTV, Colors::CornflowerBlue);
-	context->ClearDepthStencilView(depthStencilView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
-
 	Scene* activeScene = m_sceneManager->getActiveScene();
 	if (activeScene)
 	{
-		activeScene->render();
+		activeScene->render(backBufferRTV, depthStencilView);
 	}
 
 	if(!Debug::inPlayMode)

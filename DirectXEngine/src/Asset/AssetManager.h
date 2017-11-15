@@ -14,16 +14,18 @@
 #include <unordered_map>
 
 #define DEFAULT_SHADER_VERTEX "defaultVertex"
+#define BASIC_SHADER_VERTEX "basicVertex"
 #define DEFAULT_SHADER_PIXEL "defaultPixel"
 
 #define DEFAULT_TEXTURE_DIFFUSE "defaultDiffuse"
-#define DEFAULT_TEXTURE_SPECULAR "defaultSpecular"
+#define DEFAULT_TEXTURE_WHITE "defaultWhite"
 #define DEFAULT_TEXTURE_NORMAL "defaultNormal"
 #define DEFAULT_TEXTURE_GUI "defaultGUI"
 
 #define DEFAULT_MATERIAL "defaultMaterial"
 
 #define DEFAULT_SAMPLER "defaultSampler"
+#define SHADOWMAP_SAMPLER "shadowMapSampler"
 
 #define DEFAULT_FONT "arial_16pt"
 
@@ -62,7 +64,7 @@ public:
 
 private:
 	bool loadDefaultAssets();
-	void deleteAssets();
+	void deleteAssets(bool defaults);
 
 	static AssetManager* m_instance;
 

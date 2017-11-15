@@ -17,7 +17,7 @@ public:
 
 	virtual bool init();
 	virtual void update(float deltaTime, float totalTime);
-	void render();
+	void render(ID3D11RenderTargetView* backBufferRTV, ID3D11DepthStencilView* backBufferDSV);
 
 	std::string getName() const;
 
@@ -71,7 +71,7 @@ private:
 	bool loadFromJSON();
 	void saveToJSON();
 
-	void renderGeometry();
+	void renderGeometry(ID3D11RenderTargetView* backBufferRTV, ID3D11DepthStencilView* backBufferDSV);
 	void renderGUI();
 
 	unsigned int getEntityIndex(const Entity& entity) const;
@@ -84,6 +84,9 @@ private:
 
 	Renderer* m_renderer;
 	GUIRenderer* m_guiRenderer;
+
+	ID3D11RasterizerState* m_defaultRasterizerState;
+	ID3D11RasterizerState* m_cullFrontRasterizerState;
 
 	ID3D11BlendState* m_blendState;
 	ID3D11DepthStencilState* m_depthStencilStateDefault;

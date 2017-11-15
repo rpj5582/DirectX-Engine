@@ -3,9 +3,6 @@
 #include "DXCore.h"
 #include "Scene/SceneManager.h"
 
-#define NEAR_Z 0.1f
-#define FAR_Z 100.0f
-
 using namespace DirectX;
 
 Window* Window::m_instance = nullptr;

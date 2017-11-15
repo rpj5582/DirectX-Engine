@@ -39,6 +39,7 @@ public:
 
 	virtual void init() override;
 	virtual void initDebugVariables() override;
+	virtual void lateUpdate(float deltaTime, float totalTime) override;
 	virtual void loadFromJSON(rapidjson::Value& dataObject) override;
 	virtual void saveToJSON(rapidjson::Writer<rapidjson::StringBuffer>& writer);
 
@@ -53,12 +54,22 @@ public:
 	// Sets the light's settings back to default.
 	void useDefaultSettings();
 
+	DirectX::XMFLOAT4X4 getViewMatrix() const;
+	DirectX::XMFLOAT4X4 getProjectionMatrix() const;
+
+	bool castShadows;
+
 private:
 	void setSettingsDefault();
+	void updateViewMatrix();
+	void updateProjectionMatrix(float nearZ, float farZ, float width, float height);
 
 	LightSettings m_light;
 	LightType m_lightType;
 
+	DirectX::XMFLOAT4X4 m_viewMatrix;
+	DirectX::XMFLOAT4X4 m_projectionMatrix;
+	
 	static TwStructMember d_lightStructMembers[5];
 	static TwType TW_TYPE_LIGHT_SETTINGS;
 

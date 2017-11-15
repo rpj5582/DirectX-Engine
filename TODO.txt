@@ -1,7 +1,11 @@
 TODO:
+Make shadow map size and PCF sample width editable
+Add support for multiple real time lights
+Add spot light real time shadows
+Implement "first person" entity moving in debug mode
+Make a scene graph or some kind of proper ordering to entities
 Implement file loading for materials and samplers
 Convert pointers to smart pointers
-Tagging?
 Collision detection
 
 BUGS:
