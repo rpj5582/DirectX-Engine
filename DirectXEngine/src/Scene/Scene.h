@@ -85,9 +85,6 @@ private:
 	Renderer* m_renderer;
 	GUIRenderer* m_guiRenderer;
 
-	ID3D11RasterizerState* m_defaultRasterizerState;
-	ID3D11RasterizerState* m_cullFrontRasterizerState;
-
 	ID3D11BlendState* m_blendState;
 	ID3D11DepthStencilState* m_depthStencilStateDefault;
 	ID3D11DepthStencilState* m_depthStencilStateRead;

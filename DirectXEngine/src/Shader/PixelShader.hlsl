@@ -5,7 +5,7 @@
 #define WIREFRAME 1
 #define SOLID_WIREFRAME 2
 
-#define SHADOWMAP_SIZE 2048.0f
+#define SHADOWMAP_SIZE 1024.0f
 
 cbuffer lighting : register(b0)
 {
@@ -170,7 +170,7 @@ float4 main(VertexToPixel input) : SV_TARGET
 	float3 finalNormal = normalize(mul(unpackedNormal, TBN));
 
 	// Must be an odd positive integer
-	const unsigned int shadowSampleWidth = 3;
+	const unsigned int shadowSampleWidth = 1;
 	float shadowAmount = calculateShadowAmount(input.shadowPosition, shadowSampleWidth);
 
 	// Calculates the lighting for each valid light

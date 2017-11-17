@@ -20,9 +20,6 @@ Scene::Scene(ID3D11Device* device, ID3D11DeviceContext* context, std::string nam
 	m_renderer = nullptr;
 	m_guiRenderer = nullptr;
 
-	m_defaultRasterizerState = nullptr;
-	m_cullFrontRasterizerState = nullptr;
-
 	m_blendState = nullptr;
 	m_depthStencilStateDefault = nullptr;
 	m_depthStencilStateRead = nullptr;
@@ -64,9 +61,6 @@ Scene::~Scene()
 	m_entities.clear();
 	m_taggedEntities.clear();
 
-	if (m_defaultRasterizerState) m_defaultRasterizerState->Release();
-	if (m_cullFrontRasterizerState) m_cullFrontRasterizerState->Release();
-
 	if (m_blendState) m_blendState->Release();
 	if (m_depthStencilStateDefault) m_depthStencilStateDefault->Release();
 	if (m_depthStencilStateRead) m_depthStencilStateRead->Release();
@@ -93,37 +87,6 @@ bool Scene::init()
 	debugCameraTransform->rotateLocalX(30);
 	m_debugCamera->addComponent<CameraComponent>(false);
 	m_debugCamera->addComponent<FreeCamControls>(false);
-
-	D3D11_RASTERIZER_DESC defaultRasterizerDesc = {};
-	defaultRasterizerDesc.FillMode = D3D11_FILL_SOLID;
-	defaultRasterizerDesc.CullMode = D3D11_CULL_BACK;
-	defaultRasterizerDesc.FrontCounterClockwise = FALSE;
-	defaultRasterizerDesc.DepthClipEnable = TRUE;
-	defaultRasterizerDesc.ScissorEnable = FALSE;
-	defaultRasterizerDesc.MultisampleEnable = FALSE;
-	defaultRasterizerDesc.AntialiasedLineEnable = FALSE;
-	defaultRasterizerDesc.DepthBias = 1000;
-	defaultRasterizerDesc.DepthBiasClamp = 0.0f;
-	defaultRasterizerDesc.SlopeScaledDepthBias = 1.0f;
-
-	D3D11_RASTERIZER_DESC cullFrontRasterizerDesc = defaultRasterizerDesc;
-	cullFrontRasterizerDesc.CullMode = D3D11_CULL_BACK;
-
-	hr = m_device->CreateRasterizerState(&defaultRasterizerDesc, &m_defaultRasterizerState);
-	if (FAILED(hr))
-	{
-		Debug::error("Failed to create default rasterizer state.");
-		return false;
-	}
-
-	hr = m_device->CreateRasterizerState(&cullFrontRasterizerDesc, &m_cullFrontRasterizerState);
-	if (FAILED(hr))
-	{
-		Debug::error("Failed to create rasterizer state for front face culling.");
-		return false;
-	}
-
-	m_context->RSSetState(m_defaultRasterizerState);
 
 	D3D11_BLEND_DESC blendDesc = {};
 	blendDesc.AlphaToCoverageEnable = false;
@@ -534,7 +497,6 @@ void Scene::renderGeometry(ID3D11RenderTargetView* backBufferRTV, ID3D11DepthSte
 	}
 	
 	LightComponent* shadowMapLight = nullptr; // Only support one light with real time shadows for now
-	m_context->RSSetState(m_cullFrontRasterizerState);
 	m_renderer->prepareShadowMapPass();
 
 	// Preprocess each light entity to get it's position and direction, and see if it should cast shadows.
@@ -583,7 +545,6 @@ void Scene::renderGeometry(ID3D11RenderTargetView* backBufferRTV, ID3D11DepthSte
 
 	if (m_entities.size() > 0)
 	{
-		m_context->RSSetState(m_defaultRasterizerState);
 		m_renderer->prepareMainPass(backBufferRTV, backBufferDSV);
 		m_renderer->renderMainPass(*camera, Window::getProjectionMatrix(), &m_entities[0], m_entities.size(), shadowMapLight, &lightData[0]);
 	}

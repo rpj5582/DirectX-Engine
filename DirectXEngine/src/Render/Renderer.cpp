@@ -11,6 +11,8 @@ Renderer::Renderer(ID3D11Device* device, ID3D11DeviceContext* context)
 	m_shadowMapDSV = nullptr;
 	m_shadowMapSRV = nullptr;
 
+	m_shadowMapRasterizerState = nullptr;
+
 	m_basicVertexShader = nullptr;
 	m_shadowMapSampler = nullptr;
 }
@@ -20,6 +22,8 @@ Renderer::~Renderer()
 	m_defaultShadowMap = nullptr;
 	if (m_shadowMapDSV) m_shadowMapDSV->Release();
 	if (m_shadowMapSRV) m_shadowMapSRV->Release();
+
+	if (m_shadowMapRasterizerState) m_shadowMapRasterizerState->Release();
 
 	m_device = nullptr;
 	m_context = nullptr;
@@ -83,6 +87,25 @@ bool Renderer::init()
 
 	shadowMap->Release();
 
+	D3D11_RASTERIZER_DESC shadowMapRasterizerDesc = {};
+	shadowMapRasterizerDesc.FillMode = D3D11_FILL_SOLID;
+	shadowMapRasterizerDesc.CullMode = D3D11_CULL_BACK;
+	shadowMapRasterizerDesc.FrontCounterClockwise = FALSE;
+	shadowMapRasterizerDesc.DepthClipEnable = TRUE;
+	shadowMapRasterizerDesc.ScissorEnable = FALSE;
+	shadowMapRasterizerDesc.MultisampleEnable = FALSE;
+	shadowMapRasterizerDesc.AntialiasedLineEnable = FALSE;
+	shadowMapRasterizerDesc.DepthBias = 1000;
+	shadowMapRasterizerDesc.DepthBiasClamp = 0.0f;
+	shadowMapRasterizerDesc.SlopeScaledDepthBias = 5.0f;
+
+	hr = m_device->CreateRasterizerState(&shadowMapRasterizerDesc, &m_shadowMapRasterizerState);
+	if (FAILED(hr))
+	{
+		Debug::error("Failed to create default rasterizer state.");
+		return false;
+	}
+
 	m_basicVertexShader = AssetManager::getAsset<VertexShader>(BASIC_SHADER_VERTEX);
 	if (!m_basicVertexShader)
 	{
@@ -103,6 +126,8 @@ bool Renderer::init()
 void Renderer::prepareShadowMapPass()
 {
 	m_context->ClearDepthStencilView(m_shadowMapDSV, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
+
+	m_context->RSSetState(m_shadowMapRasterizerState);
 
 	ID3D11RenderTargetView* nullRTV = nullptr;
 	m_context->OMSetRenderTargets(1, &nullRTV, m_shadowMapDSV);
@@ -173,6 +198,8 @@ void Renderer::prepareMainPass(ID3D11RenderTargetView* backBufferRTV, ID3D11Dept
 
 	m_context->ClearRenderTargetView(backBufferRTV, Colors::CornflowerBlue);
 	m_context->ClearDepthStencilView(backBufferDSV, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
+
+	m_context->RSSetState(nullptr);
 
 	D3D11_VIEWPORT viewport = {};
 	viewport.TopLeftX = viewport.TopLeftY = 0;

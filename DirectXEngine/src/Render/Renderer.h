@@ -7,7 +7,7 @@
 
 #include <DirectXMath.h>
 
-#define SHADOW_MAP_SIZE 2048
+#define SHADOW_MAP_SIZE 1024
 
 class Renderer
 {
@@ -30,6 +30,8 @@ private:
 	Texture* m_defaultShadowMap;
 	ID3D11DepthStencilView* m_shadowMapDSV;
 	ID3D11ShaderResourceView* m_shadowMapSRV;
+
+	ID3D11RasterizerState* m_shadowMapRasterizerState;
 
 	VertexShader* m_basicVertexShader;
 	Sampler* m_shadowMapSampler;

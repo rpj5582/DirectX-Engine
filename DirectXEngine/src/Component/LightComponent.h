@@ -62,7 +62,7 @@ public:
 private:
 	void setSettingsDefault();
 	void updateViewMatrix();
-	void updateProjectionMatrix(float nearZ, float farZ, float width, float height);
+	void updateProjectionMatrix(float nearZ, float farZ, float width = 100.0f, float height = 100.0f);
 
 	LightSettings m_light;
 	LightType m_lightType;

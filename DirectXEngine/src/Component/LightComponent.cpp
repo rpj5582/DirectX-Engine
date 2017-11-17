@@ -49,8 +49,6 @@ void LightComponent::init()
 
 	setLightType(DIRECTIONAL_LIGHT);
 	setSettingsDefault();
-
-	updateProjectionMatrix(NEAR_Z, FAR_Z, 100.0f, 100.0f);
 }
 
 void LightComponent::initDebugVariables()
@@ -206,6 +204,7 @@ LightType LightComponent::getLightType() const
 void LightComponent::setLightType(LightType lightType)
 {
 	m_lightType = lightType;
+	updateProjectionMatrix(NEAR_Z, FAR_Z);
 }
 
 LightSettings LightComponent::getLightSettings() const
@@ -282,9 +281,7 @@ void LightComponent::updateViewMatrix()
 		XMFLOAT3 upFloat3 = transform->getUp();
 		XMVECTOR up = XMLoadFloat3(&upFloat3);
 
-		eye = XMVectorMultiplyAdd(forward, XMVectorSet(-10.0f, -10.0f, -10.0f, -10.0f), eye);
-
-		XMMatrixLookToLH(eye, forward, up);
+		eye = XMVectorMultiplyAdd(forward, XMVectorReplicate(-10.0f), eye);
 
 		XMMATRIX viewMatrix = XMMatrixLookToLH(eye, forward, up);
 		XMStoreFloat4x4(&m_viewMatrix, viewMatrix);
