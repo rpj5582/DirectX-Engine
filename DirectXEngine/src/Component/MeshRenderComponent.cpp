@@ -2,6 +2,7 @@
 
 MeshRenderComponent::MeshRenderComponent(Entity& entity) : RenderComponent(entity)
 {
+	castShadows = true;
 	receiveShadows = true;
 
 	m_mesh = nullptr;
@@ -17,6 +18,7 @@ void MeshRenderComponent::initDebugVariables()
 	RenderComponent::initDebugVariables();
 
 	Debug::entityDebugWindow->addVariableWithCallbacks(TW_TYPE_STDSTRING, "Mesh", this, &getMeshRenderComponentMeshDebugEditor, &setMeshRenderComponentMeshDebugEditor, this);
+	Debug::entityDebugWindow->addVariable(&castShadows, TW_TYPE_BOOLCPP, "Cast Shadows", this);
 	Debug::entityDebugWindow->addVariable(&receiveShadows, TW_TYPE_BOOLCPP, "Receive Shadows", this);
 }
 
@@ -28,6 +30,12 @@ void MeshRenderComponent::loadFromJSON(rapidjson::Value& dataObject)
 	if (mesh != dataObject.MemberEnd())
 	{
 		setMesh(mesh->value.GetString());
+	}
+
+	rapidjson::Value::MemberIterator castShadowsIter = dataObject.FindMember("castShadows");
+	if (castShadowsIter != dataObject.MemberEnd())
+	{
+		castShadows = castShadowsIter->value.GetBool();
 	}
 
 	rapidjson::Value::MemberIterator receiveShadowsIter = dataObject.FindMember("receiveShadows");
@@ -43,6 +51,9 @@ void MeshRenderComponent::saveToJSON(rapidjson::Writer<rapidjson::StringBuffer>&
 
 	writer.Key("mesh");
 	writer.String(m_meshID.c_str());
+
+	writer.Key("castShadows");
+	writer.Bool(castShadows);
 
 	writer.Key("receiveShadows");
 	writer.Bool(receiveShadows);

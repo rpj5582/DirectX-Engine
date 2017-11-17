@@ -334,7 +334,7 @@ bool AssetManager::loadDefaultAssets()
 	shadowMapSamplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_BORDER;
 	shadowMapSamplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_BORDER;
 	shadowMapSamplerDesc.Filter = D3D11_FILTER_COMPARISON_MIN_MAG_MIP_LINEAR;
-	shadowMapSamplerDesc.ComparisonFunc = D3D11_COMPARISON_LESS;
+	shadowMapSamplerDesc.ComparisonFunc = D3D11_COMPARISON_GREATER;
 	shadowMapSamplerDesc.BorderColor[0] = 1.0f;
 	shadowMapSamplerDesc.BorderColor[1] = 1.0f;
 	shadowMapSamplerDesc.BorderColor[2] = 1.0f;

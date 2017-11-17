@@ -181,7 +181,7 @@ float4 main(VertexToPixel input) : SV_TARGET
 	for (unsigned int i = 0; i < MAX_LIGHTS; i++)
 	{
 		float4 lightColor = calculateLight(lights[i], finalNormal, input.worldPosition, diffuseColor, specularColor);
-		finalLightColor += lightColor * shadowAmount;
+		finalLightColor += lightColor * (1.0f - shadowAmount);
 	}
 
 	switch (renderStyle)

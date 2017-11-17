@@ -7,7 +7,6 @@ Renderer::Renderer(ID3D11Device* device, ID3D11DeviceContext* context)
 	m_device = device;
 	m_context = context;
 
-	m_defaultShadowMap = nullptr;
 	m_shadowMapDSV = nullptr;
 	m_shadowMapSRV = nullptr;
 
@@ -19,7 +18,6 @@ Renderer::Renderer(ID3D11Device* device, ID3D11DeviceContext* context)
 
 Renderer::~Renderer()
 {
-	m_defaultShadowMap = nullptr;
 	if (m_shadowMapDSV) m_shadowMapDSV->Release();
 	if (m_shadowMapSRV) m_shadowMapSRV->Release();
 
@@ -34,16 +32,14 @@ Renderer::~Renderer()
 
 bool Renderer::init()
 {
-	m_defaultShadowMap = AssetManager::getAsset<Texture>(DEFAULT_TEXTURE_WHITE);
-
 	D3D11_TEXTURE2D_DESC shadowMapDesc = {};
 	shadowMapDesc.Width = SHADOW_MAP_SIZE;
 	shadowMapDesc.Height = SHADOW_MAP_SIZE;
+	shadowMapDesc.BindFlags = D3D11_BIND_DEPTH_STENCIL | D3D11_BIND_SHADER_RESOURCE;
 	shadowMapDesc.MipLevels = 1;
 	shadowMapDesc.ArraySize = 1;
 	shadowMapDesc.Format = DXGI_FORMAT_R32_TYPELESS;
 	shadowMapDesc.Usage = D3D11_USAGE_DEFAULT;
-	shadowMapDesc.BindFlags = D3D11_BIND_DEPTH_STENCIL | D3D11_BIND_SHADER_RESOURCE;
 	shadowMapDesc.CPUAccessFlags = 0;
 	shadowMapDesc.MiscFlags = 0;
 	shadowMapDesc.SampleDesc.Count = 1;
@@ -165,7 +161,7 @@ void Renderer::renderShadowMapPass(Entity** entities, size_t entityCount, const 
 
 		Transform* transform = entities[i]->getComponent<Transform>();
 		MeshRenderComponent* meshRenderComponent = entities[i]->getComponent<MeshRenderComponent>();
-		if (meshRenderComponent && meshRenderComponent->enabled && transform)
+		if (meshRenderComponent && meshRenderComponent->enabled && meshRenderComponent->castShadows && transform)
 		{
 			XMFLOAT4X4 world = transform->getWorldMatrix();
 			XMMATRIX worldMatrixT = XMMatrixTranspose(XMLoadFloat4x4(&world));
@@ -307,8 +303,6 @@ void Renderer::renderMainPass(const CameraComponent& mainCamera, XMFLOAT4X4 proj
 
 					if (meshRenderComponent->receiveShadows)
 						pixelShader->SetShaderResourceView("shadowMap", m_shadowMapSRV);
-					else
-						pixelShader->SetShaderResourceView("shadowMap", m_defaultShadowMap->getSRV());
 
 					Mesh* mesh = meshRenderComponent->getMesh();
 					if (mesh)

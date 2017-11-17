@@ -27,7 +27,6 @@ private:
 	ID3D11Device* m_device;
 	ID3D11DeviceContext* m_context;
 
-	Texture* m_defaultShadowMap;
 	ID3D11DepthStencilView* m_shadowMapDSV;
 	ID3D11ShaderResourceView* m_shadowMapSRV;
 

@@ -15,6 +15,7 @@ public:
 	std::string getMeshID() const;
 	void setMesh(std::string meshID);
 
+	bool castShadows;
 	bool receiveShadows;
 
 private:
