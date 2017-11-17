@@ -76,3 +76,9 @@ private:
 	static TwEnumVal d_lightTypeMembers[3];
 	static TwType TW_TYPE_LIGHT_TYPE;
 };
+
+void TW_CALL getLightSettingsDebugEditor(void* value, void* clientData);
+void TW_CALL getLightTypeDebugEditor(void* value, void* clientData);
+
+void TW_CALL setLightSettingsDebugEditor(const void* value, void* clientData);
+void TW_CALL setLightTypeDebugEditor(const void* value, void* clientData);

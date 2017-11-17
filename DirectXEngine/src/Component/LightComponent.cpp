@@ -61,8 +61,8 @@ void LightComponent::initDebugVariables()
 	if (TW_TYPE_LIGHT_TYPE == TW_TYPE_UNDEF)
 		TW_TYPE_LIGHT_TYPE = TwDefineEnum("TW_TYPE_LIGH_TYPE", d_lightTypeMembers, 3);
 
-	Debug::entityDebugWindow->addVariable(&m_light, TW_TYPE_LIGHT_SETTINGS, "Light Settings", this);
-	Debug::entityDebugWindow->addVariable(&m_lightType, TW_TYPE_LIGHT_TYPE, "Light Type", this);
+	Debug::entityDebugWindow->addVariableWithCallbacks(TW_TYPE_LIGHT_SETTINGS, "Light Settings", this, &getLightSettingsDebugEditor, &setLightSettingsDebugEditor, this);
+	Debug::entityDebugWindow->addVariableWithCallbacks(TW_TYPE_LIGHT_TYPE, "Light Type", this, &getLightTypeDebugEditor, &setLightTypeDebugEditor, this);
 	Debug::entityDebugWindow->addVariable(&castShadows, TW_TYPE_BOOLCPP, "Cast Shadows", this);
 }
 
@@ -83,15 +83,15 @@ void LightComponent::loadFromJSON(rapidjson::Value& dataObject)
 		switch (stringHash(lightTypeString.c_str()))
 		{
 		case stringHash("point"):
-			m_lightType = POINT_LIGHT;
+			setLightType(POINT_LIGHT);
 			break;
 
 		case stringHash("directional"):
-			m_lightType = DIRECTIONAL_LIGHT;
+			setLightType(DIRECTIONAL_LIGHT);
 			break;
 
 		case stringHash("spot"):
-			m_lightType = SPOT_LIGHT;
+			setLightType(SPOT_LIGHT);
 			break;
 
 		default:
@@ -106,30 +106,34 @@ void LightComponent::loadFromJSON(rapidjson::Value& dataObject)
 	rapidjson::Value::MemberIterator radius = dataObject.FindMember("radius");
 	rapidjson::Value::MemberIterator spotAngle = dataObject.FindMember("spotAngle");
 
+	LightSettings settings = getLightSettings();
+
 	if (color != dataObject.MemberEnd())
 	{
-		m_light.color = XMFLOAT4(color->value["r"].GetFloat(), color->value["g"].GetFloat(), color->value["b"].GetFloat(), color->value["a"].GetFloat());
+		settings.color = XMFLOAT4(color->value["r"].GetFloat(), color->value["g"].GetFloat(), color->value["b"].GetFloat(), color->value["a"].GetFloat());
 	}
 
 	if (brightness != dataObject.MemberEnd())
 	{
-		m_light.brightness = brightness->value.GetFloat();
+		settings.brightness = brightness->value.GetFloat();
 	}
 
 	if (specularity != dataObject.MemberEnd())
 	{
-		m_light.specularity = specularity->value.GetFloat();
+		settings.specularity = specularity->value.GetFloat();
 	}
 
 	if (radius != dataObject.MemberEnd())
 	{
-		m_light.radius = radius->value.GetFloat();
+		settings.radius = radius->value.GetFloat();
 	}
 
 	if (spotAngle != dataObject.MemberEnd())
 	{
-		m_light.spotAngle = spotAngle->value.GetFloat();
+		settings.spotAngle = spotAngle->value.GetFloat();
 	}
+
+	setLightSettings(settings);
 
 	rapidjson::Value::MemberIterator castShadowsIter = dataObject.FindMember("castShadows");
 	if (castShadowsIter != dataObject.MemberEnd())
@@ -215,6 +219,9 @@ LightSettings LightComponent::getLightSettings() const
 void LightComponent::setLightSettings(const LightSettings& settings)
 {
 	m_light = settings;
+
+	if(m_lightType != DIRECTIONAL_LIGHT)
+		updateProjectionMatrix(NEAR_Z, FAR_Z);
 }
 
 void LightComponent::useDefaultSettings()
@@ -234,11 +241,15 @@ DirectX::XMFLOAT4X4 LightComponent::getProjectionMatrix() const
 
 void LightComponent::setSettingsDefault()
 {
-	m_light.color = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
-	m_light.brightness = 1.0f;
-	m_light.specularity = 32.0f;
-	m_light.radius = 1.0f;
-	m_light.spotAngle = 15.0f;
+	LightSettings settings;
+
+	settings.color = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
+	settings.brightness = 1.0f;
+	settings.specularity = 32.0f;
+	settings.radius = 1.0f;
+	settings.spotAngle = 15.0f;
+
+	setLightSettings(settings);
 }
 
 void LightComponent::updateViewMatrix()
@@ -316,15 +327,20 @@ void LightComponent::updateProjectionMatrix(float nearZ, float farZ, float width
 {
 	switch (m_lightType)
 	{
-	case SPOT_LIGHT:
 	case POINT_LIGHT:
 	{
-		XMMATRIX perspective = XMMatrixPerspectiveFovLH(XM_PIDIV4, (float)Window::getWidth() / Window::getHeight(), nearZ, farZ);
+		Debug::error("Point light projection matrices are not yet implemented.");
+		XMStoreFloat4x4(&m_projectionMatrix, XMMatrixIdentity());
+		break;
+	}
+
+	case SPOT_LIGHT:
+	{
+		XMMATRIX perspective = XMMatrixPerspectiveFovLH(XMConvertToRadians(m_light.spotAngle), 1.0f, nearZ, m_light.radius);
 		XMStoreFloat4x4(&m_projectionMatrix, perspective);
 		break;
 	}
 		
-
 	case DIRECTIONAL_LIGHT:
 	{
 		XMMATRIX orthographic = XMMatrixOrthographicLH(width, height, nearZ, farZ);
@@ -335,6 +351,29 @@ void LightComponent::updateProjectionMatrix(float nearZ, float farZ, float width
 	default:
 		break;
 	}
+}
 
-	
+void TW_CALL getLightSettingsDebugEditor(void* value, void* clientData)
+{
+	LightComponent* lightComponent = static_cast<LightComponent*>(clientData);
+	*static_cast<LightSettings*>(value) = lightComponent->getLightSettings();
+}
+
+void TW_CALL getLightTypeDebugEditor(void* value, void* clientData)
+{
+	LightComponent* lightComponent = static_cast<LightComponent*>(clientData);
+	*static_cast<LightType*>(value) = lightComponent->getLightType();
+}
+
+void TW_CALL setLightSettingsDebugEditor(const void* value, void* clientData)
+{
+	LightComponent* lightComponent = static_cast<LightComponent*>(clientData);
+	lightComponent->setLightSettings(*static_cast<const LightSettings*>(value));
+}
+
+void TW_CALL setLightTypeDebugEditor(const void* value, void* clientData)
+{
+	LightComponent* lightComponent = static_cast<LightComponent*>(clientData);
+	lightComponent->setLightType(*static_cast<const LightType*>(value));
+
 }
