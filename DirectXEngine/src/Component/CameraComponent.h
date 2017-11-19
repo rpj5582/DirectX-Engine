@@ -7,6 +7,7 @@ public:
 	CameraComponent(Entity& entity);
 	~CameraComponent();
 
+	virtual void init() override;
 	virtual void lateUpdate(float deltaTime, float totalTime) override;
 
 	DirectX::XMFLOAT4X4 getViewMatrix() const;

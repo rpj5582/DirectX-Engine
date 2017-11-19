@@ -28,7 +28,7 @@ void Mesh::saveToJSON(rapidjson::Writer<rapidjson::StringBuffer>& writer)
 	writer.String("model");
 }
 
-bool Mesh::loadAsset()
+bool Mesh::loadFromFile()
 {
 	// File input object
 	std::ifstream obj(m_filepath, std::ios::in);

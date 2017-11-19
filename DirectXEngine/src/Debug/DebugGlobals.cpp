@@ -186,10 +186,10 @@ void TW_CALL toggleDebugIconsSceneDebugEditor(void* clientData)
 	std::vector<Entity*> entities = SceneManager::getActiveScene()->getAllEntities();
 	for (unsigned int i = 0; i < entities.size(); i++)
 	{
-		GUITransform* debugIconTransform = entities[i]->getDebugIconTransform();
-		if (debugIconTransform)
+		DebugEntity* debugIcon = entities[i]->getDebugIcon();
+		if (debugIcon)
 		{
-			debugIconTransform->enabled = !debugIconTransform->enabled;
+			debugIcon->enabled = !debugIcon->enabled;
 		}
 	}
 }

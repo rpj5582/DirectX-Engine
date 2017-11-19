@@ -1,7 +1,10 @@
 TODO:
-Make shadow map size and PCF sample width editable
+Force Components to only be created by Entities, Entities to only be created by Scenes, and Assets to only be created by the AssetManager.
+Give Asset a createAsset function so that an invalid asset can be deleted, like loadAsset
+Make PCF sample width editable
 Add support for multiple real time lights
 Add spot light real time shadows
+Make material creator
 Implement "first person" entity moving in debug mode
 Make a scene graph or some kind of proper ordering to entities
 Implement file loading for materials and samplers

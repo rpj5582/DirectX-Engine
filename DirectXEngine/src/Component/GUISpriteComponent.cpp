@@ -18,7 +18,7 @@ void GUISpriteComponent::init()
 {
 	GUIComponent::init();
 
-	setTexture(DEFAULT_TEXTURE_GUI);
+	setTexture(DEFAULT_TEXTURE_WHITE);
 }
 
 void GUISpriteComponent::initDebugVariables()
@@ -49,13 +49,15 @@ void GUISpriteComponent::saveToJSON(rapidjson::Writer<rapidjson::StringBuffer>& 
 
 void GUISpriteComponent::draw(DirectX::SpriteBatch& spriteBatch) const
 {
-	GUITransform* guiDebugTransform = entity.getDebugIconTransform();
 	GUITransform* guiTransform = entity.getComponent<GUITransform>();
 
-	if (guiDebugTransform)
+#if defined(DEBUG) || defined(_DEBUG)
+	DebugEntity* debugIcon = entity.getDebugIcon();
+	if (debugIcon)
 	{
-		guiTransform = guiDebugTransform;
+		guiTransform = debugIcon->getGUITransform();
 	}
+#endif
 
 	if (!guiTransform) return;
 	if (!m_texture) return;
@@ -93,15 +95,18 @@ std::string GUISpriteComponent::getTextureID() const
 
 void GUISpriteComponent::setTexture(std::string textureID)
 {
-	m_texture = AssetManager::getAsset<Texture>(textureID);
-	if (m_texture)
+	if (textureID == "")
 	{
-		m_textureID = textureID;
+		m_texture = AssetManager::getAsset<Texture>(DEFAULT_TEXTURE_WHITE);
+		m_textureID = DEFAULT_TEXTURE_WHITE;
+		return;
 	}
-	else
+
+	Texture* texture = AssetManager::getAsset<Texture>(textureID);
+	if (texture)
 	{
-		m_textureID = "";
-		m_texture = nullptr;
+		m_texture = texture;
+		m_textureID = textureID;
 	}
 }
 

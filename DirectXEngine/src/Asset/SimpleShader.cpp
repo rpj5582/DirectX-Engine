@@ -790,6 +790,20 @@ bool SimpleVertexShader::SetShaderResourceView(std::string name, ID3D11ShaderRes
 	return true;
 }
 
+bool SimpleVertexShader::SetShaderResourceViewArray(std::string name, ID3D11ShaderResourceView** srvs, unsigned int srvCount)
+{
+	// Look for the variable and verify
+	const SimpleSRV* srvInfo = GetShaderResourceViewInfo(name);
+	if (srvInfo == 0)
+		return false;
+
+	// Set the shader resource views
+	deviceContext->VSSetShaderResources(srvInfo->BindIndex, srvCount, srvs);
+
+	// Success
+	return true;
+}
+
 // --------------------------------------------------------
 // Sets a sampler state in the vertex shader stage
 //
@@ -906,6 +920,20 @@ bool SimplePixelShader::SetShaderResourceView(std::string name, ID3D11ShaderReso
 
 	// Set the shader resource view
 	deviceContext->PSSetShaderResources(srvInfo->BindIndex, 1, &srv);
+
+	// Success
+	return true;
+}
+
+bool SimplePixelShader::SetShaderResourceViewArray(std::string name, ID3D11ShaderResourceView** srvs, unsigned int srvCount)
+{
+	// Look for the variable and verify
+	const SimpleSRV* srvInfo = GetShaderResourceViewInfo(name);
+	if (srvInfo == 0)
+		return false;
+
+	// Set the shader resource views
+	deviceContext->PSSetShaderResources(srvInfo->BindIndex, srvCount, srvs);
 
 	// Success
 	return true;
@@ -1034,6 +1062,20 @@ bool SimpleDomainShader::SetShaderResourceView(std::string name, ID3D11ShaderRes
 	return true;
 }
 
+bool SimpleDomainShader::SetShaderResourceViewArray(std::string name, ID3D11ShaderResourceView** srvs, unsigned int srvCount)
+{
+	// Look for the variable and verify
+	const SimpleSRV* srvInfo = GetShaderResourceViewInfo(name);
+	if (srvInfo == 0)
+		return false;
+
+	// Set the shader resource views
+	deviceContext->DSSetShaderResources(srvInfo->BindIndex, srvCount, srvs);
+
+	// Success
+	return true;
+}
+
 // --------------------------------------------------------
 // Sets a sampler state in the domain shader stage
 //
@@ -1151,6 +1193,20 @@ bool SimpleHullShader::SetShaderResourceView(std::string name, ID3D11ShaderResou
 
 	// Set the shader resource view
 	deviceContext->HSSetShaderResources(srvInfo->BindIndex, 1, &srv);
+
+	// Success
+	return true;
+}
+
+bool SimpleHullShader::SetShaderResourceViewArray(std::string name, ID3D11ShaderResourceView** srvs, unsigned int srvCount)
+{
+	// Look for the variable and verify
+	const SimpleSRV* srvInfo = GetShaderResourceViewInfo(name);
+	if (srvInfo == 0)
+		return false;
+
+	// Set the shader resource views
+	deviceContext->HSSetShaderResources(srvInfo->BindIndex, srvCount, srvs);
 
 	// Success
 	return true;
@@ -1400,6 +1456,20 @@ bool SimpleGeometryShader::SetShaderResourceView(std::string name, ID3D11ShaderR
 	return true;
 }
 
+bool SimpleGeometryShader::SetShaderResourceViewArray(std::string name, ID3D11ShaderResourceView** srvs, unsigned int srvCount)
+{
+	// Look for the variable and verify
+	const SimpleSRV* srvInfo = GetShaderResourceViewInfo(name);
+	if (srvInfo == 0)
+		return false;
+
+	// Set the shader resource views
+	deviceContext->GSSetShaderResources(srvInfo->BindIndex, srvCount, srvs);
+
+	// Success
+	return true;
+}
+
 // --------------------------------------------------------
 // Sets a sampler state in the Geometry shader stage
 //
@@ -1633,6 +1703,20 @@ bool SimpleComputeShader::SetShaderResourceView(std::string name, ID3D11ShaderRe
 
 	// Set the shader resource view
 	deviceContext->CSSetShaderResources(srvInfo->BindIndex, 1, &srv);
+
+	// Success
+	return true;
+}
+
+bool SimpleComputeShader::SetShaderResourceViewArray(std::string name, ID3D11ShaderResourceView** srvs, unsigned int srvCount)
+{
+	// Look for the variable and verify
+	const SimpleSRV* srvInfo = GetShaderResourceViewInfo(name);
+	if (srvInfo == 0)
+		return false;
+
+	// Set the shader resource views
+	deviceContext->CSSetShaderResources(srvInfo->BindIndex, srvCount, srvs);
 
 	// Success
 	return true;

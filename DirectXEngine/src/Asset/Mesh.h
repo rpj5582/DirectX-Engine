@@ -20,7 +20,7 @@ public:
 	Mesh(ID3D11Device* device, ID3D11DeviceContext* context, std::string assetID, Vertex* vertices, unsigned int vertexCount, UINT* indices, unsigned int indexCount);
 	~Mesh();
 
-	bool loadAsset() override;
+	bool loadFromFile() override;
 	void saveToJSON(rapidjson::Writer<rapidjson::StringBuffer>& writer) override;
 
 	ID3D11Buffer* getVertexBuffer() const;

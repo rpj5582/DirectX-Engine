@@ -1,3 +1,5 @@
+#include "SharedDefines.hlsli"
+
 // Constant Buffer
 // - Allows us to define a buffer of individual variables 
 //    which will (eventually) hold data from our C++ code
@@ -11,8 +13,8 @@ cbuffer matrices : register(b0)
 	matrix projection;
 	matrix worldInverseTranspose;
 
-	matrix lightView;
-	matrix lightProjection;
+	matrix lightViews[MAX_SHADOWMAPS];
+	matrix lightProjections[MAX_SHADOWMAPS];
 };
 
 // Struct representing a single vertex worth of data
@@ -48,7 +50,7 @@ struct VertexToPixel
 	//  v    v                v
 	float4 position		: SV_POSITION;	// XYZW position (System Value Position)	
 	float3 worldPosition : WORLD_POSITION;
-	float4 shadowPosition : SHADOW_POSITION;
+	float4 shadowPositions[MAX_SHADOWMAPS] : SHADOW_POSITIONS;
 	float2 uv			: TEXCOORD;
 	float3 normal		: NORMAL;
 	float3 tangent		: TANGENT;
@@ -87,8 +89,13 @@ VertexToPixel main( VertexShaderInput input )
 	// screen and the distance (Z) from the camera (the "depth" of the pixel)
 	output.position = mul(float4(input.position, 1.0f), worldViewProj);
 
-	matrix shadowWorldViewProj = mul(mul(world, lightView), lightProjection);
-	output.shadowPosition = mul(float4(input.position, 1.0f), shadowWorldViewProj);
+	[unroll]
+	for (unsigned int i = 0; i < MAX_SHADOWMAPS; i++)
+	{
+		matrix shadowWorldViewProj = mul(mul(world, lightViews[i]), lightProjections[i]);
+		output.shadowPositions[i] = mul(float4(input.position, 1.0f), shadowWorldViewProj);
+	}
+	
 
 	output.uv = input.uv;
 

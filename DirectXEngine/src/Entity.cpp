@@ -18,23 +18,15 @@ Entity::Entity(Scene& scene, std::string name, bool hasDebugIcon) : m_scene(scen
 
 	m_tags = std::unordered_set<std::string>();
 
+	d_debugIcon = nullptr;
+
 	d_componentTypeField = "";
 	d_childNameInputField = "";
 
 #if defined(DEBUG) || defined(_DEBUG)
 	if (hasDebugIcon)
 	{
-		d_guiDebugTransform = new GUITransform(*this);
-		d_guiDebugTransform->init();
-		d_guiDebugTransform->setOrigin(XMFLOAT2(0.5f, 0.5f));
-		
-		d_guiDebugSpriteComponent = new GUIDebugSpriteComponent(*this);
-		d_guiDebugSpriteComponent->init();
-
-		d_guiDebugTransform->setSize(XMFLOAT2((float)d_guiDebugSpriteComponent->getTexture()->getWidth(), (float)d_guiDebugSpriteComponent->getTexture()->getHeight()));
-
-		d_guiDebugTransform->enabled = false;
-		d_guiDebugSpriteComponent->enabled = false;
+		createDebugIcon();
 	}
 #endif
 }
@@ -42,8 +34,7 @@ Entity::Entity(Scene& scene, std::string name, bool hasDebugIcon) : m_scene(scen
 Entity::~Entity()
 {
 #if defined(DEBUG) || defined(_DEBUG)
-	delete d_guiDebugTransform;
-	delete d_guiDebugSpriteComponent;
+	deleteDebugIcon();
 #endif
 
 	while (m_components.size() > 0)
@@ -138,14 +129,6 @@ void Entity::onSceneLoaded()
 	{
 		m_components[i]->onSceneLoaded();
 	}
-
-#if defined(DEBUG) || defined(_DEBUG)
-	if (d_guiDebugTransform)
-		d_guiDebugTransform->onSceneLoaded();
-
-	if(d_guiDebugSpriteComponent)
-		d_guiDebugSpriteComponent->onSceneLoaded();
-#endif
 }
 
 Scene& Entity::getScene() const
@@ -372,32 +355,40 @@ std::unordered_set<std::string> Entity::getTags() const
 	return m_tags;
 }
 
+void Entity::createDebugIcon()
+{
+	d_debugIcon = new DebugEntity(*this);
+	disableDebugIcon();
+}
+
+void Entity::deleteDebugIcon()
+{
+	if (d_debugIcon)
+	{
+		delete d_debugIcon;
+		d_debugIcon = nullptr;
+	}
+}
+
 void Entity::enableDebugIcon()
 {
-	if (d_guiDebugTransform && d_guiDebugSpriteComponent)
+	if (d_debugIcon)
 	{
-		d_guiDebugTransform->enabled = true;
-		d_guiDebugSpriteComponent->enabled = true;
+		d_debugIcon->enabled = true;
 	}
 }
 
 void Entity::disableDebugIcon()
 {
-	if (d_guiDebugTransform && d_guiDebugSpriteComponent)
+	if (d_debugIcon)
 	{
-		d_guiDebugTransform->enabled = false;
-		d_guiDebugSpriteComponent->enabled = false;
+		d_debugIcon->enabled = false;
 	}
 }
 
-GUITransform* Entity::getDebugIconTransform() const
+DebugEntity* Entity::getDebugIcon() const
 {
-	return d_guiDebugTransform;
-}
-
-GUIDebugSpriteComponent* Entity::getDebugIconSpriteComponent() const
-{
-	return d_guiDebugSpriteComponent;
+	return d_debugIcon;
 }
 
 void Entity::setParentNonRecursive(Entity* parent)

@@ -146,18 +146,19 @@ std::string RenderComponent::getMaterialID() const
 
 void RenderComponent::setMaterial(std::string materialID)
 {
-	m_material = AssetManager::getAsset<Material>(materialID);
-	if (m_material)
+	if (materialID == "")
 	{
+		m_material = AssetManager::getAsset<Material>(DEFAULT_MATERIAL);
+		m_materialID = DEFAULT_MATERIAL;
+		return;
+	}
+
+	Material* material = AssetManager::getAsset<Material>(materialID);
+	if (material)
+	{
+		m_material = material;
 		m_materialID = materialID;
-	}
-	else
-	{
-		m_materialID = "";
-		m_material = nullptr;
-	}
-	
-	
+	}	
 }
 
 RenderStyle RenderComponent::getRenderStyle() const

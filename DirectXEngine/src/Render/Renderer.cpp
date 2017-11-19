@@ -7,9 +7,6 @@ Renderer::Renderer(ID3D11Device* device, ID3D11DeviceContext* context)
 	m_device = device;
 	m_context = context;
 
-	m_shadowMapDSV = nullptr;
-	m_shadowMapSRV = nullptr;
-
 	m_shadowMapRasterizerState = nullptr;
 
 	m_basicVertexShader = nullptr;
@@ -18,9 +15,6 @@ Renderer::Renderer(ID3D11Device* device, ID3D11DeviceContext* context)
 
 Renderer::~Renderer()
 {
-	if (m_shadowMapDSV) m_shadowMapDSV->Release();
-	if (m_shadowMapSRV) m_shadowMapSRV->Release();
-
 	if (m_shadowMapRasterizerState) m_shadowMapRasterizerState->Release();
 
 	m_device = nullptr;
@@ -32,56 +26,7 @@ Renderer::~Renderer()
 
 bool Renderer::init()
 {
-	D3D11_TEXTURE2D_DESC shadowMapDesc = {};
-	shadowMapDesc.Width = SHADOW_MAP_SIZE;
-	shadowMapDesc.Height = SHADOW_MAP_SIZE;
-	shadowMapDesc.BindFlags = D3D11_BIND_DEPTH_STENCIL | D3D11_BIND_SHADER_RESOURCE;
-	shadowMapDesc.MipLevels = 1;
-	shadowMapDesc.ArraySize = 1;
-	shadowMapDesc.Format = DXGI_FORMAT_R32_TYPELESS;
-	shadowMapDesc.Usage = D3D11_USAGE_DEFAULT;
-	shadowMapDesc.CPUAccessFlags = 0;
-	shadowMapDesc.MiscFlags = 0;
-	shadowMapDesc.SampleDesc.Count = 1;
-	shadowMapDesc.SampleDesc.Quality = 0;
-
-	D3D11_SHADER_RESOURCE_VIEW_DESC shadowMapSRVDesc = {};
-	shadowMapSRVDesc.Format = DXGI_FORMAT_R32_FLOAT;
-	shadowMapSRVDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
-	shadowMapSRVDesc.Texture2D.MipLevels = 1;
-	shadowMapSRVDesc.Texture2D.MostDetailedMip = 0;
-
-	D3D11_DEPTH_STENCIL_VIEW_DESC shadowMapDSVDesc = {};
-	shadowMapDSVDesc.Format = DXGI_FORMAT_D32_FLOAT;
-	shadowMapDSVDesc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
-	shadowMapDSVDesc.Flags = 0;
-	shadowMapDSVDesc.Texture2D.MipSlice = 0;
-
 	HRESULT hr = S_OK;
-
-	ID3D11Texture2D* shadowMap;
-	hr = m_device->CreateTexture2D(&shadowMapDesc, nullptr, &shadowMap);
-	if (FAILED(hr))
-	{
-		Debug::error("Failed to create shadow map texture.");
-		return false;
-	}
-
-	hr = m_device->CreateDepthStencilView(shadowMap, &shadowMapDSVDesc, &m_shadowMapDSV);
-	if (FAILED(hr))
-	{
-		Debug::error("Failed to create shadow map depth stencil view.");
-		return false;
-	}
-
-	hr = m_device->CreateShaderResourceView(shadowMap, &shadowMapSRVDesc, &m_shadowMapSRV);
-	if (FAILED(hr))
-	{
-		Debug::error("Failed to create shadow map shader resource view.");
-		return false;
-	}
-
-	shadowMap->Release();
 
 	D3D11_RASTERIZER_DESC shadowMapRasterizerDesc = {};
 	shadowMapRasterizerDesc.FillMode = D3D11_FILL_SOLID;
@@ -119,21 +64,29 @@ bool Renderer::init()
 	return true;
 }
 
-void Renderer::prepareShadowMapPass()
+void Renderer::prepareShadowMapPass(Texture* shadowMap)
 {
-	m_context->ClearDepthStencilView(m_shadowMapDSV, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
+	if (!shadowMap)
+	{
+		Debug::warning("Could not prepare shadow pass since no shadow map was given.");
+		return;
+	}
+
+	ID3D11DepthStencilView* shadowMapDSV = shadowMap->getDSV();
+
+	m_context->ClearDepthStencilView(shadowMapDSV, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 
 	m_context->RSSetState(m_shadowMapRasterizerState);
 
 	ID3D11RenderTargetView* nullRTV = nullptr;
-	m_context->OMSetRenderTargets(1, &nullRTV, m_shadowMapDSV);
+	m_context->OMSetRenderTargets(1, &nullRTV, shadowMapDSV);
 
 	D3D11_VIEWPORT viewport = {};
 	viewport.TopLeftX = viewport.TopLeftY = 0;
 	viewport.MinDepth = 0;
 	viewport.MaxDepth = 1;
-	viewport.Width = SHADOW_MAP_SIZE;
-	viewport.Height = SHADOW_MAP_SIZE;
+	viewport.Width = (float)shadowMap->getWidth();
+	viewport.Height = (float)shadowMap->getHeight();
 	m_context->RSSetViewports(1, &viewport);
 
 	m_basicVertexShader->SetShader();
@@ -206,7 +159,7 @@ void Renderer::prepareMainPass(ID3D11RenderTargetView* backBufferRTV, ID3D11Dept
 	m_context->RSSetViewports(1, &viewport);
 }
 
-void Renderer::renderMainPass(const CameraComponent& mainCamera, XMFLOAT4X4 projectionMatrix, Entity** entities, size_t entityCount, const LightComponent* shadowMapLight, const GPU_LIGHT_DATA* lightData)
+void Renderer::renderMainPass(const CameraComponent& mainCamera, XMFLOAT4X4 projectionMatrix, Entity*const * entities, size_t entityCount, const LightComponent*const * shadowLights, const GPU_LIGHT_DATA* lightData)
 {
 	Transform* mainCameraTransform = mainCamera.getEntity().getComponent<Transform>();
 	if (!mainCameraTransform) return;
@@ -220,29 +173,53 @@ void Renderer::renderMainPass(const CameraComponent& mainCamera, XMFLOAT4X4 proj
 	XMFLOAT4X4 projT;
 	XMStoreFloat4x4(&projT, projectionMatrixT);
 
-	XMFLOAT4X4 lightViewT;
-	XMFLOAT4X4 lightProjT;
+	XMFLOAT4X4 defaultLightViewT;
+	XMFLOAT4X4 defaultLightProjT;
 
-	if (shadowMapLight)
+	// If there isn't a light casting shadows, use the camera in order to have valid view and projection matrices
+	XMFLOAT4X4 defaultLightView = mainCamera.getViewMatrix();
+	XMMATRIX defaultLightViewMatrixT = XMMatrixTranspose(XMLoadFloat4x4(&defaultLightView));
+	XMStoreFloat4x4(&defaultLightViewT, defaultLightViewMatrixT);
+
+	XMFLOAT4X4 defaultLightProj = Window::getProjectionMatrix();
+	XMMATRIX defaultLightProjectionMatrixT = XMMatrixTranspose(XMLoadFloat4x4(&defaultLightProj));
+	XMStoreFloat4x4(&defaultLightProjT, defaultLightProjectionMatrixT);
+
+	ID3D11ShaderResourceView* defaultShadowMapSRV = AssetManager::getAsset<Texture>(DEFAULT_TEXTURE_SHADOWMAP)->getSRV();
+
+	std::vector<XMFLOAT4X4> lightViewMatrices = std::vector<XMFLOAT4X4>(MAX_SHADOWMAPS);
+	std::vector<XMFLOAT4X4> lightProjectionMatrices = std::vector<XMFLOAT4X4>(MAX_SHADOWMAPS);
+	std::vector<ID3D11ShaderResourceView*> shadowMapSRVs = std::vector<ID3D11ShaderResourceView*>(MAX_SHADOWMAPS);
+
+	for (unsigned int i = 0; i < MAX_SHADOWMAPS; i++)
 	{
-		XMFLOAT4X4 lightView = shadowMapLight->getViewMatrix();
-		XMMATRIX lightViewMatrixT = XMMatrixTranspose(XMLoadFloat4x4(&lightView));
-		XMStoreFloat4x4(&lightViewT, lightViewMatrixT);
+		if (shadowLights[i])
+		{
+			XMFLOAT4X4 lightViewT;
+			XMFLOAT4X4 lightView = shadowLights[i]->getViewMatrix();
+			XMMATRIX lightViewMatrixT = XMMatrixTranspose(XMLoadFloat4x4(&lightView));
+			XMStoreFloat4x4(&lightViewT, lightViewMatrixT);
 
-		XMFLOAT4X4 lightProj = shadowMapLight->getProjectionMatrix();
-		XMMATRIX lightProjectionMatrixT = XMMatrixTranspose(XMLoadFloat4x4(&lightProj));
-		XMStoreFloat4x4(&lightProjT, lightProjectionMatrixT);
-	}
-	else
-	{
-		// If there isn't a light casting shadows, use the camera in order to have valid view and projection matrices
-		XMFLOAT4X4 lightView = mainCamera.getViewMatrix();
-		XMMATRIX lightViewMatrixT = XMMatrixTranspose(XMLoadFloat4x4(&lightView));
-		XMStoreFloat4x4(&lightViewT, lightViewMatrixT);
+			XMFLOAT4X4 lightProjT;
+			XMFLOAT4X4 lightProj = shadowLights[i]->getProjectionMatrix();
+			XMMATRIX lightProjectionMatrixT = XMMatrixTranspose(XMLoadFloat4x4(&lightProj));
+			XMStoreFloat4x4(&lightProjT, lightProjectionMatrixT);
 
-		XMFLOAT4X4 lightProj = Window::getProjectionMatrix();
-		XMMATRIX lightProjectionMatrixT = XMMatrixTranspose(XMLoadFloat4x4(&lightProj));
-		XMStoreFloat4x4(&lightProjT, lightProjectionMatrixT);
+			lightViewMatrices[i] = lightViewT;
+			lightProjectionMatrices[i] = lightProjT;
+
+			Texture* shadowMapTexture = shadowLights[i]->getShadowMap();
+			if (shadowMapTexture)
+			{
+				shadowMapSRVs[i] = shadowMapTexture->getSRV();
+			}
+		}
+		else
+		{
+			lightViewMatrices[i] = defaultLightViewT;
+			lightProjectionMatrices[i] = defaultLightProjT;
+			shadowMapSRVs[i] = defaultShadowMapSRV;
+		}
 	}
 
 	unsigned int stride = sizeof(Vertex);
@@ -275,15 +252,17 @@ void Renderer::renderMainPass(const CameraComponent& mainCamera, XMFLOAT4X4 proj
 				vertexShader->SetMatrix4x4("view", viewT);
 				vertexShader->SetMatrix4x4("projection", projT);
 				vertexShader->SetMatrix4x4("worldInverseTranspose", worldMatrixInverse);
-				vertexShader->SetMatrix4x4("lightView", lightViewT);
-				vertexShader->SetMatrix4x4("lightProjection", lightProjT);
+
+				vertexShader->SetData("lightViews", &lightViewMatrices[0], sizeof(XMFLOAT4X4) * MAX_SHADOWMAPS);
+				vertexShader->SetData("lightProjections", &lightProjectionMatrices[0], sizeof(XMFLOAT4X4) * MAX_SHADOWMAPS);
+
 				vertexShader->CopyBufferData("matrices");
 
 				// Don't draw the entity if it can't be seen anyway
 				MeshRenderComponent* meshRenderComponent = entities[i]->getComponent<MeshRenderComponent>();
 				if (meshRenderComponent)
 				{
-					pixelShader->SetSamplerState("shadowMapSampler", m_shadowMapSampler->getSampler());
+					pixelShader->SetSamplerState("shadowMapSampler", m_shadowMapSampler->getSamplerState());
 
 					pixelShader->SetFloat3("cameraWorldPosition", mainCameraTransform->getPosition());
 					pixelShader->CopyBufferData("camera");
@@ -302,7 +281,7 @@ void Renderer::renderMainPass(const CameraComponent& mainCamera, XMFLOAT4X4 proj
 					pixelShader->CopyBufferData("renderStyle");					
 
 					if (meshRenderComponent->receiveShadows)
-						pixelShader->SetShaderResourceView("shadowMap", m_shadowMapSRV);
+						pixelShader->SetShaderResourceViewArray("shadowMaps", &shadowMapSRVs[0], MAX_SHADOWMAPS);
 
 					Mesh* mesh = meshRenderComponent->getMesh();
 					if (mesh)
@@ -328,7 +307,12 @@ void Renderer::renderMainPass(const CameraComponent& mainCamera, XMFLOAT4X4 proj
 					}
 				}
 
-				pixelShader->SetShaderResourceView("shadowMap", nullptr);
+				ID3D11ShaderResourceView* empty[MAX_SHADOWMAPS];
+				for (unsigned int i = 0; i < MAX_SHADOWMAPS; i++)
+				{
+					empty[i] = nullptr;
+				}
+				pixelShader->SetShaderResourceViewArray("shadowMaps", &empty[0], MAX_SHADOWMAPS);
 			}
 		}
 	}

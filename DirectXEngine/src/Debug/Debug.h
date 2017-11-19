@@ -34,6 +34,7 @@ public:
 
 	static TwType TW_TYPE_VEC3F;
 	static TwType TW_TYPE_VEC2F;
+	static TwType TW_TYPE_SIZE2;
 
 	static SceneDebugWindow* sceneDebugWindow;
 	static EntityDebugWindow* entityDebugWindow;
@@ -50,4 +51,5 @@ private:
 	static void createConsoleWindow(int bufferLines, int bufferColumns, int windowLines, int windowColumns);
 
 	static TwStructMember vec3Members[3];
+	static TwStructMember sizeMembers[2];
 };

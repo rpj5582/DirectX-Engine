@@ -12,8 +12,14 @@ TwStructMember Debug::vec3Members[] =
 	{ "y", TW_TYPE_FLOAT, sizeof(float), " step=0.1 " },
 	{ "z", TW_TYPE_FLOAT, sizeof(float) * 2, " step=0.1 " }
 };
+TwStructMember Debug::sizeMembers[] =
+{
+	{ "x", TW_TYPE_FLOAT, 0, " min=0 " },
+	{ "y", TW_TYPE_FLOAT, sizeof(float), " min=0 " }
+};
 TwType Debug::TW_TYPE_VEC3F = TW_TYPE_UNDEF;
 TwType Debug::TW_TYPE_VEC2F = TW_TYPE_UNDEF;
+TwType Debug::TW_TYPE_SIZE2 = TW_TYPE_UNDEF;
 
 void Debug::createConsoleWindow()
 {
@@ -39,6 +45,7 @@ void Debug::initDebugWindows(ID3D11Device* device, int width, int height)
 
 	TW_TYPE_VEC3F = TwDefineStruct("TW_TYPE_VEC3F", vec3Members, 3, sizeof(float) * 3, nullptr, nullptr);
 	TW_TYPE_VEC2F = TwDefineStruct("TW_TYPE_VEC2F", vec3Members, 2, sizeof(float) * 2, nullptr, nullptr);
+	TW_TYPE_SIZE2 = TwDefineStruct("TW_TYPE_SIZE2", sizeMembers, 2, sizeof(float) * 2, nullptr, nullptr);
 	
 	sceneDebugWindow = new SceneDebugWindow("scene", "Scene");
 	entityDebugWindow = new EntityDebugWindow("entities", "Entity List");

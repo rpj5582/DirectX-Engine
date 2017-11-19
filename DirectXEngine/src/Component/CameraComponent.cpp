@@ -1,6 +1,7 @@
 #include "CameraComponent.h"
 
 #include "Transform.h"
+#include "GUIDebugSpriteComponent.h"
 
 using namespace DirectX;
 
@@ -11,6 +12,19 @@ CameraComponent::CameraComponent(Entity& entity) : Component(entity)
 
 CameraComponent::~CameraComponent()
 {
+}
+
+void CameraComponent::init()
+{
+	Component::init();
+
+#if defined(DEBUG) || defined(_DEBUG)
+	DebugEntity* debugIcon = entity.getDebugIcon();
+	if (debugIcon)
+	{
+		debugIcon->getGUIDebugSpriteComponent()->setTexture(DEBUG_TEXTURE_CAMERAICON);
+	}
+#endif
 }
 
 void CameraComponent::lateUpdate(float deltaTime, float totalTime)

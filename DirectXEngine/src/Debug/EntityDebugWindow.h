@@ -20,9 +20,11 @@ public:
 	void addComponent(Component* component);
 	void removeComponent(Component* component);
 
+	void addGroup(Component* component, std::string group, std::string additionalParams = "");
+
 	template<typename T>
-	void addVariable(T* var, TwType varType, std::string varName, Component* component, std::string additionalParams = "", bool readonly = false);
-	void addVariableWithCallbacks(TwType varType, std::string varName, Component* component, TwGetVarCallback getCallback, TwSetVarCallback setCallback, void* object, std::string additionalParams = "");
+	void addVariable(T* var, TwType varType, std::string varName, Component* component, std::string group = "", std::string additionalParams = "", bool readonly = false);
+	void addVariableWithCallbacks(TwType varType, std::string varName, Component* component, TwGetVarCallback getCallback, TwSetVarCallback setCallback, void* object, std::string group = "", std::string additionalParams = "");
 
 	std::string getEntityDebugName(const Entity* entity, std::string* out_parentDebugName) const;
 	std::string getComponentDebugName(const Component* component, std::string* out_entityDebugName) const;
@@ -37,7 +39,7 @@ private:
 };
 
 template<typename T>
-inline void EntityDebugWindow::addVariable(T* var, TwType varType, std::string varName, Component* component, std::string additionalParams, bool readonly)
+inline void EntityDebugWindow::addVariable(T* var, TwType varType, std::string varName, Component* component, std::string group, std::string additionalParams, bool readonly)
 {
 #if defined(DEBUG) || defined(_DEBUG)
 	if (!var || !component) return;
@@ -45,6 +47,7 @@ inline void EntityDebugWindow::addVariable(T* var, TwType varType, std::string v
 	std::string entityName;
 	std::string componentName = getComponentDebugName(component, &entityName);
 	std::string spacelessVarName = componentName + removeSpacesFromString(varName);
+	std::string spacelessGroupName = componentName + removeSpacesFromString(group);
 
 	if (readonly)
 	{
@@ -55,7 +58,7 @@ inline void EntityDebugWindow::addVariable(T* var, TwType varType, std::string v
 		TwAddVarRW(m_window, spacelessVarName.c_str(), varType, var, "");
 	}
 
-	std::string description = " " + m_windowID + "/" + spacelessVarName + " group=" + componentName + " label='" + varName + "'" + additionalParams;
+	std::string description = " " + m_windowID + "/" + spacelessVarName + " group=" + spacelessGroupName + " label='" + varName + "'" + additionalParams;
 	TwDefine(description.c_str());
 
 	description = " " + m_windowID + "/" + componentName + " group=" + entityName + " label='" + component->getName() + "' opened=false ";

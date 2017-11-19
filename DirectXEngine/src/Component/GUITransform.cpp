@@ -14,13 +14,20 @@ GUITransform::~GUITransform()
 {
 }
 
+void GUITransform::init()
+{
+	Component::init();
+
+	entity.deleteDebugIcon();
+}
+
 void GUITransform::initDebugVariables()
 {
 	Component::initDebugVariables();
 
 	Debug::entityDebugWindow->addVariable(&m_position, Debug::TW_TYPE_VEC2F, "Position", this);
 	Debug::entityDebugWindow->addVariable(&m_rotation, TW_TYPE_FLOAT, "Rotation", this);
-	Debug::entityDebugWindow->addVariable(&m_size, Debug::TW_TYPE_VEC2F, "Size", this);
+	Debug::entityDebugWindow->addVariable(&m_size, Debug::TW_TYPE_SIZE2, "Size", this);
 	Debug::entityDebugWindow->addVariable(&m_origin, Debug::TW_TYPE_VEC2F, "Origin", this);
 }
 

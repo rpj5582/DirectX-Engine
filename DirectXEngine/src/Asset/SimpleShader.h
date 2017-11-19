@@ -160,6 +160,7 @@ public:
 	bool GetPerInstanceCompatible() { return perInstanceCompatible; }
 
 	bool SetShaderResourceView(std::string name, ID3D11ShaderResourceView* srv);
+	bool SetShaderResourceViewArray(std::string name, ID3D11ShaderResourceView** srvs, unsigned int srvCount);
 	bool SetSamplerState(std::string name, ID3D11SamplerState* samplerState);
 
 protected:
@@ -183,6 +184,7 @@ public:
 	ID3D11PixelShader* GetDirectXShader() { return shader; }
 
 	bool SetShaderResourceView(std::string name, ID3D11ShaderResourceView* srv);
+	bool SetShaderResourceViewArray(std::string name, ID3D11ShaderResourceView** srvs, unsigned int srvCount);
 	bool SetSamplerState(std::string name, ID3D11SamplerState* samplerState);
 
 protected:
@@ -203,6 +205,7 @@ public:
 	ID3D11DomainShader* GetDirectXShader() { return shader; }
 
 	bool SetShaderResourceView(std::string name, ID3D11ShaderResourceView* srv);
+	bool SetShaderResourceViewArray(std::string name, ID3D11ShaderResourceView** srvs, unsigned int srvCount);
 	bool SetSamplerState(std::string name, ID3D11SamplerState* samplerState);
 
 protected:
@@ -223,6 +226,7 @@ public:
 	ID3D11HullShader* GetDirectXShader() { return shader; }
 
 	bool SetShaderResourceView(std::string name, ID3D11ShaderResourceView* srv);
+	bool SetShaderResourceViewArray(std::string name, ID3D11ShaderResourceView** srvs, unsigned int srvCount);
 	bool SetSamplerState(std::string name, ID3D11SamplerState* samplerState);
 
 protected:
@@ -243,6 +247,7 @@ public:
 	ID3D11GeometryShader* GetDirectXShader() { return shader; }
 
 	bool SetShaderResourceView(std::string name, ID3D11ShaderResourceView* srv);
+	bool SetShaderResourceViewArray(std::string name, ID3D11ShaderResourceView** srvs, unsigned int srvCount);
 	bool SetSamplerState(std::string name, ID3D11SamplerState* samplerState);
 
 	bool CreateCompatibleStreamOutBuffer(ID3D11Buffer** buffer, int vertexCount);
@@ -282,6 +287,7 @@ public:
 	void DispatchByThreads(unsigned int threadsX, unsigned int threadsY, unsigned int threadsZ);
 
 	bool SetShaderResourceView(std::string name, ID3D11ShaderResourceView* srv);
+	bool SetShaderResourceViewArray(std::string name, ID3D11ShaderResourceView** srvs, unsigned int srvCount);
 	bool SetSamplerState(std::string name, ID3D11SamplerState* samplerState);
 	bool SetUnorderedAccessView(std::string name, ID3D11UnorderedAccessView* uav, unsigned int appendConsumeOffset = -1);
 

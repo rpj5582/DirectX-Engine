@@ -2,6 +2,10 @@
 
 #include "../Debug/Debug.h"
 
+#include "../rapidjson/error/en.h"
+#include "../Util.h"
+#include <fstream>
+
 Sampler::Sampler(ID3D11Device* device, ID3D11DeviceContext* context, std::string assetID, const D3D11_SAMPLER_DESC& samplerDesc) : Asset(device, context, assetID, "")
 {
 	create(samplerDesc);
@@ -120,14 +124,185 @@ void Sampler::saveToJSON(rapidjson::Writer<rapidjson::StringBuffer>& writer)
 	}
 }
 
-bool Sampler::loadAsset()
+bool Sampler::loadFromFile()
 {
-	// Not yet implemented
-	Debug::error("Loading samplers from file is not yet implemented.");
-	return false;
+	// Load the json file
+	std::ifstream ifs(m_filepath, std::ios::in | std::ios::binary);
+
+	if (!ifs.is_open())
+	{
+		char errorMessage[512];
+		strerror_s(errorMessage, 512, errno);
+		std::string errString = std::string(errorMessage);
+		Debug::warning("Failed to load file from " + m_filepath + " when creating sampler with ID " + m_assetID + ": " + errString);
+		return false;
+	}
+
+	unsigned int length;
+	ifs.seekg(0, std::ios::end);
+	length = (unsigned int)ifs.tellg();
+	ifs.seekg(0, std::ios::beg);
+
+	char* jsonStringBuffer = new char[length + 1];
+	ifs.read(jsonStringBuffer, length);
+	jsonStringBuffer[length] = '\0';
+
+	rapidjson::Document dom;
+	rapidjson::ParseResult result = dom.Parse(jsonStringBuffer);
+	if (result.IsError())
+	{
+		const char* errorMessage = rapidjson::GetParseError_En(result.Code());
+
+		Debug::error("Failed to load sampler at " + m_filepath + " because there was a parse error at character " + std::to_string(result.Offset()) + ": " + std::string(errorMessage));
+		delete[] jsonStringBuffer;
+		return false;
+	}
+
+	delete[] jsonStringBuffer;
+
+	ifs.close();
+
+	rapidjson::Value::MemberIterator addressUIter = dom.FindMember("addressU");
+	rapidjson::Value::MemberIterator addressVIter = dom.FindMember("addressV");
+	rapidjson::Value::MemberIterator addressWIter = dom.FindMember("addressW");
+	rapidjson::Value::MemberIterator filterIter = dom.FindMember("filter");
+	rapidjson::Value::MemberIterator maxLODIter = dom.FindMember("maxLOD");
+
+	std::string addressUString = "wrap";
+	std::string addressVString = "wrap";
+	std::string addressWString = "wrap";
+	std::string filterString = "min_mag_mip_linear";
+	float maxLOD = D3D11_FLOAT32_MAX;
+
+	if (addressUIter != dom.MemberEnd())
+	{
+		addressUString = addressUIter->value.GetString();
+	}
+
+	if (addressVIter != dom.MemberEnd())
+	{
+		addressVString = addressVIter->value.GetString();
+	}
+
+	if (addressWIter != dom.MemberEnd())
+	{
+		addressWString = addressWIter->value.GetString();
+	}
+
+	if (filterIter != dom.MemberEnd())
+	{
+		filterString = filterIter->value.GetString();
+	}
+
+	if (maxLODIter != dom.MemberEnd())
+	{
+		if (maxLODIter->value.IsFloat())
+			maxLOD = maxLODIter->value.GetFloat();
+		else
+		{
+			maxLOD = D3D11_FLOAT32_MAX;
+		}
+	}
+
+	D3D11_TEXTURE_ADDRESS_MODE addressU = D3D11_TEXTURE_ADDRESS_WRAP;
+	D3D11_TEXTURE_ADDRESS_MODE addressV = D3D11_TEXTURE_ADDRESS_WRAP;
+	D3D11_TEXTURE_ADDRESS_MODE addressW = D3D11_TEXTURE_ADDRESS_WRAP;
+	D3D11_FILTER filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
+
+	switch (stringHash(addressUString.c_str()))
+	{
+	case stringHash("wrap"):
+		break;
+
+	case stringHash("border"):
+		addressU = D3D11_TEXTURE_ADDRESS_BORDER;
+		break;
+
+	case stringHash("clamp"):
+		addressU = D3D11_TEXTURE_ADDRESS_CLAMP;
+		break;
+
+	case stringHash("mirror"):
+		addressU = D3D11_TEXTURE_ADDRESS_MIRROR;
+		break;
+
+	case stringHash("mirror_once"):
+		addressU = D3D11_TEXTURE_ADDRESS_MIRROR_ONCE;
+		break;
+
+	default:
+		Debug::warning("Invalid sampler address mode " + addressUString + " for sampler " + m_assetID);
+		break;
+	}
+
+	switch (stringHash(addressVString.c_str()))
+	{
+	case stringHash("wrap"):
+		break;
+
+	case stringHash("border"):
+		addressV = D3D11_TEXTURE_ADDRESS_BORDER;
+		break;
+
+	case stringHash("clamp"):
+		addressV = D3D11_TEXTURE_ADDRESS_CLAMP;
+		break;
+
+	case stringHash("mirror"):
+		addressV = D3D11_TEXTURE_ADDRESS_MIRROR;
+		break;
+
+	case stringHash("mirror_once"):
+		addressV = D3D11_TEXTURE_ADDRESS_MIRROR_ONCE;
+		break;
+
+	default:
+		Debug::warning("Invalid sampler address mode " + addressVString + " for sampler " + m_assetID);
+		break;
+	}
+
+	switch (stringHash(addressWString.c_str()))
+	{
+	case stringHash("wrap"):
+		break;
+
+	case stringHash("border"):
+		addressW = D3D11_TEXTURE_ADDRESS_BORDER;
+		break;
+
+	case stringHash("clamp"):
+		addressW = D3D11_TEXTURE_ADDRESS_CLAMP;
+		break;
+
+	case stringHash("mirror"):
+		addressW = D3D11_TEXTURE_ADDRESS_MIRROR;
+		break;
+
+	case stringHash("mirror_once"):
+		addressW = D3D11_TEXTURE_ADDRESS_MIRROR_ONCE;
+		break;
+
+	default:
+		Debug::warning("Invalid sampler address mode " + addressWString + " for sampler " + m_assetID);
+		break;
+	}
+
+	// Don't support different sampler filters yet because there are too many options
+
+
+	D3D11_SAMPLER_DESC samplerDesc = {};
+	samplerDesc.AddressU = addressU;
+	samplerDesc.AddressV = addressV;
+	samplerDesc.AddressW = addressW;
+	samplerDesc.Filter = filter;
+	samplerDesc.MaxLOD = maxLOD;
+
+	create(samplerDesc);
+
+	return true;
 }
 
-ID3D11SamplerState* Sampler::getSampler() const
+ID3D11SamplerState* Sampler::getSamplerState() const
 {
 	return m_sampler;
 }

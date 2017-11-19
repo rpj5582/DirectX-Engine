@@ -6,6 +6,10 @@
 #include "rapidjson/document.h"
 #include "rapidjson/writer.h"
 
+#if defined(DEBUG) || defined(_DEBUG)
+#include "DebugEntity.h"
+#endif
+
 #include <string>
 #include <vector>
 #include <Windows.h>
@@ -14,8 +18,6 @@
 #define TAG_GUI "gui"
 
 class Component;
-class GUITransform;
-class GUIDebugSpriteComponent;
 
 class Entity
 {
@@ -74,10 +76,11 @@ public:
 	bool selected;
 
 #if defined(DEBUG) || defined(_DEBUG)
+	void createDebugIcon();
+	void deleteDebugIcon();
 	void enableDebugIcon();
 	void disableDebugIcon();
-	GUITransform* getDebugIconTransform() const;
-	GUIDebugSpriteComponent* getDebugIconSpriteComponent() const;
+	DebugEntity* getDebugIcon() const;
 #endif
 
 	std::string d_componentTypeField;
@@ -106,8 +109,7 @@ private:
 	std::unordered_set<std::string> m_tags;
 
 #if defined(DEBUG) || defined(_DEBUG)
-	GUITransform* d_guiDebugTransform;
-	GUIDebugSpriteComponent* d_guiDebugSpriteComponent;
+	DebugEntity* d_debugIcon;
 #endif
 };
 
@@ -133,23 +135,6 @@ inline T* Entity::addComponent(bool showInDebugWindow)
 
 	if(showInDebugWindow)
 		Debug::entityDebugWindow->addComponent(component);
-
-#if defined(DEBUG) || defined(_DEBUG)
-	if (d_guiDebugSpriteComponent)
-	{
-		CameraComponent* camera = getComponent<CameraComponent>();
-		LightComponent* light = getComponent<LightComponent>();
-
-		if (camera)
-		{
-			d_guiDebugSpriteComponent->setTexture(DEBUG_TEXTURE_CAMERAICON);
-		}
-		else if (light)
-		{
-			d_guiDebugSpriteComponent->setTexture(DEBUG_TEXTURE_LIGHTICON);
-		}
-	}
-#endif
 
 	return component;
 }

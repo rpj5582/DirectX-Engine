@@ -173,10 +173,10 @@ void Scene::update(float deltaTime, float totalTime)
 		for (unsigned int i = 0; i < m_entities.size(); i++)
 		{
 			Transform* entityTransform = m_entities[i]->getComponent<Transform>();
-			GUIDebugSpriteComponent* debugIconSpriteComponent = m_entities[i]->getDebugIconSpriteComponent();
-
-			if (entityTransform && debugIconSpriteComponent)
+			DebugEntity* entityDebugIcon = m_entities[i]->getDebugIcon();
+			if (entityDebugIcon && entityTransform)
 			{
+				GUIDebugSpriteComponent* debugIconSpriteComponent = entityDebugIcon->getGUIDebugSpriteComponent();
 				debugIconSpriteComponent->update(deltaTime, totalTime);
 				debugIconSpriteComponent->calculatePosition(entityTransform->getPosition());
 			}
@@ -288,7 +288,8 @@ bool Scene::loadFromJSON()
 			rapidjson::Value& componentType = component["type"];
 			rapidjson::Value& dataObject = component["data"];
 			
-			Component* c = e->addComponentByStringType(componentType.GetString());
+			std::string test = componentType.GetString();
+			Component* c = e->addComponentByStringType(test);
 			if (c)
 				c->loadFromJSON(dataObject);
 			else
@@ -496,8 +497,8 @@ void Scene::renderGeometry(ID3D11RenderTargetView* backBufferRTV, ID3D11DepthSte
 		camera = m_debugCamera->getComponent<CameraComponent>();
 	}
 	
-	LightComponent* shadowMapLight = nullptr; // Only support one light with real time shadows for now
-	m_renderer->prepareShadowMapPass();
+	std::vector<const LightComponent*> shadowCastingLights = std::vector<const LightComponent*>();
+	std::vector<const LightComponent*> shadowCastingLightsFinal = std::vector<const LightComponent*>(MAX_SHADOWMAPS);
 
 	// Preprocess each light entity to get it's position and direction, and see if it should cast shadows.
 	std::vector<GPU_LIGHT_DATA> lightData = std::vector<GPU_LIGHT_DATA>(MAX_LIGHTS);
@@ -536,17 +537,27 @@ void Scene::renderGeometry(ID3D11RenderTargetView* backBufferRTV, ID3D11DepthSte
 			lightType,
 		};
 
-		if (!shadowMapLight && lightComponent->castShadows)
+		if (lightComponent->canCastShadows() && shadowCastingLights.size() < MAX_SHADOWMAPS)
 		{
-			shadowMapLight = lightComponent;
-			m_renderer->renderShadowMapPass(&m_entities[0], m_entities.size(), *lightComponent);
+			Texture* shadowMap = lightComponent->getShadowMap();
+			if (shadowMap)
+			{
+				m_renderer->prepareShadowMapPass(shadowMap);
+				m_renderer->renderShadowMapPass(&m_entities[0], m_entities.size(), *lightComponent);
+				shadowCastingLights.push_back(lightComponent);
+			}
 		}
+	}
+
+	for (unsigned int i = 0; i < shadowCastingLights.size(); i++)
+	{
+		shadowCastingLightsFinal[i] = shadowCastingLights[i];
 	}
 
 	if (m_entities.size() > 0)
 	{
 		m_renderer->prepareMainPass(backBufferRTV, backBufferDSV);
-		m_renderer->renderMainPass(*camera, Window::getProjectionMatrix(), &m_entities[0], m_entities.size(), shadowMapLight, &lightData[0]);
+		m_renderer->renderMainPass(*camera, Window::getProjectionMatrix(), &m_entities[0], m_entities.size(), &shadowCastingLightsFinal[0], &lightData[0]);
 	}
 }
 
@@ -570,12 +581,10 @@ void Scene::renderGUI()
 	{
 		for (unsigned int i = 0; i < m_entities.size(); i++)
 		{
-			GUITransform* debugIconTransform = m_entities[i]->getDebugIconTransform();
-			GUIDebugSpriteComponent* debugIconSpriteComponent = m_entities[i]->getDebugIconSpriteComponent();
-
-			if (debugIconTransform && debugIconTransform->enabled && debugIconSpriteComponent && debugIconSpriteComponent->enabled)
+			DebugEntity* debugIcon = m_entities[i]->getDebugIcon();
+			if (debugIcon && debugIcon->enabled)
 			{
-				guis.push_back(debugIconSpriteComponent);
+				guis.push_back(debugIcon->getGUIDebugSpriteComponent());
 			}
 		}
 	}

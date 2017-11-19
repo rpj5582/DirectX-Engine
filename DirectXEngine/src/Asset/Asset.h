@@ -11,7 +11,7 @@ class Asset
 public:
 	friend class AssetManager;
 
-	virtual bool loadAsset() = 0;
+	virtual bool loadFromFile() = 0;
 	virtual void saveToJSON(rapidjson::Writer<rapidjson::StringBuffer>& writer);
 
 	std::string getAssetID() const;

@@ -1,11 +1,10 @@
+#include "SharedDefines.hlsli"
 #include "UtilityFunctions.hlsli"
 #include "LightingFunctions.hlsli"
 
 #define SOLID 0
 #define WIREFRAME 1
 #define SOLID_WIREFRAME 2
-
-#define SHADOWMAP_SIZE 1024.0f
 
 cbuffer lighting : register(b0)
 {
@@ -26,7 +25,7 @@ cbuffer renderStyle : register(b2)
 Texture2D diffuseTexture : register(t0);
 Texture2D specularTexture : register(t1);
 Texture2D normalTexture : register(t2);
-Texture2D shadowMap : register(t3);
+Texture2D shadowMaps[MAX_SHADOWMAPS] : register(t3);
 SamplerState materialSampler : register(s0);
 SamplerComparisonState shadowMapSampler : register(s1);
 
@@ -44,7 +43,7 @@ struct VertexToPixel
 	//  v    v                v
 	float4 position		: SV_POSITION;
 	float3 worldPosition : WORLD_POSITION;
-	float4 shadowPosition : SHADOW_POSITION;
+	float4 shadowPositions[MAX_SHADOWMAPS] : SHADOW_POSITIONS;
 	float2 uv			: TEXCOORD;
 	float3 normal		: NORMAL;
 	float3 tangent		: TANGENT;
@@ -114,9 +113,14 @@ float edgeFactor(float3 barycentric, float width)
 }
 
 // Calculates the amount a pixel is in shadow using PCF. Sample width must be an odd positive integer.
-float calculateShadowAmount(float4 shadowPosition, const unsigned int sampleWidth)
+float calculateShadowAmount(Texture2D shadowMap, float4 shadowPosition, const unsigned int sampleWidth)
 {
-	const float pixel = 1.0f / SHADOWMAP_SIZE;
+	float shadowMapWidth;
+	float shadowMapHeight;
+	float mipLevels;
+	shadowMap.GetDimensions(0, shadowMapWidth, shadowMapHeight, mipLevels);
+
+	const float pixel = 1.0f / shadowMapWidth;
 
 	float distanceToLight = shadowPosition.z / shadowPosition.w;
 
@@ -171,17 +175,25 @@ float4 main(VertexToPixel input) : SV_TARGET
 
 	// Must be an odd positive integer
 	const unsigned int shadowSampleWidth = 1;
-	float shadowAmount = calculateShadowAmount(input.shadowPosition, shadowSampleWidth);
 
 	// Calculates the lighting for each valid light
 	float4 globalAmbient = float4(0.1f, 0.1f, 0.1f, 1.0f);
 	float4 finalLightColor = globalAmbient  * diffuseColor;
 
 	[unroll]
-	for (unsigned int i = 0; i < MAX_LIGHTS; i++)
+	for (unsigned int i = 0; i < MAX_SHADOWMAPS; i++)
 	{
+		float shadowAmount = calculateShadowAmount(shadowMaps[i], input.shadowPositions[i], shadowSampleWidth);
+
 		float4 lightColor = calculateLight(lights[i], finalNormal, input.worldPosition, diffuseColor, specularColor);
 		finalLightColor += lightColor * (1.0f - shadowAmount);
+	}
+
+	[unroll]
+	for (unsigned int j = MAX_SHADOWMAPS; j < MAX_LIGHTS; j++)
+	{
+		float4 lightColor = calculateLight(lights[j], finalNormal, input.worldPosition, diffuseColor, specularColor);
+		finalLightColor += lightColor;
 	}
 
 	switch (renderStyle)

@@ -18,7 +18,7 @@ void PixelShader::saveToJSON(rapidjson::Writer<rapidjson::StringBuffer>& writer)
 	writer.String("pixelShader");
 }
 
-bool PixelShader::loadAsset()
+bool PixelShader::loadFromFile()
 {
 	std::wstring filePathStr = std::wstring(m_filepath.begin(), m_filepath.end());
 	if (!LoadShaderFile(filePathStr.c_str()))

@@ -10,7 +10,7 @@ public:
 	Font(ID3D11Device* device, ID3D11DeviceContext* context, std::string assetID, DirectX::SpriteFont* spriteFont);
 	~Font();
 
-	bool loadAsset() override;
+	bool loadFromFile() override;
 	void saveToJSON(rapidjson::Writer<rapidjson::StringBuffer>& writer) override;
 
 	DirectX::SpriteFont* getSpriteFont() const;

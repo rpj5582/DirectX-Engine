@@ -5,6 +5,8 @@
 
 #include "VertexShader.h"
 #include "PixelShader.h"
+#include "Texture.h"
+#include "Sampler.h"
 
 struct MaterialSettings
 {
@@ -21,7 +23,7 @@ public:
 	Material(ID3D11Device* device, ID3D11DeviceContext* context, std::string assetID, VertexShader* vertexShader, PixelShader* pixelShader, const MaterialSettings& materialSettings);
 	~Material();
 
-	bool loadAsset() override;
+	bool loadFromFile() override;
 	void saveToJSON(rapidjson::Writer<rapidjson::StringBuffer>& writer) override;
 
 	VertexShader* getVertexShader() const;
@@ -35,6 +37,8 @@ public:
 private:
 	VertexShader* m_vertexShader;
 	PixelShader* m_pixelShader;
-
-	MaterialSettings m_materialSettings;
+	Texture* m_diffuseTexture;
+	Texture* m_specularTexture;
+	Texture* m_normalTexture;
+	Sampler* m_sampler;
 };

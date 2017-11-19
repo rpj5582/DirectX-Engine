@@ -71,15 +71,18 @@ std::string MeshRenderComponent::getMeshID() const
 
 void MeshRenderComponent::setMesh(std::string meshID)
 {
-	m_mesh = AssetManager::getAsset<Mesh>(meshID);
-	if (m_mesh)
-	{
-		m_meshID = meshID;
-	}
-	else
+	if (meshID == "")
 	{
 		m_meshID = "";
 		m_mesh = nullptr;
+		return;
+	}
+
+	Mesh* mesh = AssetManager::getAsset<Mesh>(meshID);
+	if (mesh)
+	{
+		m_mesh = mesh;
+		m_meshID = meshID;
 	}
 }
 
@@ -87,7 +90,12 @@ void TW_CALL getMeshRenderComponentMeshDebugEditor(void* value, void* clientData
 {
 	MeshRenderComponent* component = static_cast<MeshRenderComponent*>(clientData);
 	std::string* meshInputField = static_cast<std::string*>(value);
-	TwCopyStdStringToLibrary(*meshInputField, component->getMeshID());
+
+	std::string meshID = component->getMeshID();
+	if (meshID == "")
+		meshID = "none";
+
+	TwCopyStdStringToLibrary(*meshInputField, meshID);
 }
 
 void TW_CALL setMeshRenderComponentMeshDebugEditor(const void* value, void* clientData)

@@ -12,6 +12,7 @@
 #include "../Debug/Debug.h"
 
 #include <unordered_map>
+#include <tuple>
 
 #define DEFAULT_SHADER_VERTEX "defaultVertex"
 #define BASIC_SHADER_VERTEX "basicVertex"
@@ -20,7 +21,7 @@
 #define DEFAULT_TEXTURE_DIFFUSE "defaultDiffuse"
 #define DEFAULT_TEXTURE_WHITE "defaultWhite"
 #define DEFAULT_TEXTURE_NORMAL "defaultNormal"
-#define DEFAULT_TEXTURE_GUI "defaultGUI"
+#define DEFAULT_TEXTURE_SHADOWMAP "defaultShadowMap"
 
 #define DEFAULT_MATERIAL "defaultMaterial"
 
@@ -49,8 +50,8 @@ public:
 	template<typename T, typename... Args>
 	static T* createAsset(std::string assetID, Args... args);
 
-	template<typename T>
-	static T* loadAsset(std::string assetID, std::string filepath);
+	template<typename T, typename... Args>
+	static T* loadAsset(std::string assetID, std::string filepath, Args... args);
 
 	template<typename T>
 	static T* getAsset(std::string assetID);
@@ -90,8 +91,8 @@ inline T* AssetManager::createAsset(std::string assetID, Args... args)
 	return asset;
 }
 
-template<typename T>
-inline T* AssetManager::loadAsset(std::string assetID, std::string filepath)
+template<typename T, typename... Args>
+inline T* AssetManager::loadAsset(std::string assetID, std::string filepath, Args... args)
 {
 	auto it = m_instance->m_assets.find(assetID);
 	if (it != m_instance->m_assets.end())
@@ -100,8 +101,8 @@ inline T* AssetManager::loadAsset(std::string assetID, std::string filepath)
 		return nullptr;
 	}
 
-	T* asset = new T(m_instance->m_device, m_instance->m_context, assetID, filepath);
-	if (!asset->loadAsset())
+	T* asset = new T(m_instance->m_device, m_instance->m_context, assetID, filepath, args...);
+	if (!asset->loadFromFile())
 	{
 		Debug::warning("Failed to load in asset with ID " + assetID + " from " + filepath);
 		delete asset;

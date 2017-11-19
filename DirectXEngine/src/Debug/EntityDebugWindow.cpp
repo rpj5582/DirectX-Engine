@@ -117,16 +117,25 @@ void EntityDebugWindow::removeComponent(Component* component)
 #endif
 }
 
-void EntityDebugWindow::addVariableWithCallbacks(TwType varType, std::string varName, Component* component, TwGetVarCallback getCallback, TwSetVarCallback setCallback, void * object, std::string additionalParams)
+void EntityDebugWindow::addGroup(Component* component, std::string group, std::string additionalParams)
+{
+	std::string spacelessGroup = removeSpacesFromString(group);
+	std::string componentName = getComponentDebugName(component, nullptr);
+	std::string groupName = componentName + spacelessGroup;
+	TwDefine((" " + m_windowID + "/" + groupName + " group='" + componentName + "' label='" + group + "' " + additionalParams + " ").c_str());
+}
+
+void EntityDebugWindow::addVariableWithCallbacks(TwType varType, std::string varName, Component* component, TwGetVarCallback getCallback, TwSetVarCallback setCallback, void* object, std::string group, std::string additionalParams)
 {
 #if defined(DEBUG) || defined(_DEBUG)
 	std::string entityName;
 	std::string componentName = getComponentDebugName(component, &entityName);
 	std::string spacelessVarName = componentName + removeSpacesFromString(varName);
+	std::string spacelessGroupName = componentName + removeSpacesFromString(group);
 
 	TwAddVarCB(m_window, spacelessVarName.c_str(), varType, setCallback, getCallback, object, "");
 
-	std::string description = " " + m_windowID + "/" + spacelessVarName + " group='" + componentName + "' label='" + varName + "' " + additionalParams;
+	std::string description = " " + m_windowID + "/" + spacelessVarName + " group='" + spacelessGroupName + "' label='" + varName + "' " + additionalParams;
 	TwDefine(description.c_str());
 
 	description = " " + m_windowID + "/" + componentName + " group='" + entityName + "' label='" + componentName + "' opened=false ";

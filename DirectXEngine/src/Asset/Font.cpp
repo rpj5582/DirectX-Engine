@@ -32,7 +32,7 @@ DirectX::SpriteFont* Font::getSpriteFont() const
 	return m_spriteFont;
 }
 
-bool Font::loadAsset()
+bool Font::loadFromFile()
 {
 	std::wstring wideFilePath = std::wstring(m_filepath.begin(), m_filepath.end());
 

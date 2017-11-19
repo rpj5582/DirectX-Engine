@@ -54,21 +54,31 @@ public:
 	// Sets the light's settings back to default.
 	void useDefaultSettings();
 
+	Texture* getShadowMap() const;
 	DirectX::XMFLOAT4X4 getViewMatrix() const;
 	DirectX::XMFLOAT4X4 getProjectionMatrix() const;
 
-	bool castShadows;
+	unsigned int getShadowMapSize() const;
+	void setShadowMapSize(unsigned int powOfTwo);
+
+	bool canCastShadows() const;
+	void canCastShadows(bool castShadows);
 
 private:
 	void setSettingsDefault();
+	bool createShadowMap();
+	void deleteShadowMap();
 	void updateViewMatrix();
 	void updateProjectionMatrix(float nearZ, float farZ, float width = 100.0f, float height = 100.0f);
 
 	LightSettings m_light;
 	LightType m_lightType;
 
+	Texture* m_shadowMap;
 	DirectX::XMFLOAT4X4 m_viewMatrix;
 	DirectX::XMFLOAT4X4 m_projectionMatrix;
+	bool m_castShadows;
+	unsigned int m_shadowMapSize;
 	
 	static TwStructMember d_lightStructMembers[5];
 	static TwType TW_TYPE_LIGHT_SETTINGS;
@@ -79,6 +89,10 @@ private:
 
 void TW_CALL getLightSettingsDebugEditor(void* value, void* clientData);
 void TW_CALL getLightTypeDebugEditor(void* value, void* clientData);
+void TW_CALL getCastShadowsDebugEditor(void* value, void* clientData);
+void TW_CALL getShadowMapSizeDebugEditor(void* value, void* clientData);
 
 void TW_CALL setLightSettingsDebugEditor(const void* value, void* clientData);
 void TW_CALL setLightTypeDebugEditor(const void* value, void* clientData);
+void TW_CALL setCastShadowsDebugEditor(const void* value, void* clientData);
+void TW_CALL setShadowMapSizeDebugEditor(const void* value, void* clientData);

@@ -66,8 +66,8 @@ HRESULT Game::Init()
 	m_input = new Input(m_window->getWindowHandle());
 
 	m_sceneManager = new SceneManager();
-	m_sceneManager->addScene(new Scene1(device, context, "testscene", "Assets/Scenes/testscene.json"));
-	m_sceneManager->addScene(new Scene2(device, context, "testscene2", "Assets/Scenes/testscene2.json"));
+	m_sceneManager->addScene(new Scene1(device, context, "testscene", "Scenes/testscene.json"));
+	m_sceneManager->addScene(new Scene2(device, context, "testscene2", "Scenes/testscene2.json"));
 
 	if (m_sceneManager->getSceneCount() == 0)
 	{

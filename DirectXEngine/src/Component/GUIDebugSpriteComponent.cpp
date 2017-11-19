@@ -28,7 +28,8 @@ void GUIDebugSpriteComponent::update(float deltaTime, float totalTime)
 	{
 		XMFLOAT2 mousePosition = Input::getMousePositon();
 
-		if (entity.getDebugIconTransform()->containsPoint(mousePosition))
+		DebugEntity* debugIcon = entity.getDebugIcon();
+		if (debugIcon->getGUITransform()->containsPoint(mousePosition))
 		{
 			entity.selected = !entity.selected;
 			Debug::entityDebugWindow->showEntity(&entity);
@@ -51,17 +52,19 @@ void GUIDebugSpriteComponent::saveToJSON(rapidjson::Writer<rapidjson::StringBuff
 
 void GUIDebugSpriteComponent::calculatePosition(XMFLOAT3 entityPosition)
 {
+	DebugEntity* debugIcon = entity.getDebugIcon();
+
 	CameraComponent* debugCamera = entity.getScene().getDebugCamera();
 	if (debugCamera->isVisible(entityPosition))
 	{
-		if (!enabled)
-			enabled = true;
+		if (!debugIcon->enabled)
+			debugIcon->enabled = true;
 
 		XMFLOAT2 screenPosition = debugCamera->worldToScreen(entityPosition);
-		entity.getDebugIconTransform()->setPosition(screenPosition);
+		debugIcon->getGUITransform()->setPosition(screenPosition);
 	}
 	else
 	{
-		enabled = false;
+		debugIcon->enabled = false;
 	}
 }
