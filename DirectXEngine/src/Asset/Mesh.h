@@ -17,9 +17,10 @@ class Mesh : public Asset
 {
 public:
 	Mesh(ID3D11Device* device, ID3D11DeviceContext* context, std::string assetID, std::string filepath);
-	Mesh(ID3D11Device* device, ID3D11DeviceContext* context, std::string assetID, Vertex* vertices, unsigned int vertexCount, UINT* indices, unsigned int indexCount);
+	Mesh(ID3D11Device* device, ID3D11DeviceContext* context, std::string assetID);
 	~Mesh();
 
+	bool create(Vertex* vertices, unsigned int vertexCount, unsigned int* indices, unsigned int indexCount);
 	bool loadFromFile() override;
 	void saveToJSON(rapidjson::Writer<rapidjson::StringBuffer>& writer) override;
 
@@ -29,12 +30,16 @@ public:
 	size_t getIndexCount() const;
 
 private:
-	void createBuffers(ID3D11Device* device, Vertex* vertices, size_t vertexCount, UINT* indices, size_t indexCount);
+	bool createBuffers();
 
 	// A helper function when loading meshes to calculate tangents for the normal map lighting calculation and assigns barycentric coordinates for solid wireframe rendering.
-	void calculateTangentsAndBarycentric(Vertex* vertices, size_t vertexCount, unsigned int* indices);
+	void calculateTangentsAndBarycentric();
+
+	Vertex* m_vertices;
+	unsigned int m_vertexCount;
+	unsigned int* m_indices;
+	unsigned int m_indexCount;
 
 	ID3D11Buffer* m_vertexBuffer;
 	ID3D11Buffer* m_indexBuffer;
-	size_t m_indexCount;
 };

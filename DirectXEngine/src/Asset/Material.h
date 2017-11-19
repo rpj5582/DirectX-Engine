@@ -20,9 +20,10 @@ class Material : public Asset
 {
 public:
 	Material(ID3D11Device* device, ID3D11DeviceContext* context, std::string assetID, std::string filepath);
-	Material(ID3D11Device* device, ID3D11DeviceContext* context, std::string assetID, VertexShader* vertexShader, PixelShader* pixelShader, const MaterialSettings& materialSettings);
+	Material(ID3D11Device* device, ID3D11DeviceContext* context, std::string assetID);
 	~Material();
 
+	bool create(VertexShader* vertexShader, PixelShader* pixelShader, const MaterialSettings& materialSettings);
 	bool loadFromFile() override;
 	void saveToJSON(rapidjson::Writer<rapidjson::StringBuffer>& writer) override;
 

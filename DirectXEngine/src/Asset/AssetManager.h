@@ -12,7 +12,6 @@
 #include "../Debug/Debug.h"
 
 #include <unordered_map>
-#include <tuple>
 
 #define DEFAULT_SHADER_VERTEX "defaultVertex"
 #define BASIC_SHADER_VERTEX "basicVertex"
@@ -85,7 +84,14 @@ inline T* AssetManager::createAsset(std::string assetID, Args... args)
 		return nullptr;
 	}
 
-	T* asset = new T(m_instance->m_device, m_instance->m_context, assetID, args...);
+	T* asset = new T(m_instance->m_device, m_instance->m_context, assetID);
+	if (!asset->create(args...))
+	{
+		Debug::warning("Failed to create asset with ID " + assetID + ".");
+		delete asset;
+		return nullptr;
+	}
+
 	Debug::assetDebugWindow->addAsset(asset);
 	m_instance->m_assets[assetID] = asset;
 	return asset;

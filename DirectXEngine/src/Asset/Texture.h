@@ -14,11 +14,12 @@ struct TextureParameters
 class Texture : public Asset
 {
 public:
-	Texture(ID3D11Device* device, ID3D11DeviceContext* context, std::string assetID, unsigned int width, unsigned int height, TextureParameters parameters = {});
-	Texture(ID3D11Device* device, ID3D11DeviceContext* context, std::string assetID, unsigned int hexColor, unsigned int width, unsigned int height, TextureParameters parameters = {});
+	Texture(ID3D11Device* device, ID3D11DeviceContext* context, std::string assetID);
 	Texture(ID3D11Device* device, ID3D11DeviceContext* context, std::string assetID, std::string filepath, TextureParameters parameters = {});
 	~Texture();
 
+	bool create(unsigned int width, unsigned int height, TextureParameters parameters = {});
+	bool create(unsigned int hexColor, TextureParameters parameters = {});
 	bool loadFromFile() override;
 	void saveToJSON(rapidjson::Writer<rapidjson::StringBuffer>& writer) override;
 
@@ -29,13 +30,12 @@ public:
 	unsigned int getHeight() const;
 
 private:
-	void createEmpty(TextureParameters parameters);
-	void createSolidColor(unsigned int hexColor, TextureParameters parameters);
+	bool createEmpty();
+	bool createSolidColor(unsigned int hexColor);
 
 	ID3D11ShaderResourceView* m_textureSRV;
 	ID3D11DepthStencilView* m_textureDSV;
 
-	int m_hexColor;
 	unsigned int m_width;
 	unsigned int m_height;
 	TextureParameters m_parameters;

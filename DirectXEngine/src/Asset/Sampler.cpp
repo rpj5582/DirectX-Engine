@@ -6,19 +6,44 @@
 #include "../Util.h"
 #include <fstream>
 
-Sampler::Sampler(ID3D11Device* device, ID3D11DeviceContext* context, std::string assetID, const D3D11_SAMPLER_DESC& samplerDesc) : Asset(device, context, assetID, "")
+Sampler::Sampler(ID3D11Device* device, ID3D11DeviceContext* context, std::string assetID) : Asset(device, context, assetID, "")
 {
-	create(samplerDesc);
+	m_samplerDesc = {};
 }
 
 Sampler::Sampler(ID3D11Device* device, ID3D11DeviceContext* context, std::string assetID, std::string filepath) : Asset(device, context, assetID, filepath)
 {
+	m_samplerDesc = {};
 }
 
 Sampler::~Sampler()
 {
 	if (m_sampler)
 		m_sampler->Release();
+}
+
+bool Sampler::create(const D3D11_SAMPLER_DESC& samplerDesc)
+{
+	m_samplerDesc = samplerDesc;
+
+	HRESULT hr = S_OK;
+	hr = m_device->CreateSamplerState(&m_samplerDesc, &m_sampler);
+	if (FAILED(hr))
+	{
+		char* errorMsg;
+		if (FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM, NULL, hr, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPTSTR)&errorMsg, 0, NULL) != 0)
+		{
+			std::string errorString = std::string(errorMsg);
+			errorString.pop_back();
+			errorString.pop_back();
+			Debug::warning("Failed to create sampler with ID " + m_assetID + ": " + errorString);
+		}
+		else
+			Debug::warning("Failed to create sampler with ID " + m_assetID + ": Unable to find error description.");
+		return false;
+	}
+
+	return true;
 }
 
 void Sampler::saveToJSON(rapidjson::Writer<rapidjson::StringBuffer>& writer)
@@ -28,14 +53,11 @@ void Sampler::saveToJSON(rapidjson::Writer<rapidjson::StringBuffer>& writer)
 	writer.Key("type");
 	writer.String("sampler");
 
-	D3D11_SAMPLER_DESC desc;
-	m_sampler->GetDesc(&desc);
-
 	std::string addressUString = "wrap";
 	std::string addressVString = "wrap";
 	std::string addressWString = "wrap";
 
-	switch (desc.AddressU)
+	switch (m_samplerDesc.AddressU)
 	{
 	case D3D11_TEXTURE_ADDRESS_BORDER:
 		addressUString = "border";
@@ -57,7 +79,7 @@ void Sampler::saveToJSON(rapidjson::Writer<rapidjson::StringBuffer>& writer)
 		break;
 	}
 
-	switch (desc.AddressV)
+	switch (m_samplerDesc.AddressV)
 	{
 	case D3D11_TEXTURE_ADDRESS_BORDER:
 		addressVString = "border";
@@ -79,7 +101,7 @@ void Sampler::saveToJSON(rapidjson::Writer<rapidjson::StringBuffer>& writer)
 		break;
 	}
 
-	switch (desc.AddressW)
+	switch (m_samplerDesc.AddressW)
 	{
 	case D3D11_TEXTURE_ADDRESS_BORDER:
 		addressWString = "border";
@@ -114,13 +136,13 @@ void Sampler::saveToJSON(rapidjson::Writer<rapidjson::StringBuffer>& writer)
 	writer.String("min_mag_mip_linear"); // Only this filter type is supported right now
 
 	writer.Key("maxLOD");
-	if (desc.MaxLOD == D3D11_FLOAT32_MAX)
+	if (m_samplerDesc.MaxLOD == D3D11_FLOAT32_MAX)
 	{
 		writer.String("float_max");
 	}
 	else
 	{
-		writer.Double((double)desc.MaxLOD);
+		writer.Double(m_samplerDesc.MaxLOD);
 	}
 }
 
@@ -289,40 +311,17 @@ bool Sampler::loadFromFile()
 
 	// Don't support different sampler filters yet because there are too many options
 
+	D3D11_SAMPLER_DESC desc = {};
+	desc.AddressU = addressU;
+	desc.AddressV = addressV;
+	desc.AddressW = addressW;
+	desc.Filter = filter;
+	desc.MaxLOD = maxLOD;
 
-	D3D11_SAMPLER_DESC samplerDesc = {};
-	samplerDesc.AddressU = addressU;
-	samplerDesc.AddressV = addressV;
-	samplerDesc.AddressW = addressW;
-	samplerDesc.Filter = filter;
-	samplerDesc.MaxLOD = maxLOD;
-
-	create(samplerDesc);
-
-	return true;
+	return create(desc);
 }
 
 ID3D11SamplerState* Sampler::getSamplerState() const
 {
 	return m_sampler;
-}
-
-void Sampler::create(const D3D11_SAMPLER_DESC& samplerDesc)
-{
-	HRESULT hr = S_OK;
-	hr = m_device->CreateSamplerState(&samplerDesc, &m_sampler);
-	if (FAILED(hr))
-	{
-		char* errorMsg;
-		if (FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM, NULL, hr, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPTSTR)&errorMsg, 0, NULL) != 0)
-		{
-			std::string errorString = std::string(errorMsg);
-			errorString.pop_back();
-			errorString.pop_back();
-			Debug::warning("Failed to create sampler with ID " + m_assetID + ": " + errorString);
-		}
-		else
-			Debug::warning("Failed to create sampler with ID " + m_assetID + ": Unable to find error description.");
-		return;
-	}
 }

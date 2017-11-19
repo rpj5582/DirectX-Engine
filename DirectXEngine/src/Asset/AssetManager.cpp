@@ -137,14 +137,14 @@ bool AssetManager::loadDefaultAssets()
 	if (!basicVertexShader) return false;
 
 	// Creates the default textures
-	if (!createAsset<Texture>(DEFAULT_TEXTURE_DIFFUSE, 0xff808080, 1, 1)) return false;
-	if (!createAsset<Texture>(DEFAULT_TEXTURE_WHITE, 0xffffffff, 1, 1)) return false;
-	if (!createAsset<Texture>(DEFAULT_TEXTURE_NORMAL, 0xffff8080, 1, 1)) return false;
+	if (!createAsset<Texture>(DEFAULT_TEXTURE_DIFFUSE, 0xff808080)) return false;
+	if (!createAsset<Texture>(DEFAULT_TEXTURE_WHITE, 0xffffffff)) return false;
+	if (!createAsset<Texture>(DEFAULT_TEXTURE_NORMAL, 0xffff8080)) return false;
 	
 	TextureParameters shadowMapParameters = {};
 	shadowMapParameters.textureFormat = DXGI_FORMAT_R32_TYPELESS;
 	shadowMapParameters.shaderResourceViewFormat = DXGI_FORMAT_R32_FLOAT;
-	if (!createAsset<Texture>(DEFAULT_TEXTURE_SHADOWMAP, 0xffffffff, 1, 1, shadowMapParameters)) return false;
+	if (!createAsset<Texture>(DEFAULT_TEXTURE_SHADOWMAP, 0xffffffff, shadowMapParameters)) return false;
 
 	// Creates the default sampler
 	D3D11_SAMPLER_DESC defaultSamplerDesc = {};

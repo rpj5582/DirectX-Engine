@@ -18,6 +18,12 @@ void PixelShader::saveToJSON(rapidjson::Writer<rapidjson::StringBuffer>& writer)
 	writer.String("pixelShader");
 }
 
+bool PixelShader::create()
+{
+	Debug::error("Pixel Shaders cannot be created procedurally.");
+	return false;
+}
+
 bool PixelShader::loadFromFile()
 {
 	std::wstring filePathStr = std::wstring(m_filepath.begin(), m_filepath.end());

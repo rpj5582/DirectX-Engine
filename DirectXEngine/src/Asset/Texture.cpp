@@ -5,31 +5,14 @@
 
 using namespace DirectX;
 
-Texture::Texture(ID3D11Device* device, ID3D11DeviceContext* context, std::string assetID, unsigned int width, unsigned int height, TextureParameters parameters)
-	: Asset(device, context, assetID, "")
+Texture::Texture(ID3D11Device* device, ID3D11DeviceContext* context, std::string assetID) : Asset(device, context, assetID, "")
 {
 	m_textureSRV = nullptr;
 	m_textureDSV = nullptr;
 
-	m_hexColor = -1;
-	m_width = width;
-	m_height = height;
-	m_parameters = parameters;
-	createEmpty(m_parameters);
-}
-
-Texture::Texture(ID3D11Device* device, ID3D11DeviceContext* context, std::string assetID, unsigned int hexColor, unsigned int width, unsigned int height, TextureParameters parameters)
-	: Asset(device, context, assetID, "")
-{
-	m_textureSRV = nullptr;
-	m_textureDSV = nullptr;
-
-	m_hexColor = hexColor;
-	m_width = width;
-	m_height = height;
-	m_parameters = parameters;
-
-	createSolidColor(m_hexColor, m_parameters);
+	m_width = 0;
+	m_height = 0;
+	m_parameters = {};
 }
 
 Texture::Texture(ID3D11Device* device, ID3D11DeviceContext* context, std::string assetID, std::string filepath, TextureParameters parameters)
@@ -38,7 +21,6 @@ Texture::Texture(ID3D11Device* device, ID3D11DeviceContext* context, std::string
 	m_textureSRV = nullptr;
 	m_textureDSV = nullptr;
 
-	m_hexColor = -1;
 	m_width = 0;
 	m_height = 0;
 	m_parameters = parameters;
@@ -57,40 +39,21 @@ Texture::~Texture()
 		m_textureDSV->Release();
 		m_textureDSV = nullptr;
 	}
-		
 }
 
-//void Texture::loadFromJSON(rapidjson::Value& asset)
-//{
-//	rapidjson::Value& width = asset["width"];
-//	rapidjson::Value& height = asset["height"];
-//	rapidjson::Value& hexColor = asset["hexColor"];
-//	rapidjson::Value& mipLevels = asset["mipLevels"];
-//	rapidjson::Value& usage = asset["usage"];
-//	rapidjson::Value& bindFlags = asset["bindFlags"];
-//	rapidjson::Value& textureFormat = asset["textureFormat"];
-//	rapidjson::Value& srvFormat = asset["srvFormat"];
-//	rapidjson::Value& dsvFormat = asset["dsvFormat"];
-//
-//	m_width = width.GetUint();
-//	m_height = height.GetUint();
-//	m_hexColor = hexColor.GetInt();
-//	m_parameters.mipLevels = mipLevels.GetUint();
-//	m_parameters.usage = (D3D11_USAGE)usage.GetInt();
-//	m_parameters.bindFlags = (D3D11_BIND_FLAG)bindFlags.GetInt();
-//	m_parameters.textureFormat = (DXGI_FORMAT)textureFormat.GetInt();
-//	m_parameters.shaderResourceViewFormat = (DXGI_FORMAT)srvFormat.GetInt();
-//	m_parameters.depthStencilViewFormat = (DXGI_FORMAT)dsvFormat.GetInt();
-//
-//	if (m_hexColor >= 0)
-//	{
-//		createSolidColor(m_hexColor, m_parameters);
-//	}
-//	else
-//	{
-//		createEmpty(m_parameters);
-//	}
-//}
+bool Texture::create(unsigned int width, unsigned int height, TextureParameters parameters)
+{
+	m_width = width;
+	m_height = height;
+	m_parameters = parameters;
+	return createEmpty();
+}
+
+bool Texture::create(unsigned int hexColor, TextureParameters parameters)
+{
+	m_parameters = parameters;
+	return createSolidColor(hexColor);
+}
 
 void Texture::saveToJSON(rapidjson::Writer<rapidjson::StringBuffer>& writer)
 {
@@ -104,9 +67,6 @@ void Texture::saveToJSON(rapidjson::Writer<rapidjson::StringBuffer>& writer)
 	
 	writer.Key("height");
 	writer.Uint(m_height);
-
-	writer.Key("hexColor");
-	writer.Int(m_hexColor);
 
 	writer.Key("mipLevels");
 	writer.Uint(m_parameters.mipLevels);
@@ -166,31 +126,31 @@ bool Texture::loadFromFile()
 	return true;
 }
 
-void Texture::createEmpty(TextureParameters parameters)
+bool Texture::createEmpty()
 {
 	D3D11_TEXTURE2D_DESC desc = {};
 	desc.Width = m_width;
 	desc.Height = m_height;
-	desc.MipLevels = parameters.mipLevels;
+	desc.MipLevels = m_parameters.mipLevels;
 	desc.ArraySize = 1;
-	desc.Format = parameters.textureFormat;
+	desc.Format = m_parameters.textureFormat;
 	desc.SampleDesc.Count = 1;
-	desc.Usage = parameters.usage;
-	desc.BindFlags = parameters.bindFlags;
+	desc.Usage = m_parameters.usage;
+	desc.BindFlags = m_parameters.bindFlags;
 
 	ID3D11Texture2D* texture;
 	HRESULT hr = S_OK;
-	m_device->CreateTexture2D(&desc, nullptr, &texture);
+	hr = m_device->CreateTexture2D(&desc, nullptr, &texture);
 	if (FAILED(hr))
 	{
 		Debug::error("Failed to create texture resource for ID " + m_assetID + ".");
-		return;
+		return false;
 	}
 
-	if ((parameters.bindFlags & D3D11_BIND_SHADER_RESOURCE) == D3D11_BIND_SHADER_RESOURCE)
+	if ((m_parameters.bindFlags & D3D11_BIND_SHADER_RESOURCE) == D3D11_BIND_SHADER_RESOURCE)
 	{
 		D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
-		srvDesc.Format = parameters.shaderResourceViewFormat;
+		srvDesc.Format = m_parameters.shaderResourceViewFormat;
 		srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
 		srvDesc.Texture2D.MipLevels = -1;
 
@@ -199,14 +159,14 @@ void Texture::createEmpty(TextureParameters parameters)
 		{
 			Debug::error("Failed to create texture shader resource view for ID " + m_assetID + ".");
 			texture->Release();
-			return;
+			return false;
 		}
 	}
 
-	if ((parameters.bindFlags & D3D11_BIND_DEPTH_STENCIL) == D3D11_BIND_DEPTH_STENCIL)
+	if ((m_parameters.bindFlags & D3D11_BIND_DEPTH_STENCIL) == D3D11_BIND_DEPTH_STENCIL)
 	{
 		D3D11_DEPTH_STENCIL_VIEW_DESC dsvDesc = {};
-		dsvDesc.Format = parameters.depthStencilViewFormat;
+		dsvDesc.Format = m_parameters.depthStencilViewFormat;
 		dsvDesc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
 
 		hr = m_device->CreateDepthStencilView(texture, &dsvDesc, &m_textureDSV);
@@ -214,27 +174,28 @@ void Texture::createEmpty(TextureParameters parameters)
 		{
 			Debug::error("Failed to create texture depth stencil view for ID " + m_assetID + ".");
 			texture->Release();
-			return;
+			return false;
 		}
 	}
 
 	texture->Release();
+	return true;
 }
 
-void Texture::createSolidColor(unsigned int hexColor, TextureParameters parameters)
+bool Texture::createSolidColor(unsigned int hexColor)
 {
 	unsigned int color = hexColor;
 
 	// Creates the texture resource
 	D3D11_TEXTURE2D_DESC desc = {};
-	desc.Width = m_width;
-	desc.Height = m_height;
-	desc.MipLevels = parameters.mipLevels;
+	desc.Width = 1;
+	desc.Height = 1;
+	desc.MipLevels = m_parameters.mipLevels;
 	desc.ArraySize = 1;
-	desc.Format = parameters.textureFormat;
+	desc.Format = m_parameters.textureFormat;
 	desc.SampleDesc.Count = 1;
-	desc.Usage = parameters.usage;
-	desc.BindFlags = parameters.bindFlags;
+	desc.Usage = m_parameters.usage;
+	desc.BindFlags = m_parameters.bindFlags;
 
 	D3D11_SUBRESOURCE_DATA pixelData = {};
 	pixelData.pSysMem = &color;
@@ -247,14 +208,14 @@ void Texture::createSolidColor(unsigned int hexColor, TextureParameters paramete
 	if (FAILED(hr))
 	{
 		Debug::error("Failed to create texture resource for ID " + m_assetID + ".");
-		return;
+		return false;
 	}
 
-	if ((parameters.bindFlags & D3D11_BIND_SHADER_RESOURCE) == D3D11_BIND_SHADER_RESOURCE)
+	if ((m_parameters.bindFlags & D3D11_BIND_SHADER_RESOURCE) == D3D11_BIND_SHADER_RESOURCE)
 	{
 		// Creates the texture shader resource view
 		D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
-		srvDesc.Format = parameters.shaderResourceViewFormat;
+		srvDesc.Format = m_parameters.shaderResourceViewFormat;
 		srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
 		srvDesc.Texture2D.MipLevels = -1;
 
@@ -263,14 +224,14 @@ void Texture::createSolidColor(unsigned int hexColor, TextureParameters paramete
 		{
 			Debug::error("Failed to create texture shader resource view for ID " + m_assetID + ".");
 			texture->Release();
-			return;
+			return false;
 		}
 	}
 
-	if ((parameters.bindFlags & D3D11_BIND_DEPTH_STENCIL) == D3D11_BIND_DEPTH_STENCIL)
+	if ((m_parameters.bindFlags & D3D11_BIND_DEPTH_STENCIL) == D3D11_BIND_DEPTH_STENCIL)
 	{
 		D3D11_DEPTH_STENCIL_VIEW_DESC dsvDesc = {};
-		dsvDesc.Format = parameters.depthStencilViewFormat;
+		dsvDesc.Format = m_parameters.depthStencilViewFormat;
 		dsvDesc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
 
 		hr = m_device->CreateDepthStencilView(texture, &dsvDesc, &m_textureDSV);
@@ -278,11 +239,12 @@ void Texture::createSolidColor(unsigned int hexColor, TextureParameters paramete
 		{
 			Debug::error("Failed to create texture depth stencil view for ID " + m_assetID + ".");
 			texture->Release();
-			return;
+			return false;
 		}
 	}
 
 	texture->Release();
+	return true;
 }
 
 ID3D11ShaderResourceView* Texture::getSRV() const

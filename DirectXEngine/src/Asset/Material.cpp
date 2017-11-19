@@ -15,16 +15,12 @@ Material::Material(ID3D11Device* device, ID3D11DeviceContext* context, std::stri
 	m_sampler = nullptr;
 }
 
-Material::Material(ID3D11Device* device, ID3D11DeviceContext* context, std::string assetID, VertexShader* vertexShader, PixelShader* pixelShader, const MaterialSettings& materialSettings) : Asset(device, context, assetID, "")
+Material::Material(ID3D11Device* device, ID3D11DeviceContext* context, std::string assetID) : Asset(device, context, assetID, "")
 {
-	m_vertexShader = vertexShader;
-	m_pixelShader = pixelShader;
 	m_diffuseTexture = nullptr;
 	m_specularTexture = nullptr;
 	m_normalTexture = nullptr;
 	m_sampler = nullptr;
-
-	setMaterialSettings(materialSettings);
 }
 
 Material::~Material()
@@ -35,6 +31,15 @@ Material::~Material()
 	m_specularTexture = nullptr;
 	m_normalTexture = nullptr;
 	m_sampler = nullptr;
+}
+
+bool Material::create(VertexShader* vertexShader, PixelShader* pixelShader, const MaterialSettings& materialSettings)
+{
+	m_vertexShader = vertexShader;
+	m_pixelShader = pixelShader;
+	setMaterialSettings(materialSettings);
+
+	return true;
 }
 
 void Material::saveToJSON(rapidjson::Writer<rapidjson::StringBuffer>& writer)

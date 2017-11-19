@@ -18,6 +18,12 @@ void VertexShader::saveToJSON(rapidjson::Writer<rapidjson::StringBuffer>& writer
 	writer.String("vertexShader");
 }
 
+bool VertexShader::create()
+{
+	Debug::error("Vertex Shaders cannot be created procedurally.");
+	return false;
+}
+
 bool VertexShader::loadFromFile()
 {
 	std::wstring filePathStr = std::wstring(m_filepath.begin(), m_filepath.end());

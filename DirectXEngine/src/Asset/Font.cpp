@@ -9,14 +9,19 @@ Font::Font(ID3D11Device* device, ID3D11DeviceContext* context, std::string asset
 	m_spriteFont = nullptr;
 }
 
-Font::Font(ID3D11Device* device, ID3D11DeviceContext* context, std::string assetID, DirectX::SpriteFont* spriteFont) : Asset(device, context, assetID, "")
+Font::Font(ID3D11Device* device, ID3D11DeviceContext* context, std::string assetID) : Asset(device, context, assetID, "")
 {
-	m_spriteFont = spriteFont;
 }
 
 Font::~Font()
 {
 	delete m_spriteFont;
+}
+
+bool Font::create(DirectX::SpriteFont* spriteFont)
+{
+	m_spriteFont = spriteFont;
+	return true;
 }
 
 void Font::saveToJSON(rapidjson::Writer<rapidjson::StringBuffer>& writer)

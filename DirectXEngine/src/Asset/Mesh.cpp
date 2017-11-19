@@ -7,17 +7,34 @@ using namespace DirectX;
 
 Mesh::Mesh(ID3D11Device* device, ID3D11DeviceContext* context, std::string assetID, std::string filepath) : Asset(device, context, assetID, filepath)
 {
+	m_vertices = nullptr;
+	m_vertexCount = 0;
+	m_indices = nullptr;
+	m_indexCount = 0;
 }
 
-Mesh::Mesh(ID3D11Device* device, ID3D11DeviceContext* context, std::string assetID, Vertex* vertices, unsigned int vertexCount, UINT* indices, unsigned int indexCount) : Asset(device, context, assetID, "")
+Mesh::Mesh(ID3D11Device* device, ID3D11DeviceContext* context, std::string assetID) : Asset(device, context, assetID, "")
 {
-	createBuffers(device, vertices, vertexCount, indices, indexCount);
+	m_vertices = nullptr;
+	m_vertexCount = 0;
+	m_indices = nullptr;
+	m_indexCount = 0;
 }
 
 Mesh::~Mesh()
 {
 	if (m_vertexBuffer) { m_vertexBuffer->Release(); }
 	if (m_indexBuffer) { m_indexBuffer->Release(); }
+}
+
+bool Mesh::create(Vertex* vertices, unsigned int vertexCount, unsigned int* indices, unsigned int indexCount)
+{
+	m_vertices = vertices;
+	m_vertexCount = vertexCount;
+	m_indices = indices;
+	m_indexCount = indexCount;
+
+	return createBuffers();
 }
 
 void Mesh::saveToJSON(rapidjson::Writer<rapidjson::StringBuffer>& writer)
@@ -196,26 +213,34 @@ bool Mesh::loadFromFile()
 	obj.close();
 
 	if (vertices.size() > 0 && indices.size() > 0)
-		createBuffers(m_device, &vertices[0], vertices.size(), &indices[0], indices.size());
+	{
+		m_vertices = &vertices[0];
+		m_vertexCount = vertices.size();
+		m_indices = &indices[0];
+		m_indexCount = indices.size();
+		return createBuffers();
+	}
 
-	return true;
+	return false;
 }
 
-void Mesh::createBuffers(ID3D11Device* device, Vertex* vertices, size_t vertexCount, UINT* indices, size_t indexCount)
+bool Mesh::createBuffers()
 {
-	assert(vertexCount > 0);
-	assert(indexCount > 0);
 
-	m_indexCount = indexCount;
+	if (m_vertexCount <= 0 || m_indexCount <= 0)
+	{
+		Debug::warning("Invalid mesh " + m_assetID + " with no vertices and/or indices.");
+		return false;
+	}
 
-	calculateTangentsAndBarycentric(vertices, vertexCount, indices);
+	calculateTangentsAndBarycentric();
 
 	// Create the VERTEX BUFFER description -----------------------------------
 	// - The description is created on the stack because we only need
 	//    it to create the buffer.  The description is then useless.
 	D3D11_BUFFER_DESC vbd;
 	vbd.Usage = D3D11_USAGE_IMMUTABLE;
-	vbd.ByteWidth = (UINT)(sizeof(Vertex) * vertexCount); // number of vertices in the buffer
+	vbd.ByteWidth = (UINT)(sizeof(Vertex) * m_vertexCount); // number of vertices in the buffer
 	vbd.BindFlags = D3D11_BIND_VERTEX_BUFFER; // Tells DirectX this is a vertex buffer
 	vbd.CPUAccessFlags = 0;
 	vbd.MiscFlags = 0;
@@ -224,18 +249,29 @@ void Mesh::createBuffers(ID3D11Device* device, Vertex* vertices, size_t vertexCo
 	// Create the proper struct to hold the initial vertex data
 	// - This is how we put the initial data into the buffer
 	D3D11_SUBRESOURCE_DATA initialVertexData;
-	initialVertexData.pSysMem = vertices;
+	initialVertexData.pSysMem = m_vertices;
+
+	HRESULT hr = S_OK;
 
 	// Actually create the buffer with the initial data
 	// - Once we do this, we'll NEVER CHANGE THE BUFFER AGAIN
-	device->CreateBuffer(&vbd, &initialVertexData, &m_vertexBuffer);
+	hr = m_device->CreateBuffer(&vbd, &initialVertexData, &m_vertexBuffer);
+	if (FAILED(hr))
+	{
+		m_vertices = nullptr;
+		m_indices = nullptr;
+		Debug::error("Failed to create vertex buffer for mesh " + m_assetID + ".");
+		return false;
+	}
+
+	m_vertices = nullptr;
 
 	// Create the INDEX BUFFER description ------------------------------------
 	// - The description is created on the stack because we only need
 	//    it to create the buffer.  The description is then useless.
 	D3D11_BUFFER_DESC ibd;
 	ibd.Usage = D3D11_USAGE_IMMUTABLE;
-	ibd.ByteWidth = (UINT)(sizeof(UINT) * indexCount); // number of indices in the buffer
+	ibd.ByteWidth = (UINT)(sizeof(UINT) * m_indexCount); // number of indices in the buffer
 	ibd.BindFlags = D3D11_BIND_INDEX_BUFFER; // Tells DirectX this is an index buffer
 	ibd.CPUAccessFlags = 0;
 	ibd.MiscFlags = 0;
@@ -244,11 +280,21 @@ void Mesh::createBuffers(ID3D11Device* device, Vertex* vertices, size_t vertexCo
 	// Create the proper struct to hold the initial index data
 	// - This is how we put the initial data into the buffer
 	D3D11_SUBRESOURCE_DATA initialIndexData;
-	initialIndexData.pSysMem = indices;
+	initialIndexData.pSysMem = m_indices;
 
 	// Actually create the buffer with the initial data
 	// - Once we do this, we'll NEVER CHANGE THE BUFFER AGAIN
-	device->CreateBuffer(&ibd, &initialIndexData, &m_indexBuffer);
+	hr = m_device->CreateBuffer(&ibd, &initialIndexData, &m_indexBuffer);
+	if (FAILED(hr))
+	{
+		m_indices = nullptr;
+		Debug::error("Failed to create index buffer for mesh " + m_assetID + ".");
+		return false;
+	}
+
+	m_indices = nullptr;
+
+	return true;
 }
 
 ID3D11Buffer* Mesh::getVertexBuffer() const
@@ -267,17 +313,17 @@ size_t Mesh::getIndexCount() const
 }
 
 // Code adapted from: http://www.terathon.com/code/tangent.html
-void Mesh::calculateTangentsAndBarycentric(Vertex* vertices, size_t vertexCount, unsigned int* indices)
+void Mesh::calculateTangentsAndBarycentric()
 {
-	for (unsigned int i = 0; i < vertexCount;)
+	for (unsigned int i = 0; i < m_vertexCount;)
 	{
-		unsigned int i1 = indices[i++];
-		unsigned int i2 = indices[i++];
-		unsigned int i3 = indices[i++];
+		unsigned int i1 = m_indices[i++];
+		unsigned int i2 = m_indices[i++];
+		unsigned int i3 = m_indices[i++];
 
-		Vertex* v1 = &vertices[i1];
-		Vertex* v2 = &vertices[i2];
-		Vertex* v3 = &vertices[i3];
+		Vertex* v1 = &m_vertices[i1];
+		Vertex* v2 = &m_vertices[i2];
+		Vertex* v3 = &m_vertices[i3];
 
 		float x1 = v2->position.x - v1->position.x;
 		float y1 = v2->position.y - v1->position.y;
