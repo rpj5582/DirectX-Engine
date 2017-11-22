@@ -38,8 +38,8 @@ Game::~Game()
 {
 	Debug::cleanDebugWindows();
 
-	delete m_assetManager;
 	delete m_sceneManager;
+	delete m_assetManager;
 	delete m_input;
 }
 

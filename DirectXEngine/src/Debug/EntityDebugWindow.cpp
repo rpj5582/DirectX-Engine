@@ -122,7 +122,7 @@ void EntityDebugWindow::addGroup(Component* component, std::string group, std::s
 	std::string spacelessGroup = removeSpacesFromString(group);
 	std::string componentName = getComponentDebugName(component, nullptr);
 	std::string groupName = componentName + spacelessGroup;
-	TwDefine((" " + m_windowID + "/" + groupName + " group='" + componentName + "' label='" + group + "' " + additionalParams + " ").c_str());
+	TwDefine((" " + m_windowID + "/" + groupName + " group='" + componentName + "' label='" + group + "' opened=false " + additionalParams + " ").c_str());
 }
 
 void EntityDebugWindow::addVariableWithCallbacks(TwType varType, std::string varName, Component* component, TwGetVarCallback getCallback, TwSetVarCallback setCallback, void* object, std::string group, std::string additionalParams)

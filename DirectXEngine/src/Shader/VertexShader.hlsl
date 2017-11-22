@@ -1,5 +1,11 @@
 #include "SharedDefines.hlsli"
 
+struct ShadowMatrices
+{
+	matrix view;
+	matrix projection;
+};
+
 // Constant Buffer
 // - Allows us to define a buffer of individual variables 
 //    which will (eventually) hold data from our C++ code
@@ -13,8 +19,7 @@ cbuffer matrices : register(b0)
 	matrix projection;
 	matrix worldInverseTranspose;
 
-	matrix lightViews[MAX_SHADOWMAPS];
-	matrix lightProjections[MAX_SHADOWMAPS];
+	ShadowMatrices shadowMatrices[MAX_SHADOWMAPS];
 };
 
 // Struct representing a single vertex worth of data
@@ -92,7 +97,7 @@ VertexToPixel main( VertexShaderInput input )
 	[unroll]
 	for (unsigned int i = 0; i < MAX_SHADOWMAPS; i++)
 	{
-		matrix shadowWorldViewProj = mul(mul(world, lightViews[i]), lightProjections[i]);
+		matrix shadowWorldViewProj = mul(mul(world, shadowMatrices[i].view), shadowMatrices[i].projection);
 		output.shadowPositions[i] = mul(float4(input.position, 1.0f), shadowWorldViewProj);
 	}
 	

@@ -184,7 +184,7 @@ public:
 	ID3D11PixelShader* GetDirectXShader() { return shader; }
 
 	bool SetShaderResourceView(std::string name, ID3D11ShaderResourceView* srv);
-	bool SetShaderResourceViewArray(std::string name, ID3D11ShaderResourceView** srvs, unsigned int srvCount);
+	bool SetShaderResourceViewArray(std::string name, ID3D11ShaderResourceView*const* srvs, unsigned int srvCount);
 	bool SetSamplerState(std::string name, ID3D11SamplerState* samplerState);
 
 protected:

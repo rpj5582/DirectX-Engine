@@ -22,6 +22,11 @@ cbuffer renderStyle : register(b2)
 	float4 wireColor;
 }
 
+cbuffer shadows : register(b3)
+{
+	bool shadowMapsEnabled[MAX_SHADOWMAPS];
+}
+
 Texture2D diffuseTexture : register(t0);
 Texture2D specularTexture : register(t1);
 Texture2D normalTexture : register(t2);
@@ -120,7 +125,7 @@ float calculateShadowAmount(Texture2D shadowMap, float4 shadowPosition, const un
 	float mipLevels;
 	shadowMap.GetDimensions(0, shadowMapWidth, shadowMapHeight, mipLevels);
 
-	const float pixel = 1.0f / shadowMapWidth;
+	const float texel = 1.0f / shadowMapWidth;
 
 	float distanceToLight = shadowPosition.z / shadowPosition.w;
 
@@ -138,7 +143,7 @@ float calculateShadowAmount(Texture2D shadowMap, float4 shadowPosition, const un
 		[unroll]
 		for (int j = lowerBound; j <= upperBound; j++)
 		{
-			totalShadowAmount += shadowMap.SampleCmpLevelZero(shadowMapSampler, shadowMapUV + float2(i, j) * pixel, distanceToLight);
+			totalShadowAmount += shadowMap.SampleCmpLevelZero(shadowMapSampler, shadowMapUV + float2(i, j) * texel, distanceToLight);
 		}
 	}
 	
@@ -177,16 +182,20 @@ float4 main(VertexToPixel input) : SV_TARGET
 	const unsigned int shadowSampleWidth = 1;
 
 	// Calculates the lighting for each valid light
-	float4 globalAmbient = float4(0.1f, 0.1f, 0.1f, 1.0f);
+	float4 globalAmbient = float4(0.25f, 0.25f, 0.25f, 1.0f);
 	float4 finalLightColor = globalAmbient  * diffuseColor;
 
 	[unroll]
 	for (unsigned int i = 0; i < MAX_SHADOWMAPS; i++)
 	{
-		float shadowAmount = calculateShadowAmount(shadowMaps[i], input.shadowPositions[i], shadowSampleWidth);
+		float shadowAmount = 1.0f;
+		if (shadowMapsEnabled[i])
+		{
+			shadowAmount = calculateShadowAmount(shadowMaps[i], input.shadowPositions[i], shadowSampleWidth);
+		}
 
 		float4 lightColor = calculateLight(lights[i], finalNormal, input.worldPosition, diffuseColor, specularColor);
-		finalLightColor += lightColor * (1.0f - shadowAmount);
+		finalLightColor += lightColor * shadowAmount;
 	}
 
 	[unroll]

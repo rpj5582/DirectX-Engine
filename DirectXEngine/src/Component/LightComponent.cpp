@@ -44,7 +44,10 @@ LightComponent::~LightComponent()
 			entity.removeTag(TAG_LIGHT);
 	}
 
-	m_shadowMap = nullptr;
+	if (m_shadowMap)
+	{
+		deleteShadowMap();
+	}
 }
 
 void LightComponent::init()
@@ -81,10 +84,12 @@ void LightComponent::initDebugVariables()
 		TW_TYPE_LIGHT_TYPE = TwDefineEnum("TW_TYPE_LIGH_TYPE", d_lightTypeMembers, 3);
 
 	Debug::entityDebugWindow->addVariableWithCallbacks(TW_TYPE_LIGHT_SETTINGS, "Light Settings", this, &getLightSettingsDebugEditor, &setLightSettingsDebugEditor, this);
+
+	Debug::entityDebugWindow->addVariableWithCallbacks(TW_TYPE_BOOLCPP, "Cast Shadows", this, &getCastShadowsDebugEditor, &setCastShadowsDebugEditor, this, "Shadow Settings");
+	Debug::entityDebugWindow->addVariableWithCallbacks(TW_TYPE_UINT32, "Shadow Map Resolution", this, &getShadowMapSizeDebugEditor, &setShadowMapSizeDebugEditor, this, "Shadow Settings");
+	Debug::entityDebugWindow->addGroup(this, "Shadow Settings");
+
 	Debug::entityDebugWindow->addVariableWithCallbacks(TW_TYPE_LIGHT_TYPE, "Light Type", this, &getLightTypeDebugEditor, &setLightTypeDebugEditor, this);
-	Debug::entityDebugWindow->addVariableWithCallbacks(TW_TYPE_BOOLCPP, "Cast Shadows", this, &getCastShadowsDebugEditor, &setCastShadowsDebugEditor, this, "Shadows");
-	Debug::entityDebugWindow->addVariableWithCallbacks(TW_TYPE_UINT32, "Shadow Map Resolution", this, &getShadowMapSizeDebugEditor, &setShadowMapSizeDebugEditor, this, "Shadows");
-	Debug::entityDebugWindow->addGroup(this, "Shadows");
 }
 
 void LightComponent::lateUpdate(float deltaTime, float totalTime)

@@ -925,7 +925,7 @@ bool SimplePixelShader::SetShaderResourceView(std::string name, ID3D11ShaderReso
 	return true;
 }
 
-bool SimplePixelShader::SetShaderResourceViewArray(std::string name, ID3D11ShaderResourceView** srvs, unsigned int srvCount)
+bool SimplePixelShader::SetShaderResourceViewArray(std::string name, ID3D11ShaderResourceView*const* srvs, unsigned int srvCount)
 {
 	// Look for the variable and verify
 	const SimpleSRV* srvInfo = GetShaderResourceViewInfo(name);

@@ -159,7 +159,8 @@ void Renderer::prepareMainPass(ID3D11RenderTargetView* backBufferRTV, ID3D11Dept
 	m_context->RSSetViewports(1, &viewport);
 }
 
-void Renderer::renderMainPass(const CameraComponent& mainCamera, XMFLOAT4X4 projectionMatrix, Entity*const * entities, size_t entityCount, const LightComponent*const * shadowLights, const GPU_LIGHT_DATA* lightData)
+void Renderer::renderMainPass(const CameraComponent& mainCamera, DirectX::XMFLOAT4X4 projectionMatrix, Entity*const * entities, size_t entityCount,
+	const GPU_LIGHT_DATA* lightData, const GPU_SHADOW_MATRICES* shadowMatrices, ID3D11ShaderResourceView*const * shadowMapSRVs, const bool* shadowMapsEnabled)
 {
 	Transform* mainCameraTransform = mainCamera.getEntity().getComponent<Transform>();
 	if (!mainCameraTransform) return;
@@ -173,55 +174,6 @@ void Renderer::renderMainPass(const CameraComponent& mainCamera, XMFLOAT4X4 proj
 	XMFLOAT4X4 projT;
 	XMStoreFloat4x4(&projT, projectionMatrixT);
 
-	XMFLOAT4X4 defaultLightViewT;
-	XMFLOAT4X4 defaultLightProjT;
-
-	// If there isn't a light casting shadows, use the camera in order to have valid view and projection matrices
-	XMFLOAT4X4 defaultLightView = mainCamera.getViewMatrix();
-	XMMATRIX defaultLightViewMatrixT = XMMatrixTranspose(XMLoadFloat4x4(&defaultLightView));
-	XMStoreFloat4x4(&defaultLightViewT, defaultLightViewMatrixT);
-
-	XMFLOAT4X4 defaultLightProj = Window::getProjectionMatrix();
-	XMMATRIX defaultLightProjectionMatrixT = XMMatrixTranspose(XMLoadFloat4x4(&defaultLightProj));
-	XMStoreFloat4x4(&defaultLightProjT, defaultLightProjectionMatrixT);
-
-	ID3D11ShaderResourceView* defaultShadowMapSRV = AssetManager::getAsset<Texture>(DEFAULT_TEXTURE_SHADOWMAP)->getSRV();
-
-	std::vector<XMFLOAT4X4> lightViewMatrices = std::vector<XMFLOAT4X4>(MAX_SHADOWMAPS);
-	std::vector<XMFLOAT4X4> lightProjectionMatrices = std::vector<XMFLOAT4X4>(MAX_SHADOWMAPS);
-	std::vector<ID3D11ShaderResourceView*> shadowMapSRVs = std::vector<ID3D11ShaderResourceView*>(MAX_SHADOWMAPS);
-
-	for (unsigned int i = 0; i < MAX_SHADOWMAPS; i++)
-	{
-		if (shadowLights[i])
-		{
-			XMFLOAT4X4 lightViewT;
-			XMFLOAT4X4 lightView = shadowLights[i]->getViewMatrix();
-			XMMATRIX lightViewMatrixT = XMMatrixTranspose(XMLoadFloat4x4(&lightView));
-			XMStoreFloat4x4(&lightViewT, lightViewMatrixT);
-
-			XMFLOAT4X4 lightProjT;
-			XMFLOAT4X4 lightProj = shadowLights[i]->getProjectionMatrix();
-			XMMATRIX lightProjectionMatrixT = XMMatrixTranspose(XMLoadFloat4x4(&lightProj));
-			XMStoreFloat4x4(&lightProjT, lightProjectionMatrixT);
-
-			lightViewMatrices[i] = lightViewT;
-			lightProjectionMatrices[i] = lightProjT;
-
-			Texture* shadowMapTexture = shadowLights[i]->getShadowMap();
-			if (shadowMapTexture)
-			{
-				shadowMapSRVs[i] = shadowMapTexture->getSRV();
-			}
-		}
-		else
-		{
-			lightViewMatrices[i] = defaultLightViewT;
-			lightProjectionMatrices[i] = defaultLightProjT;
-			shadowMapSRVs[i] = defaultShadowMapSRV;
-		}
-	}
-
 	unsigned int stride = sizeof(Vertex);
 	unsigned int offset = 0;
 
@@ -230,14 +182,17 @@ void Renderer::renderMainPass(const CameraComponent& mainCamera, XMFLOAT4X4 proj
 		//  Don't use disabled entities
 		if (!entities[i]->getEnabled()) continue;
 
+		// Don't draw the entity if it can't be seen anyway
 		Transform* transform = entities[i]->getComponent<Transform>();
-		RenderComponent* renderComponent = entities[i]->getComponent<RenderComponent>();
-		if (renderComponent && renderComponent->enabled && transform)
+		MeshRenderComponent* meshRenderComponent = entities[i]->getComponent<MeshRenderComponent>();
+		if (meshRenderComponent && meshRenderComponent->enabled && transform)
 		{
-			Material* material = renderComponent->getMaterial();
-			if (material)
+			Material* material = meshRenderComponent->getMaterial();
+			Mesh* mesh = meshRenderComponent->getMesh();
+			if (material && mesh)
 			{
 				material->useMaterial();
+
 				SimpleVertexShader* vertexShader = material->getVertexShader();
 				SimplePixelShader* pixelShader = material->getPixelShader();
 
@@ -252,60 +207,53 @@ void Renderer::renderMainPass(const CameraComponent& mainCamera, XMFLOAT4X4 proj
 				vertexShader->SetMatrix4x4("view", viewT);
 				vertexShader->SetMatrix4x4("projection", projT);
 				vertexShader->SetMatrix4x4("worldInverseTranspose", worldMatrixInverse);
-
-				vertexShader->SetData("lightViews", &lightViewMatrices[0], sizeof(XMFLOAT4X4) * MAX_SHADOWMAPS);
-				vertexShader->SetData("lightProjections", &lightProjectionMatrices[0], sizeof(XMFLOAT4X4) * MAX_SHADOWMAPS);
+				vertexShader->SetData("shadowMatrices", &shadowMatrices[0], sizeof(GPU_SHADOW_MATRICES) * MAX_SHADOWMAPS);
 
 				vertexShader->CopyBufferData("matrices");
 
-				// Don't draw the entity if it can't be seen anyway
-				MeshRenderComponent* meshRenderComponent = entities[i]->getComponent<MeshRenderComponent>();
-				if (meshRenderComponent)
+				pixelShader->SetSamplerState("shadowMapSampler", m_shadowMapSampler->getSamplerState());
+
+				pixelShader->SetFloat3("cameraWorldPosition", mainCameraTransform->getPosition());
+				pixelShader->CopyBufferData("camera");
+
+				if (!Debug::inPlayMode && entities[i]->selected)
 				{
-					pixelShader->SetSamplerState("shadowMapSampler", m_shadowMapSampler->getSamplerState());
-
-					pixelShader->SetFloat3("cameraWorldPosition", mainCameraTransform->getPosition());
-					pixelShader->CopyBufferData("camera");
-
-					if (!Debug::inPlayMode && entities[i]->selected)
-					{
-						pixelShader->SetInt("renderStyle", (int)SOLID_WIREFRAME);
-						pixelShader->SetFloat4("wireColor", XMFLOAT4(1.0f, 1.0f, 0.0f, 1.0f));
-					}
-					else
-					{
-						pixelShader->SetInt("renderStyle", (int)meshRenderComponent->getRenderStyle());
-						pixelShader->SetFloat4("wireColor", meshRenderComponent->getWireframeColor());
-					}
-
-					pixelShader->CopyBufferData("renderStyle");					
-
-					if (meshRenderComponent->receiveShadows)
-						pixelShader->SetShaderResourceViewArray("shadowMaps", &shadowMapSRVs[0], MAX_SHADOWMAPS);
-
-					Mesh* mesh = meshRenderComponent->getMesh();
-					if (mesh)
-					{
-						pixelShader->SetData("lights", lightData, sizeof(GPU_LIGHT_DATA) * MAX_LIGHTS);
-						pixelShader->CopyBufferData("lighting");
-
-						ID3D11Buffer* vertexBuffer = mesh->getVertexBuffer();
-						ID3D11Buffer* indexBuffer = mesh->getIndexBuffer();
-
-						m_context->IASetVertexBuffers(0, 1, &vertexBuffer, &stride, &offset);
-						m_context->IASetIndexBuffer(indexBuffer, DXGI_FORMAT_R32_UINT, 0);
-
-						// Finally do the actual drawing
-						//  - Do this ONCE PER OBJECT you intend to draw
-						//  - This will use all of the currently set DirectX "stuff" (shaders, buffers, etc)
-						//  - DrawIndexed() uses the currently set INDEX BUFFER to look up corresponding
-						//     vertices in the currently set VERTEX BUFFER
-						m_context->DrawIndexed(
-							(UINT)mesh->getIndexCount(),			// The number of indices to use (we could draw a subset if we wanted)
-							0,								// Offset to the first index we want to use
-							0);								// Offset to add to each index when looking up vertices
-					}
+					pixelShader->SetInt("renderStyle", (int)SOLID_WIREFRAME);
+					pixelShader->SetFloat4("wireColor", XMFLOAT4(1.0f, 1.0f, 0.0f, 1.0f));
 				}
+				else
+				{
+					pixelShader->SetInt("renderStyle", (int)meshRenderComponent->getRenderStyle());
+					pixelShader->SetFloat4("wireColor", meshRenderComponent->getWireframeColor());
+				}
+
+				pixelShader->CopyBufferData("renderStyle");
+
+				if (meshRenderComponent->receiveShadows)
+				{
+					pixelShader->SetShaderResourceViewArray("shadowMaps", shadowMapSRVs, MAX_SHADOWMAPS);
+					pixelShader->SetData("shadowMapsEnabled", shadowMapsEnabled, sizeof(bool) * MAX_SHADOWMAPS * 16 - 12);
+					pixelShader->CopyBufferData("shadows");
+				}
+
+				pixelShader->SetData("lights", lightData, sizeof(GPU_LIGHT_DATA) * MAX_LIGHTS);
+				pixelShader->CopyBufferData("lighting");
+
+				ID3D11Buffer* vertexBuffer = mesh->getVertexBuffer();
+				ID3D11Buffer* indexBuffer = mesh->getIndexBuffer();
+
+				m_context->IASetVertexBuffers(0, 1, &vertexBuffer, &stride, &offset);
+				m_context->IASetIndexBuffer(indexBuffer, DXGI_FORMAT_R32_UINT, 0);
+
+				// Finally do the actual drawing
+				//  - Do this ONCE PER OBJECT you intend to draw
+				//  - This will use all of the currently set DirectX "stuff" (shaders, buffers, etc)
+				//  - DrawIndexed() uses the currently set INDEX BUFFER to look up corresponding
+				//     vertices in the currently set VERTEX BUFFER
+				m_context->DrawIndexed(
+					(UINT)mesh->getIndexCount(),			// The number of indices to use (we could draw a subset if we wanted)
+					0,								// Offset to the first index we want to use
+					0);								// Offset to add to each index when looking up vertices
 
 				ID3D11ShaderResourceView* empty[MAX_SHADOWMAPS];
 				for (unsigned int i = 0; i < MAX_SHADOWMAPS; i++)

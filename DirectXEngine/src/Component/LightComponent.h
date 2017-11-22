@@ -1,22 +1,6 @@
 #pragma once
 #include "Component.h"
 
-#define MAX_LIGHTS 64
-
-// The struct that should match the light data in the shaders.
-struct GPU_LIGHT_DATA
-{
-	DirectX::XMFLOAT4 color;
-	DirectX::XMFLOAT3 direction;
-	float brightness;
-	DirectX::XMFLOAT3 position;
-	float specularity;
-	float radius;
-	float spotAngle;
-	bool enabled;
-	unsigned int type;
-};
-
 enum LightType
 {
 	POINT_LIGHT, DIRECTIONAL_LIGHT, SPOT_LIGHT

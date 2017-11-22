@@ -9,3 +9,6 @@ Convert pointers to smart pointers
 Collision detection
 
 BUGS:
+Changing the a spotlight's radius to almost 0 crashes the engine.
+GUI default texture is being set to null?
+Changing the color of a light doesn't work.

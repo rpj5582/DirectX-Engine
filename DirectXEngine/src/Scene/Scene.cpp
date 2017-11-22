@@ -497,12 +497,13 @@ void Scene::renderGeometry(ID3D11RenderTargetView* backBufferRTV, ID3D11DepthSte
 		camera = m_debugCamera->getComponent<CameraComponent>();
 	}
 	
-	std::vector<const LightComponent*> shadowCastingLights = std::vector<const LightComponent*>();
-	std::vector<const LightComponent*> shadowCastingLightsFinal = std::vector<const LightComponent*>(MAX_SHADOWMAPS);
-
-	// Preprocess each light entity to get it's position and direction, and see if it should cast shadows.
 	std::vector<GPU_LIGHT_DATA> lightData = std::vector<GPU_LIGHT_DATA>(MAX_LIGHTS);
 
+	std::vector<GPU_SHADOW_MATRICES> shadowMatrices = std::vector<GPU_SHADOW_MATRICES>(MAX_SHADOWMAPS);
+	std::vector<ID3D11ShaderResourceView*> shadowMapSRVs = std::vector<ID3D11ShaderResourceView*>(MAX_SHADOWMAPS);
+	bool shadowMapsEnabled[MAX_SHADOWMAPS * 16 - 12] = {};
+
+	// Preprocess each light entity to get it's position and direction, and see if it should cast shadows.
 	std::vector<Entity*> lightEntities = m_taggedEntities.at(TAG_LIGHT);
 	for (unsigned int i = 0; i < lightEntities.size() && i < MAX_LIGHTS; i++)
 	{
@@ -537,27 +538,43 @@ void Scene::renderGeometry(ID3D11RenderTargetView* backBufferRTV, ID3D11DepthSte
 			lightType,
 		};
 
-		if (lightComponent->canCastShadows() && shadowCastingLights.size() < MAX_SHADOWMAPS)
+		if (i < MAX_SHADOWMAPS)
 		{
-			Texture* shadowMap = lightComponent->getShadowMap();
-			if (shadowMap)
+			if (lightComponent->canCastShadows())
 			{
-				m_renderer->prepareShadowMapPass(shadowMap);
-				m_renderer->renderShadowMapPass(&m_entities[0], m_entities.size(), *lightComponent);
-				shadowCastingLights.push_back(lightComponent);
+				Texture* shadowMap = lightComponent->getShadowMap();
+				if (shadowMap)
+				{
+					m_renderer->prepareShadowMapPass(shadowMap);
+					m_renderer->renderShadowMapPass(&m_entities[0], m_entities.size(), *lightComponent);
+
+					XMFLOAT4X4 lightViewT;
+					XMFLOAT4X4 lightView = lightComponent->getViewMatrix();
+					XMMATRIX lightViewMatrixT = XMMatrixTranspose(XMLoadFloat4x4(&lightView));
+					XMStoreFloat4x4(&lightViewT, lightViewMatrixT);
+
+					XMFLOAT4X4 lightProjT;
+					XMFLOAT4X4 lightProj = lightComponent->getProjectionMatrix();
+					XMMATRIX lightProjectionMatrixT = XMMatrixTranspose(XMLoadFloat4x4(&lightProj));
+					XMStoreFloat4x4(&lightProjT, lightProjectionMatrixT);
+
+					shadowMatrices[i] =
+					{
+						lightViewT,
+						lightProjT,
+					};
+
+					shadowMapSRVs[i] = shadowMap->getSRV();
+					shadowMapsEnabled[i * 16] = true;
+				}
 			}
 		}
-	}
-
-	for (unsigned int i = 0; i < shadowCastingLights.size(); i++)
-	{
-		shadowCastingLightsFinal[i] = shadowCastingLights[i];
 	}
 
 	if (m_entities.size() > 0)
 	{
 		m_renderer->prepareMainPass(backBufferRTV, backBufferDSV);
-		m_renderer->renderMainPass(*camera, Window::getProjectionMatrix(), &m_entities[0], m_entities.size(), &shadowCastingLightsFinal[0], &lightData[0]);
+		m_renderer->renderMainPass(*camera, Window::getProjectionMatrix(), &m_entities[0], m_entities.size(), &lightData[0], &shadowMatrices[0], &shadowMapSRVs[0], &shadowMapsEnabled[0]);
 	}
 }
 
