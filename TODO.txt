@@ -1,7 +1,4 @@
 TODO:
-Make PCF sample width editable
-Add support for multiple real time lights
-Add spot light real time shadows
 Make material creator
 Implement "first person" entity moving in debug mode
 Make a scene graph or some kind of proper ordering to entities
@@ -9,6 +6,5 @@ Convert pointers to smart pointers
 Collision detection
 
 BUGS:
-Changing the a spotlight's radius to almost 0 crashes the engine.
-GUI default texture is being set to null?
 Changing the color of a light doesn't work.
+Wireframe meshes aren't sorted, so they are filled with the clear color.

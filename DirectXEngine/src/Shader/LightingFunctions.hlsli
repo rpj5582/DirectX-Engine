@@ -17,7 +17,10 @@ struct Light
 	float radius;
 	float spotAngle;
 	bool enabled;
-	unsigned int type;
+	int type;
+	bool shadowMapEnabled;
+	int shadowType;
+	float2 padding;
 };
 
 float4 calculateDiffuse(Light light, float3 normal, float3 directionToLight)

@@ -21,7 +21,10 @@ struct GPU_LIGHT_DATA
 	float radius;
 	float spotAngle;
 	bool enabled;
-	unsigned int type;
+	int type;
+	bool shadowMapEnabled;
+	int shadowType;
+	DirectX::XMFLOAT2 padding;
 };
 
 struct GPU_SHADOW_MATRICES
@@ -43,7 +46,7 @@ public:
 
 	void prepareMainPass(ID3D11RenderTargetView* backBufferRTV, ID3D11DepthStencilView* backBufferDSV);
 	void renderMainPass(const CameraComponent& mainCamera, DirectX::XMFLOAT4X4 projectionMatrix, Entity*const * entities, size_t entityCount,
-		const GPU_LIGHT_DATA* lightData, const GPU_SHADOW_MATRICES* shadowMatrices, ID3D11ShaderResourceView*const * shadowMapSRVs, const bool* shadowMapsEnabled);
+		const GPU_LIGHT_DATA* lightData, const GPU_SHADOW_MATRICES* shadowMatrices, ID3D11ShaderResourceView*const * shadowMapSRVs);
 
 private:
 	ID3D11Device* m_device;

@@ -22,11 +22,6 @@ cbuffer renderStyle : register(b2)
 	float4 wireColor;
 }
 
-cbuffer shadows : register(b3)
-{
-	bool shadowMapsEnabled[MAX_SHADOWMAPS];
-}
-
 Texture2D diffuseTexture : register(t0);
 Texture2D specularTexture : register(t1);
 Texture2D normalTexture : register(t2);
@@ -137,10 +132,8 @@ float calculateShadowAmount(Texture2D shadowMap, float4 shadowPosition, const un
 	int lowerBound = ceil(-sampleRadius);
 	int upperBound = floor(sampleRadius);
 
-	[unroll]
 	for (int i = lowerBound; i <= upperBound; i++)
 	{
-		[unroll]
 		for (int j = lowerBound; j <= upperBound; j++)
 		{
 			totalShadowAmount += shadowMap.SampleCmpLevelZero(shadowMapSampler, shadowMapUV + float2(i, j) * texel, distanceToLight);
@@ -178,9 +171,6 @@ float4 main(VertexToPixel input) : SV_TARGET
 	// Convert the normal from the normal map to world space.
 	float3 finalNormal = normalize(mul(unpackedNormal, TBN));
 
-	// Must be an odd positive integer
-	const unsigned int shadowSampleWidth = 1;
-
 	// Calculates the lighting for each valid light
 	float4 globalAmbient = float4(0.25f, 0.25f, 0.25f, 1.0f);
 	float4 finalLightColor = globalAmbient  * diffuseColor;
@@ -189,9 +179,9 @@ float4 main(VertexToPixel input) : SV_TARGET
 	for (unsigned int i = 0; i < MAX_SHADOWMAPS; i++)
 	{
 		float shadowAmount = 1.0f;
-		if (shadowMapsEnabled[i])
+		if (lights[i].shadowMapEnabled)
 		{
-			shadowAmount = calculateShadowAmount(shadowMaps[i], input.shadowPositions[i], shadowSampleWidth);
+			shadowAmount = calculateShadowAmount(shadowMaps[i], input.shadowPositions[i], lights[i].shadowType + 1);
 		}
 
 		float4 lightColor = calculateLight(lights[i], finalNormal, input.worldPosition, diffuseColor, specularColor);

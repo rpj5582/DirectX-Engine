@@ -501,7 +501,6 @@ void Scene::renderGeometry(ID3D11RenderTargetView* backBufferRTV, ID3D11DepthSte
 
 	std::vector<GPU_SHADOW_MATRICES> shadowMatrices = std::vector<GPU_SHADOW_MATRICES>(MAX_SHADOWMAPS);
 	std::vector<ID3D11ShaderResourceView*> shadowMapSRVs = std::vector<ID3D11ShaderResourceView*>(MAX_SHADOWMAPS);
-	bool shadowMapsEnabled[MAX_SHADOWMAPS * 16 - 12] = {};
 
 	// Preprocess each light entity to get it's position and direction, and see if it should cast shadows.
 	std::vector<Entity*> lightEntities = m_taggedEntities.at(TAG_LIGHT);
@@ -522,21 +521,10 @@ void Scene::renderGeometry(ID3D11RenderTargetView* backBufferRTV, ID3D11DepthSte
 		XMFLOAT3 lightPosition = lightTransform->getPosition();
 		XMFLOAT3 lightDirection = lightTransform->getForward();
 
-		unsigned int lightType = (unsigned int)lightComponent->getLightType();
+		int lightType = (int)lightComponent->getLightType();
+		int shadowType = (int)lightComponent->getShadowType();
 
-		// Creates the final memory-aligned struct that is sent to the GPU
-		lightData[i] =
-		{
-			lightSettings.color,
-			lightDirection,
-			lightSettings.brightness,
-			lightPosition,
-			lightSettings.specularity,
-			lightSettings.radius,
-			lightSettings.spotAngle,
-			lightComponent->enabled,
-			lightType,
-		};
+		bool shadowMapEnabled = false;
 
 		if (i < MAX_SHADOWMAPS)
 		{
@@ -565,16 +553,32 @@ void Scene::renderGeometry(ID3D11RenderTargetView* backBufferRTV, ID3D11DepthSte
 					};
 
 					shadowMapSRVs[i] = shadowMap->getSRV();
-					shadowMapsEnabled[i * 16] = true;
+					shadowMapEnabled = true;
 				}
 			}
 		}
+
+		// Creates the final memory-aligned struct that is sent to the GPU
+		lightData[i] =
+		{
+			lightSettings.color,
+			lightDirection,
+			lightSettings.brightness,
+			lightPosition,
+			lightSettings.specularity,
+			lightSettings.radius,
+			lightSettings.spotAngle,
+			lightComponent->enabled,
+			lightType,
+			shadowMapEnabled,
+			shadowType
+		};
 	}
 
 	if (m_entities.size() > 0)
 	{
 		m_renderer->prepareMainPass(backBufferRTV, backBufferDSV);
-		m_renderer->renderMainPass(*camera, Window::getProjectionMatrix(), &m_entities[0], m_entities.size(), &lightData[0], &shadowMatrices[0], &shadowMapSRVs[0], &shadowMapsEnabled[0]);
+		m_renderer->renderMainPass(*camera, Window::getProjectionMatrix(), &m_entities[0], m_entities.size(), &lightData[0], &shadowMatrices[0], &shadowMapSRVs[0]);
 	}
 }
 

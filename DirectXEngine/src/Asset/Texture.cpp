@@ -51,6 +51,8 @@ bool Texture::create(unsigned int width, unsigned int height, TextureParameters 
 
 bool Texture::create(unsigned int hexColor, TextureParameters parameters)
 {
+	m_width = 1;
+	m_height = 1;
 	m_parameters = parameters;
 	return createSolidColor(hexColor);
 }
@@ -188,8 +190,8 @@ bool Texture::createSolidColor(unsigned int hexColor)
 
 	// Creates the texture resource
 	D3D11_TEXTURE2D_DESC desc = {};
-	desc.Width = 1;
-	desc.Height = 1;
+	desc.Width = m_width;
+	desc.Height = m_height;
 	desc.MipLevels = m_parameters.mipLevels;
 	desc.ArraySize = 1;
 	desc.Format = m_parameters.textureFormat;

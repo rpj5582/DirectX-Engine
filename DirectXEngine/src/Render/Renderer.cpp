@@ -160,7 +160,7 @@ void Renderer::prepareMainPass(ID3D11RenderTargetView* backBufferRTV, ID3D11Dept
 }
 
 void Renderer::renderMainPass(const CameraComponent& mainCamera, DirectX::XMFLOAT4X4 projectionMatrix, Entity*const * entities, size_t entityCount,
-	const GPU_LIGHT_DATA* lightData, const GPU_SHADOW_MATRICES* shadowMatrices, ID3D11ShaderResourceView*const * shadowMapSRVs, const bool* shadowMapsEnabled)
+	const GPU_LIGHT_DATA* lightData, const GPU_SHADOW_MATRICES* shadowMatrices, ID3D11ShaderResourceView*const * shadowMapSRVs)
 {
 	Transform* mainCameraTransform = mainCamera.getEntity().getComponent<Transform>();
 	if (!mainCameraTransform) return;
@@ -229,12 +229,7 @@ void Renderer::renderMainPass(const CameraComponent& mainCamera, DirectX::XMFLOA
 
 				pixelShader->CopyBufferData("renderStyle");
 
-				if (meshRenderComponent->receiveShadows)
-				{
-					pixelShader->SetShaderResourceViewArray("shadowMaps", shadowMapSRVs, MAX_SHADOWMAPS);
-					pixelShader->SetData("shadowMapsEnabled", shadowMapsEnabled, sizeof(bool) * MAX_SHADOWMAPS * 16 - 12);
-					pixelShader->CopyBufferData("shadows");
-				}
+				pixelShader->SetShaderResourceViewArray("shadowMaps", shadowMapSRVs, MAX_SHADOWMAPS);
 
 				pixelShader->SetData("lights", lightData, sizeof(GPU_LIGHT_DATA) * MAX_LIGHTS);
 				pixelShader->CopyBufferData("lighting");

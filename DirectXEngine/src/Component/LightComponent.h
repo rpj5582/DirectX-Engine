@@ -6,6 +6,13 @@ enum LightType
 	POINT_LIGHT, DIRECTIONAL_LIGHT, SPOT_LIGHT
 };
 
+enum ShadowType
+{
+	SHADOWTYPE_HARD = 0,
+	SHADOWTYPE_SOFT = 2,
+	SHADOWTYPE_VERY_SOFT = 4
+};
+
 struct LightSettings
 {
 	DirectX::XMFLOAT4 color;
@@ -48,6 +55,9 @@ public:
 	bool canCastShadows() const;
 	void canCastShadows(bool castShadows);
 
+	ShadowType getShadowType() const;
+	void setShadowType(ShadowType type);
+
 private:
 	void setSettingsDefault();
 	bool createShadowMap();
@@ -57,6 +67,7 @@ private:
 
 	LightSettings m_light;
 	LightType m_lightType;
+	ShadowType m_shadowType;
 
 	Texture* m_shadowMap;
 	DirectX::XMFLOAT4X4 m_viewMatrix;
@@ -69,14 +80,19 @@ private:
 
 	static TwEnumVal d_lightTypeMembers[3];
 	static TwType TW_TYPE_LIGHT_TYPE;
+
+	static TwEnumVal d_shadowTypeMembers[3];
+	static TwType TW_TYPE_SHADOW_TYPE;
 };
 
 void TW_CALL getLightSettingsDebugEditor(void* value, void* clientData);
 void TW_CALL getLightTypeDebugEditor(void* value, void* clientData);
 void TW_CALL getCastShadowsDebugEditor(void* value, void* clientData);
+void TW_CALL getShadowTypeDebugEditor(void* value, void* clientData);
 void TW_CALL getShadowMapSizeDebugEditor(void* value, void* clientData);
 
 void TW_CALL setLightSettingsDebugEditor(const void* value, void* clientData);
 void TW_CALL setLightTypeDebugEditor(const void* value, void* clientData);
 void TW_CALL setCastShadowsDebugEditor(const void* value, void* clientData);
+void TW_CALL setShadowTypeDebugEditor(const void* value, void* clientData);
 void TW_CALL setShadowMapSizeDebugEditor(const void* value, void* clientData);
