@@ -9,7 +9,7 @@ public:
 
 	virtual void initDebugVariables() override;
 	virtual void loadFromJSON(rapidjson::Value& dataObject) override;
-	virtual void saveToJSON(rapidjson::Writer<rapidjson::StringBuffer>& writer) override;
+	virtual void saveToJSON(rapidjson::PrettyWriter<rapidjson::StringBuffer>& writer) override;
 
 	Mesh* getMesh() const;
 	std::string getMeshID() const;

@@ -22,7 +22,7 @@ public:
 
 	bool create(Vertex* vertices, unsigned int vertexCount, unsigned int* indices, unsigned int indexCount);
 	bool loadFromFile() override;
-	void saveToJSON(rapidjson::Writer<rapidjson::StringBuffer>& writer) override;
+	void saveToJSON(rapidjson::PrettyWriter<rapidjson::StringBuffer>& writer) override;
 
 	ID3D11Buffer* getVertexBuffer() const;
 	ID3D11Buffer* getIndexBuffer() const;

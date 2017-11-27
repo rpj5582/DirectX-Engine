@@ -4,8 +4,8 @@
 #include "../Asset/AssetManager.h"
 #include "../Window.h"
 
-#include "../rapidjson/document.h"
-#include "../rapidjson/writer.h"
+#include "rapidjson/document.h"
+#include "rapidjson/prettywriter.h"
 
 #include "../Util.h"
 
@@ -22,7 +22,7 @@ public:
 	virtual void update(float deltaTime, float totalTime);
 	virtual void lateUpdate(float deltaTime, float totalTime);
 	virtual void loadFromJSON(rapidjson::Value& dataObject);
-	virtual void saveToJSON(rapidjson::Writer<rapidjson::StringBuffer>& writer);
+	virtual void saveToJSON(rapidjson::PrettyWriter<rapidjson::StringBuffer>& writer);
 	virtual void onSceneLoaded();
 
 	Entity& getEntity() const;

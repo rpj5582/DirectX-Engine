@@ -10,7 +10,7 @@ PixelShader::~PixelShader()
 {
 }
 
-void PixelShader::saveToJSON(rapidjson::Writer<rapidjson::StringBuffer>& writer)
+void PixelShader::saveToJSON(rapidjson::PrettyWriter<rapidjson::StringBuffer>& writer)
 {
 	Asset::saveToJSON(writer);
 

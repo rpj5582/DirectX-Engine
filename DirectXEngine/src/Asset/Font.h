@@ -12,7 +12,7 @@ public:
 
 	bool create(DirectX::SpriteFont* spriteFont);
 	bool loadFromFile() override;
-	void saveToJSON(rapidjson::Writer<rapidjson::StringBuffer>& writer) override;
+	void saveToJSON(rapidjson::PrettyWriter<rapidjson::StringBuffer>& writer) override;
 
 	DirectX::SpriteFont* getSpriteFont() const;
 

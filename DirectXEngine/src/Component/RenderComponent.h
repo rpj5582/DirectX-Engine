@@ -17,7 +17,7 @@ public:
 	virtual void init() override;
 	virtual void initDebugVariables() override;
 	virtual void loadFromJSON(rapidjson::Value& dataObject) override;
-	virtual void saveToJSON(rapidjson::Writer<rapidjson::StringBuffer>& writer) override;
+	virtual void saveToJSON(rapidjson::PrettyWriter<rapidjson::StringBuffer>& writer) override;
 
 	Material* getMaterial() const;
 	std::string getMaterialID() const;

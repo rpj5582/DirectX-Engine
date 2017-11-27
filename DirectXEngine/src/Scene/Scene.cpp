@@ -3,7 +3,7 @@
 #include "../Component/FreeCamControls.h"
 #include "../Component/GUIDebugSpriteComponent.h"
 
-#include "../rapidjson/error/en.h"
+#include "rapidjson/error/en.h"
 #include <fstream>
 #include <string>
 
@@ -328,7 +328,7 @@ bool Scene::loadFromJSON()
 void Scene::saveToJSON()
 {
 	rapidjson::StringBuffer s;
-	rapidjson::Writer<rapidjson::StringBuffer> writer(s);
+	rapidjson::PrettyWriter<rapidjson::StringBuffer> writer(s);
 
 	writer.StartObject();
 

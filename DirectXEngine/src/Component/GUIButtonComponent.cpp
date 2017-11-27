@@ -76,7 +76,7 @@ void GUIButtonComponent::loadFromJSON(rapidjson::Value& dataObject)
 	}
 }
 
-void GUIButtonComponent::saveToJSON(rapidjson::Writer<rapidjson::StringBuffer>& writer)
+void GUIButtonComponent::saveToJSON(rapidjson::PrettyWriter<rapidjson::StringBuffer>& writer)
 {
 	Component::saveToJSON(writer);
 

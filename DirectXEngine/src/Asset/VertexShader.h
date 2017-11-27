@@ -9,6 +9,6 @@ public:
 
 	bool create();
 	bool loadFromFile() override;
-	void saveToJSON(rapidjson::Writer<rapidjson::StringBuffer>& writer) override;
+	void saveToJSON(rapidjson::PrettyWriter<rapidjson::StringBuffer>& writer) override;
 };
 

@@ -24,7 +24,7 @@ bool Font::create(DirectX::SpriteFont* spriteFont)
 	return true;
 }
 
-void Font::saveToJSON(rapidjson::Writer<rapidjson::StringBuffer>& writer)
+void Font::saveToJSON(rapidjson::PrettyWriter<rapidjson::StringBuffer>& writer)
 {
 	Asset::saveToJSON(writer);
 

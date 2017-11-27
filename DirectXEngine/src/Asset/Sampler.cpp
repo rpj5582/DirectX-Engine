@@ -2,7 +2,7 @@
 
 #include "../Debug/Debug.h"
 
-#include "../rapidjson/error/en.h"
+#include "rapidjson/error/en.h"
 #include "../Util.h"
 #include <fstream>
 
@@ -46,7 +46,7 @@ bool Sampler::create(const D3D11_SAMPLER_DESC& samplerDesc)
 	return true;
 }
 
-void Sampler::saveToJSON(rapidjson::Writer<rapidjson::StringBuffer>& writer)
+void Sampler::saveToJSON(rapidjson::PrettyWriter<rapidjson::StringBuffer>& writer)
 {
 	Asset::saveToJSON(writer);
 

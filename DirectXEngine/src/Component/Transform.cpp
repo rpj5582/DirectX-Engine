@@ -62,7 +62,7 @@ void Transform::loadFromJSON(rapidjson::Value& dataObject)
 	}
 }
 
-void Transform::saveToJSON(rapidjson::Writer<rapidjson::StringBuffer>& writer)
+void Transform::saveToJSON(rapidjson::PrettyWriter<rapidjson::StringBuffer>& writer)
 {
 	Component::saveToJSON(writer);
 

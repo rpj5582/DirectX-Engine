@@ -21,7 +21,7 @@ public:
 	bool create(unsigned int width, unsigned int height, TextureParameters parameters = {});
 	bool create(unsigned int hexColor, TextureParameters parameters = {});
 	bool loadFromFile() override;
-	void saveToJSON(rapidjson::Writer<rapidjson::StringBuffer>& writer) override;
+	void saveToJSON(rapidjson::PrettyWriter<rapidjson::StringBuffer>& writer) override;
 
 	ID3D11ShaderResourceView* getSRV() const;
 	ID3D11DepthStencilView* getDSV() const;

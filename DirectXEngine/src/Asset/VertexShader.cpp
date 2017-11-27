@@ -10,7 +10,7 @@ VertexShader::~VertexShader()
 {
 }
 
-void VertexShader::saveToJSON(rapidjson::Writer<rapidjson::StringBuffer>& writer)
+void VertexShader::saveToJSON(rapidjson::PrettyWriter<rapidjson::StringBuffer>& writer)
 {
 	Asset::saveToJSON(writer);
 

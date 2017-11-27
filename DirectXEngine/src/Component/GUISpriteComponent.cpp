@@ -39,7 +39,7 @@ void GUISpriteComponent::loadFromJSON(rapidjson::Value& dataObject)
 	}
 }
 
-void GUISpriteComponent::saveToJSON(rapidjson::Writer<rapidjson::StringBuffer>& writer)
+void GUISpriteComponent::saveToJSON(rapidjson::PrettyWriter<rapidjson::StringBuffer>& writer)
 {
 	Component::saveToJSON(writer);
 

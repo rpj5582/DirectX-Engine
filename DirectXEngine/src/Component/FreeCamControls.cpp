@@ -106,7 +106,7 @@ void FreeCamControls::loadFromJSON(rapidjson::Value& dataObject)
 	}
 }
 
-void FreeCamControls::saveToJSON(rapidjson::Writer<rapidjson::StringBuffer>& writer)
+void FreeCamControls::saveToJSON(rapidjson::PrettyWriter<rapidjson::StringBuffer>& writer)
 {
 	Component::saveToJSON(writer);
 

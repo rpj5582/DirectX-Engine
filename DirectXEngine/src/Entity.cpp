@@ -67,7 +67,7 @@ void Entity::lateUpdate(float deltaTime, float totalTime)
 	}
 }
 
-void Entity::saveToJSON(rapidjson::Writer<rapidjson::StringBuffer>& writer) const
+void Entity::saveToJSON(rapidjson::PrettyWriter<rapidjson::StringBuffer>& writer) const
 {
 	writer.StartObject();
 

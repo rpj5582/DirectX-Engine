@@ -37,7 +37,7 @@ bool Mesh::create(Vertex* vertices, unsigned int vertexCount, unsigned int* indi
 	return createBuffers();
 }
 
-void Mesh::saveToJSON(rapidjson::Writer<rapidjson::StringBuffer>& writer)
+void Mesh::saveToJSON(rapidjson::PrettyWriter<rapidjson::StringBuffer>& writer)
 {
 	Asset::saveToJSON(writer);
 

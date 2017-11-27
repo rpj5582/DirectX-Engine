@@ -32,7 +32,7 @@ public:
 	virtual void initDebugVariables() override;
 	virtual void lateUpdate(float deltaTime, float totalTime) override;
 	virtual void loadFromJSON(rapidjson::Value& dataObject) override;
-	virtual void saveToJSON(rapidjson::Writer<rapidjson::StringBuffer>& writer);
+	virtual void saveToJSON(rapidjson::PrettyWriter<rapidjson::StringBuffer>& writer);
 
 	LightType getLightType() const;
 

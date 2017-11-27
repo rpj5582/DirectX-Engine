@@ -10,7 +10,7 @@ public:
 
 	bool create(const D3D11_SAMPLER_DESC& samplerDesc);
 	bool loadFromFile() override;
-	void saveToJSON(rapidjson::Writer<rapidjson::StringBuffer>& writer) override;
+	void saveToJSON(rapidjson::PrettyWriter<rapidjson::StringBuffer>& writer) override;
 
 	ID3D11SamplerState* getSamplerState() const;
 

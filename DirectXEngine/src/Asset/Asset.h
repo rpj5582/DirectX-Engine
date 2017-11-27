@@ -1,7 +1,7 @@
 #pragma once
 
-#include "../rapidjson/document.h"
-#include "../rapidjson/writer.h"
+#include "rapidjson/document.h"
+#include "rapidjson/prettywriter.h"
 
 #include <d3d11.h>
 #include <string>
@@ -12,7 +12,7 @@ public:
 	friend class AssetManager;
 
 	virtual bool loadFromFile() = 0;
-	virtual void saveToJSON(rapidjson::Writer<rapidjson::StringBuffer>& writer);
+	virtual void saveToJSON(rapidjson::PrettyWriter<rapidjson::StringBuffer>& writer);
 
 	std::string getAssetID() const;
 	std::string getFilepath() const;

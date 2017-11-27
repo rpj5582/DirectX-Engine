@@ -45,7 +45,7 @@ void MeshRenderComponent::loadFromJSON(rapidjson::Value& dataObject)
 	}
 }
 
-void MeshRenderComponent::saveToJSON(rapidjson::Writer<rapidjson::StringBuffer>& writer)
+void MeshRenderComponent::saveToJSON(rapidjson::PrettyWriter<rapidjson::StringBuffer>& writer)
 {
 	RenderComponent::saveToJSON(writer);
 

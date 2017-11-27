@@ -1,1 +1,512 @@
-{"mainCamera":"Main Camera","assets":[{"id":"cracks_spec","path":"Assets/Textures/cracks_spec.png","type":"texture","width":1024,"height":1024,"mipLevels":0,"usage":1,"bindFlags":8,"textureFormat":28,"srvFormat":28,"dsvFormat":0},{"id":"cracks_diff","path":"Assets/Textures/cracks.png","type":"texture","width":1024,"height":1024,"mipLevels":0,"usage":1,"bindFlags":8,"textureFormat":28,"srvFormat":28,"dsvFormat":0},{"id":"cube","path":"Assets/Models/cube.obj","type":"model"},{"id":"cracks","path":"Assets/Materials/cracks.json","type":"material"},{"id":"cracks_norm","path":"Assets/Textures/cracks_norm.png","type":"texture","width":1024,"height":1024,"mipLevels":0,"usage":1,"bindFlags":8,"textureFormat":28,"srvFormat":28,"dsvFormat":0},{"id":"cone","path":"Assets/Models/cone.obj","type":"model"},{"id":"torus","path":"Assets/Models/torus.obj","type":"model"}],"entities":[{"name":"Main Camera","enabled":true,"children":[],"tags":[],"components":[{"type":"Transform","data":{"enabled":true,"position":{"x":0.0,"y":5.0,"z":-12.5},"rotation":{"x":15.0,"y":0.0,"z":0.0},"scale":{"x":1.0,"y":1.0,"z":1.0}}},{"type":"Camera","data":{"enabled":true}},{"type":"FreeCamControls","data":{"enabled":true,"moveSpeedFast":20.0,"moveSpeedNormal":5.0,"moveSpeedSlow":1.0}}]},{"name":"Cube","enabled":true,"children":["Cone"],"tags":[],"components":[{"type":"Transform","data":{"enabled":true,"position":{"x":0.0,"y":0.0,"z":5.0},"rotation":{"x":0.0,"y":0.0,"z":0.0},"scale":{"x":10.0,"y":10.0,"z":1.0}}},{"type":"MeshRenderComponent","data":{"enabled":true,"material":"cracks","renderStyle":"solid","wireColor":{"r":1.0,"g":1.0,"b":1.0,"a":1.0},"mesh":"cube","castShadows":true,"receiveShadows":true}}]},{"name":"Cone","enabled":true,"children":[],"tags":[],"components":[{"type":"Transform","data":{"enabled":true,"position":{"x":-1.0,"y":0.0,"z":0.0},"rotation":{"x":0.0,"y":0.0,"z":0.0},"scale":{"x":1.0,"y":2.0,"z":1.0}}},{"type":"MeshRenderComponent","data":{"enabled":true,"material":"defaultMaterial","renderStyle":"solid","wireColor":{"r":1.0,"g":1.0,"b":1.0,"a":1.0},"mesh":"cone","castShadows":true,"receiveShadows":true}}]},{"name":"Torus","enabled":true,"children":[],"tags":[],"components":[{"type":"Transform","data":{"enabled":true,"position":{"x":0.0,"y":2.5,"z":0.0},"rotation":{"x":0.0,"y":0.0,"z":0.0},"scale":{"x":1.0,"y":1.0,"z":1.0}}},{"type":"MeshRenderComponent","data":{"enabled":true,"material":"defaultMaterial","renderStyle":"solid","wireColor":{"r":1.0,"g":1.0,"b":1.0,"a":1.0},"mesh":"torus","castShadows":true,"receiveShadows":true}}]},{"name":"Sun","enabled":true,"children":[],"tags":["light"],"components":[{"type":"Transform","data":{"enabled":true,"position":{"x":0.0,"y":0.0,"z":0.0},"rotation":{"x":45.0,"y":0.0,"z":0.0},"scale":{"x":1.0,"y":1.0,"z":1.0}}},{"type":"LightComponent","data":{"enabled":true,"type":"directional","color":{"r":1.0,"g":1.0,"b":1.0,"a":1.0},"brightness":1.0,"specularity":32.0,"radius":1.0,"spotAngle":15.0,"castShadows":true,"shadowMapSize":1024}}]},{"name":"Spotlight","enabled":true,"children":[],"tags":["light"],"components":[{"type":"Transform","data":{"enabled":true,"position":{"x":0.0,"y":0.0,"z":10.0},"rotation":{"x":34.19999313354492,"y":220.9998321533203,"z":0.0},"scale":{"x":1.0,"y":1.0,"z":1.0}}},{"type":"LightComponent","data":{"enabled":true,"type":"spot","color":{"r":1.0,"g":1.0,"b":1.0,"a":1.0},"brightness":1.0,"specularity":32.0,"radius":30.0,"spotAngle":30.0,"castShadows":true,"shadowMapSize":1024}}]},{"name":"Camera2","enabled":true,"children":[],"tags":[],"components":[{"type":"Transform","data":{"enabled":true,"position":{"x":-10.0,"y":0.0,"z":0.0},"rotation":{"x":0.0,"y":90.0,"z":0.0},"scale":{"x":1.0,"y":1.0,"z":1.0}}},{"type":"Camera","data":{"enabled":true}}]},{"name":"Button","enabled":true,"children":[],"tags":["gui"],"components":[{"type":"GUITransform","data":{"enabled":true,"position":{"x":640.0,"y":30.0},"rotation":0.0,"size":{"x":85.0,"y":40.0},"origin":{"x":0.5,"y":0.5}}},{"type":"GUIButtonComponent","data":{"enabled":true,"font":"arial_16pt","text":"Hello","textColor":{"r":0.0,"g":0.0,"b":0.0,"a":1.0}}}]},{"name":"Floor","enabled":true,"children":[],"tags":[],"components":[{"type":"Transform","data":{"enabled":true,"position":{"x":0.0,"y":-10.0,"z":0.0},"rotation":{"x":0.0,"y":0.0,"z":0.0},"scale":{"x":50.0,"y":0.125,"z":50.0}}},{"type":"MeshRenderComponent","data":{"enabled":true,"material":"defaultMaterial","renderStyle":"solid","wireColor":{"r":1.0,"g":1.0,"b":1.0,"a":1.0},"mesh":"cube","castShadows":true,"receiveShadows":true}}]},{"name":"Shadow Map Preview","enabled":true,"children":[],"tags":["gui"],"components":[{"type":"GUITransform","data":{"enabled":true,"position":{"x":1920.0,"y":0.0},"rotation":0.0,"size":{"x":1024.0,"y":1024.0},"origin":{"x":1.0,"y":0.0}}},{"type":"GUISpriteComponent","data":{"enabled":false,"texture":"defaultWhite"}}]}]}
+{
+    "mainCamera": "Main Camera",
+    "assets": [
+        {
+            "id": "cracks_spec",
+            "path": "Assets/Textures/cracks_spec.png",
+            "type": "texture",
+            "width": 1024,
+            "height": 1024,
+            "mipLevels": 0,
+            "usage": 1,
+            "bindFlags": 8,
+            "textureFormat": 28,
+            "srvFormat": 28,
+            "dsvFormat": 0
+        },
+        {
+            "id": "cracks_diff",
+            "path": "Assets/Textures/cracks.png",
+            "type": "texture",
+            "width": 1024,
+            "height": 1024,
+            "mipLevels": 0,
+            "usage": 1,
+            "bindFlags": 8,
+            "textureFormat": 28,
+            "srvFormat": 28,
+            "dsvFormat": 0
+        },
+        {
+            "id": "cube",
+            "path": "Assets/Models/cube.obj",
+            "type": "model"
+        },
+        {
+            "id": "cracks",
+            "path": "Assets/Materials/cracks.json",
+            "type": "material"
+        },
+        {
+            "id": "cracks_norm",
+            "path": "Assets/Textures/cracks_norm.png",
+            "type": "texture",
+            "width": 1024,
+            "height": 1024,
+            "mipLevels": 0,
+            "usage": 1,
+            "bindFlags": 8,
+            "textureFormat": 28,
+            "srvFormat": 28,
+            "dsvFormat": 0
+        },
+        {
+            "id": "cone",
+            "path": "Assets/Models/cone.obj",
+            "type": "model"
+        },
+        {
+            "id": "torus",
+            "path": "Assets/Models/torus.obj",
+            "type": "model"
+        }
+    ],
+    "entities": [
+        {
+            "name": "Main Camera",
+            "enabled": true,
+            "children": [],
+            "tags": [],
+            "components": [
+                {
+                    "type": "Transform",
+                    "data": {
+                        "enabled": true,
+                        "position": {
+                            "x": 0.0,
+                            "y": 5.0,
+                            "z": -12.5
+                        },
+                        "rotation": {
+                            "x": 15.0,
+                            "y": 0.0,
+                            "z": 0.0
+                        },
+                        "scale": {
+                            "x": 1.0,
+                            "y": 1.0,
+                            "z": 1.0
+                        }
+                    }
+                },
+                {
+                    "type": "Camera",
+                    "data": {
+                        "enabled": true
+                    }
+                },
+                {
+                    "type": "FreeCamControls",
+                    "data": {
+                        "enabled": true,
+                        "moveSpeedFast": 20.0,
+                        "moveSpeedNormal": 5.0,
+                        "moveSpeedSlow": 1.0
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Cube",
+            "enabled": true,
+            "children": [
+                "Cone"
+            ],
+            "tags": [],
+            "components": [
+                {
+                    "type": "Transform",
+                    "data": {
+                        "enabled": true,
+                        "position": {
+                            "x": 0.0,
+                            "y": 0.0,
+                            "z": 5.0
+                        },
+                        "rotation": {
+                            "x": 0.0,
+                            "y": 0.0,
+                            "z": 0.0
+                        },
+                        "scale": {
+                            "x": 10.0,
+                            "y": 10.0,
+                            "z": 1.0
+                        }
+                    }
+                },
+                {
+                    "type": "MeshRenderComponent",
+                    "data": {
+                        "enabled": true,
+                        "material": "cracks",
+                        "renderStyle": "solid",
+                        "wireColor": {
+                            "r": 1.0,
+                            "g": 1.0,
+                            "b": 1.0,
+                            "a": 1.0
+                        },
+                        "mesh": "cube",
+                        "castShadows": true,
+                        "receiveShadows": true
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Cone",
+            "enabled": true,
+            "children": [],
+            "tags": [],
+            "components": [
+                {
+                    "type": "Transform",
+                    "data": {
+                        "enabled": true,
+                        "position": {
+                            "x": -1.0,
+                            "y": 0.0,
+                            "z": 0.0
+                        },
+                        "rotation": {
+                            "x": 0.0,
+                            "y": 0.0,
+                            "z": 0.0
+                        },
+                        "scale": {
+                            "x": 1.0,
+                            "y": 2.0,
+                            "z": 1.0
+                        }
+                    }
+                },
+                {
+                    "type": "MeshRenderComponent",
+                    "data": {
+                        "enabled": true,
+                        "material": "defaultMaterial",
+                        "renderStyle": "solid",
+                        "wireColor": {
+                            "r": 1.0,
+                            "g": 1.0,
+                            "b": 1.0,
+                            "a": 1.0
+                        },
+                        "mesh": "cone",
+                        "castShadows": true,
+                        "receiveShadows": true
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Torus",
+            "enabled": true,
+            "children": [],
+            "tags": [],
+            "components": [
+                {
+                    "type": "Transform",
+                    "data": {
+                        "enabled": true,
+                        "position": {
+                            "x": 0.0,
+                            "y": 2.5,
+                            "z": 0.0
+                        },
+                        "rotation": {
+                            "x": 0.0,
+                            "y": 0.0,
+                            "z": 0.0
+                        },
+                        "scale": {
+                            "x": 1.0,
+                            "y": 1.0,
+                            "z": 1.0
+                        }
+                    }
+                },
+                {
+                    "type": "MeshRenderComponent",
+                    "data": {
+                        "enabled": true,
+                        "material": "defaultMaterial",
+                        "renderStyle": "solid",
+                        "wireColor": {
+                            "r": 1.0,
+                            "g": 1.0,
+                            "b": 1.0,
+                            "a": 1.0
+                        },
+                        "mesh": "torus",
+                        "castShadows": true,
+                        "receiveShadows": true
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Sun",
+            "enabled": true,
+            "children": [],
+            "tags": [
+                "light"
+            ],
+            "components": [
+                {
+                    "type": "Transform",
+                    "data": {
+                        "enabled": true,
+                        "position": {
+                            "x": 0.0,
+                            "y": 0.0,
+                            "z": 0.0
+                        },
+                        "rotation": {
+                            "x": 45.0,
+                            "y": 0.0,
+                            "z": 0.0
+                        },
+                        "scale": {
+                            "x": 1.0,
+                            "y": 1.0,
+                            "z": 1.0
+                        }
+                    }
+                },
+                {
+                    "type": "LightComponent",
+                    "data": {
+                        "enabled": true,
+                        "type": "directional",
+                        "color": {
+                            "r": 1.0,
+                            "g": 1.0,
+                            "b": 1.0,
+                            "a": 1.0
+                        },
+                        "brightness": 1.0,
+                        "specularity": 32.0,
+                        "radius": 1.0,
+                        "spotAngle": 15.0,
+                        "castShadows": true,
+                        "shadowMapSize": 1024,
+                        "shadowType": 0
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Spotlight",
+            "enabled": true,
+            "children": [],
+            "tags": [
+                "light"
+            ],
+            "components": [
+                {
+                    "type": "Transform",
+                    "data": {
+                        "enabled": true,
+                        "position": {
+                            "x": 0.0,
+                            "y": 0.0,
+                            "z": 10.0
+                        },
+                        "rotation": {
+                            "x": 34.19999313354492,
+                            "y": 220.99981689453126,
+                            "z": 0.0
+                        },
+                        "scale": {
+                            "x": 1.0,
+                            "y": 1.0,
+                            "z": 1.0
+                        }
+                    }
+                },
+                {
+                    "type": "LightComponent",
+                    "data": {
+                        "enabled": true,
+                        "type": "spot",
+                        "color": {
+                            "r": 1.0,
+                            "g": 1.0,
+                            "b": 1.0,
+                            "a": 1.0
+                        },
+                        "brightness": 1.0,
+                        "specularity": 32.0,
+                        "radius": 30.0,
+                        "spotAngle": 30.0,
+                        "castShadows": true,
+                        "shadowMapSize": 1024,
+                        "shadowType": 0
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Camera2",
+            "enabled": true,
+            "children": [],
+            "tags": [],
+            "components": [
+                {
+                    "type": "Transform",
+                    "data": {
+                        "enabled": true,
+                        "position": {
+                            "x": -10.0,
+                            "y": 0.0,
+                            "z": 0.0
+                        },
+                        "rotation": {
+                            "x": 0.0,
+                            "y": 90.0,
+                            "z": 0.0
+                        },
+                        "scale": {
+                            "x": 1.0,
+                            "y": 1.0,
+                            "z": 1.0
+                        }
+                    }
+                },
+                {
+                    "type": "Camera",
+                    "data": {
+                        "enabled": true
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Button",
+            "enabled": true,
+            "children": [],
+            "tags": [
+                "gui"
+            ],
+            "components": [
+                {
+                    "type": "GUITransform",
+                    "data": {
+                        "enabled": true,
+                        "position": {
+                            "x": 640.0,
+                            "y": 30.0
+                        },
+                        "rotation": 0.0,
+                        "size": {
+                            "x": 85.0,
+                            "y": 40.0
+                        },
+                        "origin": {
+                            "x": 0.5,
+                            "y": 0.5
+                        }
+                    }
+                },
+                {
+                    "type": "GUIButtonComponent",
+                    "data": {
+                        "enabled": true,
+                        "font": "arial_16pt",
+                        "text": "Hello",
+                        "textColor": {
+                            "r": 0.0,
+                            "g": 0.0,
+                            "b": 0.0,
+                            "a": 1.0
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Floor",
+            "enabled": true,
+            "children": [],
+            "tags": [],
+            "components": [
+                {
+                    "type": "Transform",
+                    "data": {
+                        "enabled": true,
+                        "position": {
+                            "x": 0.0,
+                            "y": -10.0,
+                            "z": 0.0
+                        },
+                        "rotation": {
+                            "x": 0.0,
+                            "y": 0.0,
+                            "z": 0.0
+                        },
+                        "scale": {
+                            "x": 50.0,
+                            "y": 0.125,
+                            "z": 50.0
+                        }
+                    }
+                },
+                {
+                    "type": "MeshRenderComponent",
+                    "data": {
+                        "enabled": true,
+                        "material": "defaultMaterial",
+                        "renderStyle": "solid",
+                        "wireColor": {
+                            "r": 1.0,
+                            "g": 1.0,
+                            "b": 1.0,
+                            "a": 1.0
+                        },
+                        "mesh": "cube",
+                        "castShadows": true,
+                        "receiveShadows": true
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Shadow Map Preview",
+            "enabled": true,
+            "children": [],
+            "tags": [
+                "gui"
+            ],
+            "components": [
+                {
+                    "type": "GUITransform",
+                    "data": {
+                        "enabled": true,
+                        "position": {
+                            "x": 1920.0,
+                            "y": 0.0
+                        },
+                        "rotation": 0.0,
+                        "size": {
+                            "x": 1024.0,
+                            "y": 1024.0
+                        },
+                        "origin": {
+                            "x": 1.0,
+                            "y": 0.0
+                        }
+                    }
+                },
+                {
+                    "type": "GUISpriteComponent",
+                    "data": {
+                        "enabled": false,
+                        "texture": "defaultWhite"
+                    }
+                }
+            ]
+        }
+    ]
+}

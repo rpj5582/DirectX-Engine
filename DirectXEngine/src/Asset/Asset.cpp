@@ -14,7 +14,7 @@ Asset::~Asset()
 {
 }
 
-void Asset::saveToJSON(rapidjson::Writer<rapidjson::StringBuffer>& writer)
+void Asset::saveToJSON(rapidjson::PrettyWriter<rapidjson::StringBuffer>& writer)
 {
 	writer.Key("id");
 	writer.String(m_assetID.c_str());

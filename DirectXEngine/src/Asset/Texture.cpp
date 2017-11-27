@@ -57,7 +57,7 @@ bool Texture::create(unsigned int hexColor, TextureParameters parameters)
 	return createSolidColor(hexColor);
 }
 
-void Texture::saveToJSON(rapidjson::Writer<rapidjson::StringBuffer>& writer)
+void Texture::saveToJSON(rapidjson::PrettyWriter<rapidjson::StringBuffer>& writer)
 {
 	Asset::saveToJSON(writer);
 

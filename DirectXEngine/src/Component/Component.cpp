@@ -38,7 +38,7 @@ void Component::loadFromJSON(rapidjson::Value& dataObject)
 	}
 }
 
-void Component::saveToJSON(rapidjson::Writer<rapidjson::StringBuffer>& writer)
+void Component::saveToJSON(rapidjson::PrettyWriter<rapidjson::StringBuffer>& writer)
 {
 	writer.Key("enabled");
 	writer.Bool(enabled);

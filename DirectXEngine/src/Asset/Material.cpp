@@ -2,7 +2,7 @@
 
 #include "AssetManager.h"
 
-#include "../rapidjson/error/en.h"
+#include "rapidjson/error/en.h"
 #include <fstream>
 
 Material::Material(ID3D11Device* device, ID3D11DeviceContext* context, std::string assetID, std::string filepath) : Asset(device, context, assetID, filepath)
@@ -42,7 +42,7 @@ bool Material::create(VertexShader* vertexShader, PixelShader* pixelShader, cons
 	return true;
 }
 
-void Material::saveToJSON(rapidjson::Writer<rapidjson::StringBuffer>& writer)
+void Material::saveToJSON(rapidjson::PrettyWriter<rapidjson::StringBuffer>& writer)
 {
 	Asset::saveToJSON(writer);
 

@@ -88,7 +88,7 @@ void RenderComponent::loadFromJSON(rapidjson::Value& dataObject)
 	}
 }
 
-void RenderComponent::saveToJSON(rapidjson::Writer<rapidjson::StringBuffer>& writer)
+void RenderComponent::saveToJSON(rapidjson::PrettyWriter<rapidjson::StringBuffer>& writer)
 {
 	Component::saveToJSON(writer);
 

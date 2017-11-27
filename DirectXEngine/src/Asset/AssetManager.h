@@ -44,7 +44,7 @@ public:
 	bool init();
 
 	static void loadFromJSON(rapidjson::Value& assetsArray);
-	static void saveToJSON(rapidjson::Writer<rapidjson::StringBuffer>& writer);
+	static void saveToJSON(rapidjson::PrettyWriter<rapidjson::StringBuffer>& writer);
 
 	template<typename T, typename... Args>
 	static T* createAsset(std::string assetID, Args... args);

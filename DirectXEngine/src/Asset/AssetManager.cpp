@@ -103,7 +103,7 @@ void AssetManager::loadFromJSON(rapidjson::Value& assetsArray)
 	}
 }
 
-void AssetManager::saveToJSON(rapidjson::Writer<rapidjson::StringBuffer>& writer)
+void AssetManager::saveToJSON(rapidjson::PrettyWriter<rapidjson::StringBuffer>& writer)
 {
 	for (auto it = m_instance->m_assets.begin(); it != m_instance->m_assets.end(); it++)
 	{

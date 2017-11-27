@@ -194,7 +194,7 @@ void LightComponent::loadFromJSON(rapidjson::Value& dataObject)
 	}
 }
 
-void LightComponent::saveToJSON(rapidjson::Writer<rapidjson::StringBuffer>& writer)
+void LightComponent::saveToJSON(rapidjson::PrettyWriter<rapidjson::StringBuffer>& writer)
 {
 	Component::saveToJSON(writer);
 

@@ -46,7 +46,7 @@ void GUIDebugSpriteComponent::loadFromJSON(rapidjson::Value& dataObject)
 {
 }
 
-void GUIDebugSpriteComponent::saveToJSON(rapidjson::Writer<rapidjson::StringBuffer>& writer)
+void GUIDebugSpriteComponent::saveToJSON(rapidjson::PrettyWriter<rapidjson::StringBuffer>& writer)
 {
 }
 

@@ -61,7 +61,7 @@ void GUITransform::loadFromJSON(rapidjson::Value& dataObject)
 	}
 }
 
-void GUITransform::saveToJSON(rapidjson::Writer<rapidjson::StringBuffer>& writer)
+void GUITransform::saveToJSON(rapidjson::PrettyWriter<rapidjson::StringBuffer>& writer)
 {
 	Component::saveToJSON(writer);
 
