@@ -1,6 +1,9 @@
 #include "GUIDebugSpriteComponent.h"
 
+#include "../Component/GUITransform.h"
+#include "../Component/CameraComponent.h"
 #include "../Scene/Scene.h"
+
 #include "../Input.h"
 
 using namespace DirectX;

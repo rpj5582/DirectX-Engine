@@ -6,8 +6,7 @@
 
 using namespace DirectX;
 
-Scene1::Scene1(ID3D11Device* device, ID3D11DeviceContext* context, std::string name, std::string filepath)
-	: Scene(device, context, name, filepath)
+Scene1::Scene1(std::string name, std::string filepath) : Scene(name, filepath)
 {
 }
 

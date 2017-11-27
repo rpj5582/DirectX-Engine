@@ -24,6 +24,10 @@ Game::Game(HINSTANCE hInstance)
 {
 	m_assetManager = nullptr;
 	m_sceneManager = nullptr;
+
+	m_renderer = nullptr;
+	m_guiRenderer = nullptr;
+
 	m_input = nullptr;
 
 	Debug::createConsoleWindow();
@@ -40,6 +44,10 @@ Game::~Game()
 
 	delete m_sceneManager;
 	delete m_assetManager;
+
+	delete m_guiRenderer;
+	delete m_renderer;
+
 	delete m_input;
 }
 
@@ -57,17 +65,23 @@ HRESULT Game::Init()
 
 	Debug::initDebugWindows(device, m_window->getWidth(), m_window->getHeight());
 
-	ComponentRegistry registry;
-	registry.registerComponents();
-
 	m_assetManager = new AssetManager(device, context);
 	if (!m_assetManager->init()) return E_ABORT;
+
+	m_renderer = new Renderer(device, context);
+	if (!m_renderer->init()) return E_ABORT;
+
+	m_guiRenderer = new GUIRenderer(device, context);
+	if (!m_guiRenderer->init()) return E_ABORT;
+
+	ComponentRegistry registry;
+	registry.registerComponents();
 
 	m_input = new Input(m_window->getWindowHandle());
 
 	m_sceneManager = new SceneManager();
-	m_sceneManager->addScene(new Scene1(device, context, "testscene", "Scenes/testscene.json"));
-	m_sceneManager->addScene(new Scene2(device, context, "testscene2", "Scenes/testscene2.json"));
+	m_sceneManager->addScene(new Scene1("testscene", "Scenes/testscene.json"));
+	m_sceneManager->addScene(new Scene2("testscene2", "Scenes/testscene2.json"));
 
 	if (m_sceneManager->getSceneCount() == 0)
 	{
@@ -111,7 +125,8 @@ void Game::Draw(float deltaTime, float totalTime)
 	Scene* activeScene = m_sceneManager->getActiveScene();
 	if (activeScene)
 	{
-		activeScene->render(backBufferRTV, depthStencilView);
+		activeScene->renderGeometry(m_renderer, backBufferRTV, depthStencilView);
+		activeScene->renderGUI(m_guiRenderer);
 	}
 
 	if(!Debug::inPlayMode)

@@ -1,4 +1,5 @@
 #pragma once
+#include "IRenderer.h"
 
 #include "../Component/Transform.h"
 #include "../Component/MeshRenderComponent.h"
@@ -33,13 +34,16 @@ struct GPU_SHADOW_MATRICES
 	DirectX::XMFLOAT4X4 lightProjectionMatrix;
 };
 
-class Renderer
+class Renderer : public IRenderer
 {
 public:
 	Renderer(ID3D11Device* device, ID3D11DeviceContext* context);
 	~Renderer();
 
-	bool init();
+	bool init() override;
+
+	void begin() override;
+	void end() override;
 
 	void prepareShadowMapPass(Texture* shadowMap);
 	void renderShadowMapPass(Entity** entities, size_t entityCount, const LightComponent& light);
@@ -52,8 +56,10 @@ private:
 	ID3D11Device* m_device;
 	ID3D11DeviceContext* m_context;
 
-	ID3D11RasterizerState* m_shadowMapRasterizerState;
-
 	VertexShader* m_basicVertexShader;
 	Sampler* m_shadowMapSampler;
+
+	ID3D11RasterizerState* m_shadowMapRasterizerState;
+
+	ID3D11DepthStencilState* m_depthStencilStateDefault;
 };

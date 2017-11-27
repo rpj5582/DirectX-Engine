@@ -332,7 +332,10 @@ void LightComponent::canCastShadows(bool castShadows)
 	m_castShadows = castShadows;
 
 	if (m_castShadows)
-		createShadowMap();
+	{
+		if (!createShadowMap())
+			m_castShadows = !m_castShadows;
+	}
 	else
 		deleteShadowMap();
 }

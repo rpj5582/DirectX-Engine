@@ -12,12 +12,14 @@ class Scene
 public:
 	friend class SceneManager;
 
-	Scene(ID3D11Device* device, ID3D11DeviceContext* context, std::string name, std::string filepath);
+	Scene(std::string name, std::string filepath);
 	virtual ~Scene();
 
 	virtual bool init();
 	virtual void update(float deltaTime, float totalTime);
-	void render(ID3D11RenderTargetView* backBufferRTV, ID3D11DepthStencilView* backBufferDSV);
+
+	void renderGeometry(Renderer* renderer, ID3D11RenderTargetView* backBufferRTV, ID3D11DepthStencilView* backBufferDSV);
+	void renderGUI(GUIRenderer* guiRenderer);
 
 	std::string getName() const;
 
@@ -71,23 +73,10 @@ private:
 	bool loadFromJSON();
 	void saveToJSON();
 
-	void renderGeometry(ID3D11RenderTargetView* backBufferRTV, ID3D11DepthStencilView* backBufferDSV);
-	void renderGUI();
-
 	unsigned int getEntityIndex(const Entity& entity) const;
-
-	ID3D11Device* m_device;
-	ID3D11DeviceContext* m_context;
 
 	std::string m_name;
 	std::string m_filepath;
-
-	Renderer* m_renderer;
-	GUIRenderer* m_guiRenderer;
-
-	ID3D11BlendState* m_blendState;
-	ID3D11DepthStencilState* m_depthStencilStateDefault;
-	ID3D11DepthStencilState* m_depthStencilStateRead;
 
 	std::vector<Entity*> m_entities;
 

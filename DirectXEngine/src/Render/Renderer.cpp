@@ -7,15 +7,19 @@ Renderer::Renderer(ID3D11Device* device, ID3D11DeviceContext* context)
 	m_device = device;
 	m_context = context;
 
-	m_shadowMapRasterizerState = nullptr;
-
 	m_basicVertexShader = nullptr;
 	m_shadowMapSampler = nullptr;
+
+	m_shadowMapRasterizerState = nullptr;
+
+	m_depthStencilStateDefault = nullptr;
 }
 
 Renderer::~Renderer()
 {
 	if (m_shadowMapRasterizerState) m_shadowMapRasterizerState->Release();
+
+	if (m_depthStencilStateDefault) m_depthStencilStateDefault->Release();
 
 	m_device = nullptr;
 	m_context = nullptr;
@@ -47,6 +51,31 @@ bool Renderer::init()
 		return false;
 	}
 
+	D3D11_DEPTH_STENCIL_DESC depthStencilDefaultDesc = {};
+	depthStencilDefaultDesc.DepthEnable = true;
+	depthStencilDefaultDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
+	depthStencilDefaultDesc.DepthFunc = D3D11_COMPARISON_LESS;
+	depthStencilDefaultDesc.StencilEnable = false;
+	depthStencilDefaultDesc.StencilReadMask = D3D11_DEFAULT_STENCIL_READ_MASK;
+	depthStencilDefaultDesc.StencilWriteMask = D3D11_DEFAULT_STENCIL_WRITE_MASK;
+	depthStencilDefaultDesc.FrontFace.StencilFunc = D3D11_COMPARISON_ALWAYS;
+	depthStencilDefaultDesc.FrontFace.StencilDepthFailOp = D3D11_STENCIL_OP_KEEP;
+	depthStencilDefaultDesc.FrontFace.StencilPassOp = D3D11_STENCIL_OP_KEEP;
+	depthStencilDefaultDesc.FrontFace.StencilFailOp = D3D11_STENCIL_OP_KEEP;
+	depthStencilDefaultDesc.BackFace.StencilFunc = D3D11_COMPARISON_ALWAYS;
+	depthStencilDefaultDesc.BackFace.StencilDepthFailOp = D3D11_STENCIL_OP_KEEP;
+	depthStencilDefaultDesc.BackFace.StencilPassOp = D3D11_STENCIL_OP_KEEP;
+	depthStencilDefaultDesc.BackFace.StencilFailOp = D3D11_STENCIL_OP_KEEP;
+
+	hr = m_device->CreateDepthStencilState(&depthStencilDefaultDesc, &m_depthStencilStateDefault);
+	if (FAILED(hr))
+	{
+		Debug::error("Failed to create default depth stencil state.");
+		return false;
+	}
+
+	m_context->OMSetDepthStencilState(m_depthStencilStateDefault, 0);
+
 	m_basicVertexShader = AssetManager::getAsset<VertexShader>(BASIC_SHADER_VERTEX);
 	if (!m_basicVertexShader)
 	{
@@ -62,6 +91,15 @@ bool Renderer::init()
 	}
 
 	return true;
+}
+
+void Renderer::begin()
+{
+	m_context->OMSetDepthStencilState(m_depthStencilStateDefault, 0);
+}
+
+void Renderer::end()
+{
 }
 
 void Renderer::prepareShadowMapPass(Texture* shadowMap)

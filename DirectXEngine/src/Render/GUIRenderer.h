@@ -1,23 +1,27 @@
 #pragma once
+#include "IRenderer.h"
 
-#include "../Component/GUITransform.h"
-#include "../Component/GUISpriteComponent.h"
-#include "../Component/GUITextComponent.h"
-#include "../Component/GUIButtonComponent.h"
+#include "../Component/GUIComponent.h"
 
 #include <SpriteBatch.h>
 
-class GUIRenderer
+class GUIRenderer : public IRenderer
 {
 public:
-	GUIRenderer(ID3D11DeviceContext* context);
+	GUIRenderer(ID3D11Device* device, ID3D11DeviceContext* context);
 	~GUIRenderer();
 
-	void begin(ID3D11BlendState* blendState, ID3D11DepthStencilState* depthStencilState);
+	bool init() override;
+
+	void begin() override;
 	void render(const GUIComponent* const* guiComponents, size_t guiCount);
-	void end();
+	void end() override;
 
 private:
+	ID3D11Device* m_device;
 	ID3D11DeviceContext* m_context;
 	DirectX::SpriteBatch* m_spriteBatch;
+
+	ID3D11BlendState* m_blendState;
+	ID3D11DepthStencilState* m_depthStencilStateRead;
 };

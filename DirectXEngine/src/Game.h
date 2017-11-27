@@ -25,6 +25,10 @@ public:
 private:
 	AssetManager* m_assetManager;
 	SceneManager* m_sceneManager;
-	Input* m_input;
+
+	Renderer* m_renderer;
+	GUIRenderer* m_guiRenderer;
+
+	Input* m_input;	
 };
 

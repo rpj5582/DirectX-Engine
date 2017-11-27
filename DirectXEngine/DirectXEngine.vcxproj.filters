@@ -278,15 +278,14 @@
     <ClInclude Include="src\Asset\AssetFactory.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\Render\IRenderer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
     <None Include="src\Shader\LightingFunctions.hlsli" />
     <None Include="src\Shader\UtilityFunctions.hlsli" />
-    <None Include="src\Asset\AssetClassDiagram.cd" />
-    <None Include="src\Component\ComponentClassDiagram.cd" />
-    <None Include="src\Debug\DebugClassDiagram.cd" />
-    <None Include="src\MiscClassDiagram.cd" />
     <None Include="src\Shader\SharedDefines.hlsli" />
   </ItemGroup>
   <ItemGroup>

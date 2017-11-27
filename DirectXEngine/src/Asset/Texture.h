@@ -9,6 +9,7 @@ struct TextureParameters
 	DXGI_FORMAT textureFormat = DXGI_FORMAT_R8G8B8A8_UNORM;
 	DXGI_FORMAT shaderResourceViewFormat = DXGI_FORMAT_R8G8B8A8_UNORM;
 	DXGI_FORMAT depthStencilViewFormat = DXGI_FORMAT_UNKNOWN;
+	DXGI_FORMAT renderTargetViewFormat = DXGI_FORMAT_UNKNOWN;
 };
 
 class Texture : public Asset
@@ -25,6 +26,7 @@ public:
 
 	ID3D11ShaderResourceView* getSRV() const;
 	ID3D11DepthStencilView* getDSV() const;
+	ID3D11RenderTargetView* getRTV() const;
 
 	unsigned int getWidth() const;
 	unsigned int getHeight() const;
@@ -32,9 +34,11 @@ public:
 private:
 	bool createEmpty();
 	bool createSolidColor(unsigned int hexColor);
+	bool createViews(ID3D11Texture2D* texture);
 
 	ID3D11ShaderResourceView* m_textureSRV;
 	ID3D11DepthStencilView* m_textureDSV;
+	ID3D11RenderTargetView* m_textureRTV;
 
 	unsigned int m_width;
 	unsigned int m_height;

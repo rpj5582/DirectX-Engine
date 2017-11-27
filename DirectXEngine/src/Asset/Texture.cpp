@@ -9,6 +9,7 @@ Texture::Texture(ID3D11Device* device, ID3D11DeviceContext* context, std::string
 {
 	m_textureSRV = nullptr;
 	m_textureDSV = nullptr;
+	m_textureRTV = nullptr;
 
 	m_width = 0;
 	m_height = 0;
@@ -20,6 +21,7 @@ Texture::Texture(ID3D11Device* device, ID3D11DeviceContext* context, std::string
 {
 	m_textureSRV = nullptr;
 	m_textureDSV = nullptr;
+	m_textureRTV = nullptr;
 
 	m_width = 0;
 	m_height = 0;
@@ -38,6 +40,12 @@ Texture::~Texture()
 	{
 		m_textureDSV->Release();
 		m_textureDSV = nullptr;
+	}
+
+	if (m_textureRTV)
+	{
+		m_textureRTV->Release();
+		m_textureRTV = nullptr;
 	}
 }
 
@@ -149,39 +157,7 @@ bool Texture::createEmpty()
 		return false;
 	}
 
-	if ((m_parameters.bindFlags & D3D11_BIND_SHADER_RESOURCE) == D3D11_BIND_SHADER_RESOURCE)
-	{
-		D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
-		srvDesc.Format = m_parameters.shaderResourceViewFormat;
-		srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
-		srvDesc.Texture2D.MipLevels = -1;
-
-		hr = m_device->CreateShaderResourceView(texture, &srvDesc, &m_textureSRV);
-		if (FAILED(hr))
-		{
-			Debug::error("Failed to create texture shader resource view for ID " + m_assetID + ".");
-			texture->Release();
-			return false;
-		}
-	}
-
-	if ((m_parameters.bindFlags & D3D11_BIND_DEPTH_STENCIL) == D3D11_BIND_DEPTH_STENCIL)
-	{
-		D3D11_DEPTH_STENCIL_VIEW_DESC dsvDesc = {};
-		dsvDesc.Format = m_parameters.depthStencilViewFormat;
-		dsvDesc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
-
-		hr = m_device->CreateDepthStencilView(texture, &dsvDesc, &m_textureDSV);
-		if (FAILED(hr))
-		{
-			Debug::error("Failed to create texture depth stencil view for ID " + m_assetID + ".");
-			texture->Release();
-			return false;
-		}
-	}
-
-	texture->Release();
-	return true;
+	return createViews(texture);
 }
 
 bool Texture::createSolidColor(unsigned int hexColor)
@@ -213,9 +189,15 @@ bool Texture::createSolidColor(unsigned int hexColor)
 		return false;
 	}
 
+	return createViews(texture);
+}
+
+bool Texture::createViews(ID3D11Texture2D* texture)
+{
+	HRESULT hr = S_OK;
+
 	if ((m_parameters.bindFlags & D3D11_BIND_SHADER_RESOURCE) == D3D11_BIND_SHADER_RESOURCE)
 	{
-		// Creates the texture shader resource view
 		D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
 		srvDesc.Format = m_parameters.shaderResourceViewFormat;
 		srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
@@ -245,6 +227,21 @@ bool Texture::createSolidColor(unsigned int hexColor)
 		}
 	}
 
+	if ((m_parameters.bindFlags & D3D11_BIND_RENDER_TARGET) == D3D11_BIND_RENDER_TARGET)
+	{
+		D3D11_RENDER_TARGET_VIEW_DESC rtvDesc = {};
+		rtvDesc.Format = m_parameters.renderTargetViewFormat;
+		rtvDesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
+
+		hr = m_device->CreateRenderTargetView(texture, &rtvDesc, &m_textureRTV);
+		if (FAILED(hr))
+		{
+			Debug::error("Failed to create texture render target view for ID " + m_assetID + ".");
+			texture->Release();
+			return false;
+		}
+	}
+
 	texture->Release();
 	return true;
 }
@@ -257,6 +254,11 @@ ID3D11ShaderResourceView* Texture::getSRV() const
 ID3D11DepthStencilView* Texture::getDSV() const
 {
 	return m_textureDSV;
+}
+
+ID3D11RenderTargetView* Texture::getRTV() const
+{
+	return m_textureRTV;;
 }
 
 unsigned int Texture::getWidth() const

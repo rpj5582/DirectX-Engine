@@ -180,6 +180,7 @@
     <ClInclude Include="src\DebugEntity.h" />
     <ClInclude Include="src\Component\GUIDebugSpriteComponent.h" />
     <ClInclude Include="src\Debug\DebugGlobals.h" />
+    <ClInclude Include="src\Render\IRenderer.h" />
     <ClInclude Include="src\Scene\SceneManager.h" />
     <ClInclude Include="src\Scene\Scene2.h" />
     <ClInclude Include="src\Input.h" />
@@ -222,10 +223,6 @@
     <ClInclude Include="src\Window.h" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="src\Asset\AssetClassDiagram.cd" />
-    <None Include="src\Component\ComponentClassDiagram.cd" />
-    <None Include="src\Debug\DebugClassDiagram.cd" />
-    <None Include="src\MiscClassDiagram.cd" />
     <None Include="src\Shader\LightingFunctions.hlsli" />
     <None Include="src\Shader\SharedDefines.hlsli" />
     <None Include="src\Shader\UtilityFunctions.hlsli" />

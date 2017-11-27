@@ -9,20 +9,10 @@
 
 using namespace DirectX;
 
-Scene::Scene(ID3D11Device* device, ID3D11DeviceContext* context, std::string name, std::string filepath)
+Scene::Scene(std::string name, std::string filepath)
 {
-	m_device = device;
-	m_context = context;
-
 	m_name = name;
-	m_filepath = filepath;
-
-	m_renderer = nullptr;
-	m_guiRenderer = nullptr;
-
-	m_blendState = nullptr;
-	m_depthStencilStateDefault = nullptr;
-	m_depthStencilStateRead = nullptr;
+	m_filepath = filepath;	
 
 	m_entities = std::vector<Entity*>();
 	m_taggedEntities = std::unordered_map<std::string, std::vector<Entity*>>();
@@ -60,23 +50,11 @@ Scene::~Scene()
 	}
 	m_entities.clear();
 	m_taggedEntities.clear();
-
-	if (m_blendState) m_blendState->Release();
-	if (m_depthStencilStateDefault) m_depthStencilStateDefault->Release();
-	if (m_depthStencilStateRead) m_depthStencilStateRead->Release();
-
-	delete m_guiRenderer;
-	delete m_renderer;
 }
 
 bool Scene::init()
 {
 	HRESULT hr = S_OK;
-
-	m_renderer = new Renderer(m_device, m_context);
-	if (!m_renderer->init()) return false;
-
-	m_guiRenderer = new GUIRenderer(m_context);
 
 	addTag(TAG_LIGHT);
 	addTag(TAG_GUI);
@@ -87,61 +65,6 @@ bool Scene::init()
 	debugCameraTransform->rotateLocalX(30);
 	m_debugCamera->addComponent<CameraComponent>(false);
 	m_debugCamera->addComponent<FreeCamControls>(false);
-
-	D3D11_BLEND_DESC blendDesc = {};
-	blendDesc.AlphaToCoverageEnable = false;
-	blendDesc.IndependentBlendEnable = false;
-	blendDesc.RenderTarget[0].BlendEnable = TRUE;
-	blendDesc.RenderTarget[0].SrcBlend = D3D11_BLEND_SRC_ALPHA;
-	blendDesc.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND_SRC_ALPHA;
-	blendDesc.RenderTarget[0].DestBlend = D3D11_BLEND_INV_SRC_ALPHA;
-	blendDesc.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_INV_SRC_ALPHA;
-	blendDesc.RenderTarget[0].BlendOp = D3D11_BLEND_OP_ADD;
-	blendDesc.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
-	blendDesc.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
-
-	D3D11_DEPTH_STENCIL_DESC depthStencilDefaultDesc = {};
-	depthStencilDefaultDesc.DepthEnable = true;
-	depthStencilDefaultDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
-	depthStencilDefaultDesc.DepthFunc = D3D11_COMPARISON_LESS;
-	depthStencilDefaultDesc.StencilEnable = false;
-	depthStencilDefaultDesc.StencilReadMask = D3D11_DEFAULT_STENCIL_READ_MASK;
-	depthStencilDefaultDesc.StencilWriteMask = D3D11_DEFAULT_STENCIL_WRITE_MASK;
-	depthStencilDefaultDesc.FrontFace.StencilFunc = D3D11_COMPARISON_ALWAYS;
-	depthStencilDefaultDesc.FrontFace.StencilDepthFailOp = D3D11_STENCIL_OP_KEEP;
-	depthStencilDefaultDesc.FrontFace.StencilPassOp = D3D11_STENCIL_OP_KEEP;
-	depthStencilDefaultDesc.FrontFace.StencilFailOp = D3D11_STENCIL_OP_KEEP;
-	depthStencilDefaultDesc.BackFace.StencilFunc = D3D11_COMPARISON_ALWAYS;
-	depthStencilDefaultDesc.BackFace.StencilDepthFailOp = D3D11_STENCIL_OP_KEEP;
-	depthStencilDefaultDesc.BackFace.StencilPassOp = D3D11_STENCIL_OP_KEEP;
-	depthStencilDefaultDesc.BackFace.StencilFailOp = D3D11_STENCIL_OP_KEEP;
-
-	D3D11_DEPTH_STENCIL_DESC depthStencilReadDesc = depthStencilDefaultDesc;
-	depthStencilReadDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ZERO;
-
-	hr = m_device->CreateBlendState(&blendDesc, &m_blendState);
-	if (FAILED(hr))
-	{
-		Debug::error("Failed to create blend state.");
-		return false;
-	}
-
-	hr = m_device->CreateDepthStencilState(&depthStencilDefaultDesc, &m_depthStencilStateDefault);
-	if (FAILED(hr))
-	{
-		Debug::error("Failed to create default depth stencil state.");
-		return false;
-	}
-
-	hr = m_device->CreateDepthStencilState(&depthStencilReadDesc, &m_depthStencilStateRead);
-	if (FAILED(hr))
-	{
-		Debug::error("Failed to create read depth stencil state.");
-		return false;
-	}
-
-	m_context->OMSetBlendState(m_blendState, nullptr, 0xffffffff);
-	m_context->OMSetDepthStencilState(m_depthStencilStateDefault, 0);
 
 	return true;
 }
@@ -190,15 +113,6 @@ void Scene::update(float deltaTime, float totalTime)
 		}
 #endif
 	}
-}
-
-void Scene::render(ID3D11RenderTargetView* backBufferRTV, ID3D11DepthStencilView* backBufferDSV)
-{
-	m_context->OMSetDepthStencilState(m_depthStencilStateDefault, 0);
-	renderGeometry(backBufferRTV, backBufferDSV);
-
-	m_context->OMSetDepthStencilState(m_depthStencilStateRead, 0);
-	renderGUI();
 }
 
 std::string Scene::getName() const
@@ -288,8 +202,7 @@ bool Scene::loadFromJSON()
 			rapidjson::Value& componentType = component["type"];
 			rapidjson::Value& dataObject = component["data"];
 			
-			std::string test = componentType.GetString();
-			Component* c = e->addComponentByStringType(test);
+			Component* c = e->addComponentByStringType(componentType.GetString());
 			if (c)
 				c->loadFromJSON(dataObject);
 			else
@@ -481,7 +394,7 @@ CameraComponent* Scene::getDebugCamera() const
 	return nullptr;
 }
 
-void Scene::renderGeometry(ID3D11RenderTargetView* backBufferRTV, ID3D11DepthStencilView* backBufferDSV)
+void Scene::renderGeometry(Renderer* renderer, ID3D11RenderTargetView* backBufferRTV, ID3D11DepthStencilView* backBufferDSV)
 {
 	CameraComponent* camera = nullptr;
 
@@ -496,7 +409,9 @@ void Scene::renderGeometry(ID3D11RenderTargetView* backBufferRTV, ID3D11DepthSte
 	{
 		camera = m_debugCamera->getComponent<CameraComponent>();
 	}
-	
+
+	renderer->begin();
+
 	std::vector<GPU_LIGHT_DATA> lightData = std::vector<GPU_LIGHT_DATA>(MAX_LIGHTS);
 
 	std::vector<GPU_SHADOW_MATRICES> shadowMatrices = std::vector<GPU_SHADOW_MATRICES>(MAX_SHADOWMAPS);
@@ -533,8 +448,8 @@ void Scene::renderGeometry(ID3D11RenderTargetView* backBufferRTV, ID3D11DepthSte
 				Texture* shadowMap = lightComponent->getShadowMap();
 				if (shadowMap)
 				{
-					m_renderer->prepareShadowMapPass(shadowMap);
-					m_renderer->renderShadowMapPass(&m_entities[0], m_entities.size(), *lightComponent);
+					renderer->prepareShadowMapPass(shadowMap);
+					renderer->renderShadowMapPass(&m_entities[0], m_entities.size(), *lightComponent);
 
 					XMFLOAT4X4 lightViewT;
 					XMFLOAT4X4 lightView = lightComponent->getViewMatrix();
@@ -577,12 +492,15 @@ void Scene::renderGeometry(ID3D11RenderTargetView* backBufferRTV, ID3D11DepthSte
 
 	if (m_entities.size() > 0)
 	{
-		m_renderer->prepareMainPass(backBufferRTV, backBufferDSV);
-		m_renderer->renderMainPass(*camera, Window::getProjectionMatrix(), &m_entities[0], m_entities.size(), &lightData[0], &shadowMatrices[0], &shadowMapSRVs[0]);
+		
+		renderer->prepareMainPass(backBufferRTV, backBufferDSV);
+		renderer->renderMainPass(*camera, Window::getProjectionMatrix(), &m_entities[0], m_entities.size(), &lightData[0], &shadowMatrices[0], &shadowMapSRVs[0]);
 	}
+
+	renderer->end();
 }
 
-void Scene::renderGUI()
+void Scene::renderGUI(GUIRenderer* guiRenderer)
 {
 	std::vector<GUIComponent*> guis;
 	std::vector<Entity*>& guiEntities = m_taggedEntities.at(TAG_GUI);
@@ -611,14 +529,14 @@ void Scene::renderGUI()
 	}
 #endif
 
-	m_guiRenderer->begin(m_blendState, m_depthStencilStateRead);
+	guiRenderer->begin();
 
 	if (guis.size() > 0)
 	{
-		m_guiRenderer->render(&guis[0], guis.size());
+		guiRenderer->render(&guis[0], guis.size());
 	}
 
-	m_guiRenderer->end();
+	guiRenderer->end();
 }
 
 unsigned int Scene::getEntityIndex(const Entity& entity) const
