@@ -34,8 +34,8 @@ int WINAPI WinMain(
 	{
 		// Get the real, full path to this executable, end the string before
 		// the filename itself and then set that as the current directory
-		char currentDir[1024] = {};
-		GetModuleFileName(0, currentDir, 1024);
+		char currentDir[MAX_PATH] = {};
+		GetModuleFileName(0, currentDir, MAX_PATH);
 		char* lastSlash = strrchr(currentDir, '\\');
 		if (lastSlash)
 		{

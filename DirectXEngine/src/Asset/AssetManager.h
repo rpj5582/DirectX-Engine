@@ -9,8 +9,6 @@
 #include "Font.h"
 #include "Sampler.h"
 
-#include "../Debug/Debug.h"
-
 #include <unordered_map>
 
 #define DEFAULT_SHADER_VERTEX "defaultVertex"
@@ -23,6 +21,10 @@
 #define DEFAULT_TEXTURE_SHADOWMAP "defaultShadowMap"
 
 #define DEFAULT_MATERIAL "defaultMaterial"
+
+#define DEFAULT_MODEL_CUBE "defaultCube"
+#define DEFAULT_MODEL_SPHERE "defaultSphere"
+#define DEFAULT_MODEL_CAPSULE "defaultCapsule"
 
 #define DEFAULT_SAMPLER "defaultSampler"
 #define SHADOWMAP_SAMPLER "shadowMapSampler"
@@ -55,8 +57,13 @@ public:
 	template<typename T>
 	static T* getAsset(std::string assetID);
 
+	static std::vector<Asset*> getAllAssets();
+
 	template<typename T>
-	static void unloadAsset(std::string assetID);
+	static std::vector<T*> getAllAssets();
+
+	template<typename T>
+	static void unloadAsset(Asset* asset);
 
 	static void unloadAllAssets();
 
@@ -77,6 +84,8 @@ private:
 template<typename T, typename... Args>
 inline T* AssetManager::createAsset(std::string assetID, Args... args)
 {
+	static_assert(std::is_base_of<Asset, T>::value, "Given type is not an Asset.");
+
 	auto it = m_instance->m_assets.find(assetID);
 	if (it != m_instance->m_assets.end())
 	{
@@ -92,7 +101,6 @@ inline T* AssetManager::createAsset(std::string assetID, Args... args)
 		return nullptr;
 	}
 
-	Debug::assetDebugWindow->addAsset(asset);
 	m_instance->m_assets[assetID] = asset;
 	return asset;
 }
@@ -100,6 +108,8 @@ inline T* AssetManager::createAsset(std::string assetID, Args... args)
 template<typename T, typename... Args>
 inline T* AssetManager::loadAsset(std::string assetID, std::string filepath, Args... args)
 {
+	static_assert(std::is_base_of<Asset, T>::value, "Given type is not an Asset.");
+
 	auto it = m_instance->m_assets.find(assetID);
 	if (it != m_instance->m_assets.end())
 	{
@@ -115,7 +125,6 @@ inline T* AssetManager::loadAsset(std::string assetID, std::string filepath, Arg
 		return nullptr;
 	}
 
-	Debug::assetDebugWindow->addAsset(asset);
 	m_instance->m_assets[assetID] = asset;
 	return asset;
 }
@@ -123,6 +132,8 @@ inline T* AssetManager::loadAsset(std::string assetID, std::string filepath, Arg
 template<typename T>
 inline T* AssetManager::getAsset(std::string assetID)
 {
+	static_assert(std::is_base_of<Asset, T>::value, "Given type is not an Asset.");
+
 	auto it = m_instance->m_assets.find(assetID);
 	if (it == m_instance->m_assets.end())
 	{
@@ -134,17 +145,33 @@ inline T* AssetManager::getAsset(std::string assetID)
 }
 
 template<typename T>
-inline void AssetManager::unloadAsset(std::string assetID)
+std::vector<T*> AssetManager::getAllAssets()
 {
-	auto it = m_instance->m_assets.find(assetID);
-	if (it == m_instance->m_assets.end())
+	static_assert(std::is_base_of<Asset, T>::value, "Given type is not an Asset.");
+
+	std::vector<T*> assetVector;
+
+	for (auto it = m_instance->m_assets.begin(); it != m_instance->m_assets.end(); it++)
 	{
-		Debug::warning("Did not unload asset with ID " + assetID + " because an asset with that ID could not be found.");
+		T* asset = getAsset<T>(it->first);
+		if (asset) assetVector.push_back(asset);
+	}
+
+	return assetVector;
+}
+
+template<typename T>
+inline void AssetManager::unloadAsset(Asset* asset)
+{
+	static_assert(std::is_base_of<Asset, T>::value, "Given type is not an Asset.");
+
+	if (!asset)
+	{
+		Debug::warning("Could not unload asset because the asset was nullptr.");
 		return;
 	}
 
-	Debug::assetDebugWindow->removeAsset(dynamic_cast<T*>(it->second));
-
-	delete it->second;
-	m_instance->m_assets.erase(assetID);	
+	std::string assetID = asset->getAssetID();
+	delete asset;
+	m_instance->m_assets.erase(assetID);
 }

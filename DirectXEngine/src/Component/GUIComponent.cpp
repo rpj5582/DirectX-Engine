@@ -16,19 +16,11 @@ GUIComponent::~GUIComponent()
 	}
 }
 
-void GUIComponent::init()
-{
-	Component::init();
-
-	if (!entity.hasTag(TAG_GUI))
-		entity.addTag(TAG_GUI);
-}
-
 void GUIComponent::initDebugVariables()
 {
 	Component::initDebugVariables();
 
-	Debug::entityDebugWindow->addVariable(&m_color, TW_TYPE_COLOR4F, "Color", this);
+	debugAddColor("Color", &m_color);
 }
 
 void GUIComponent::loadFromJSON(rapidjson::Value& dataObject)

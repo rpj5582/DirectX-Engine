@@ -12,8 +12,10 @@
 
 #include <string>
 #include <vector>
+#include <unordered_set>
 #include <Windows.h>
 
+#define TAG_MAIN_CAMERA "main camera"
 #define TAG_LIGHT "light"
 #define TAG_GUI "gui"
 
@@ -33,10 +35,12 @@ public:
 
 	Scene& getScene() const;
 
+	unsigned int getID() const;
 	std::string getName() const;
+	void rename(std::string name);
 
 	template<typename T>
-	T* addComponent(bool showInDebugWindow = true);
+	T* addComponent();
 	Component* addComponentByStringType(std::string componentType);
 
 	template<typename T>
@@ -87,7 +91,7 @@ public:
 	std::string d_childNameInputField;
 
 private:
-	Entity(Scene& scene, std::string name, bool hasDebugIcon);
+	Entity(Scene& scene, unsigned int id, std::string name, bool hasDebugIcon);
 	~Entity();
 
 	void setParentNonRecursive(Entity* parent);
@@ -98,6 +102,7 @@ private:
 
 	Scene& m_scene;
 
+	unsigned int m_id;
 	std::string m_name;
 	std::vector<Component*> m_components;
 
@@ -114,7 +119,7 @@ private:
 };
 
 template<typename T>
-inline T* Entity::addComponent(bool showInDebugWindow)
+inline T* Entity::addComponent()
 {
 	static_assert(std::is_base_of<Component, T>::value, "Given type is not a Component.");
 
@@ -132,9 +137,7 @@ inline T* Entity::addComponent(bool showInDebugWindow)
 	T* component = new T(*this);
 	m_components.push_back(component);
 	component->init();
-
-	if(showInDebugWindow)
-		Debug::entityDebugWindow->addComponent(component);
+	component->initDebugVariables();
 
 	return component;
 }

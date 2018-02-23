@@ -9,35 +9,18 @@
 
 using namespace DirectX;
 
-Scene::Scene(std::string name, std::string filepath)
+Scene::Scene()
 {
-	m_name = name;
-	m_filepath = filepath;	
+	m_filepath = "";	
 
+	m_entityCount = 0;
 	m_entities = std::vector<Entity*>();
 	m_taggedEntities = std::unordered_map<std::string, std::vector<Entity*>>();
 
 	m_debugCamera = nullptr;
 	m_mainCamera = nullptr;
 
-	d_entityNameField = "";
-	d_mainCameraField = "";
-
-	d_textureNameField = "";
-	d_materialNameField = "";
-	d_meshNameField = "";
-	d_fontNameField = "";
-	d_samplerNameField = "";
-	d_vertexShaderNameField = "";
-	d_pixelShaderNameField = "";
-
-	d_texturePathField = "";
-	d_materialPathField = "";
-	d_meshPathField = "";
-	d_fontPathField = "";
-	d_samplerPathField = "";
-	d_vertexShaderPathField = "";
-	d_pixelShaderPathField = "";
+	m_dirty = false;
 }
 
 Scene::~Scene()
@@ -50,21 +33,24 @@ Scene::~Scene()
 	}
 	m_entities.clear();
 	m_taggedEntities.clear();
+
+	AssetManager::unloadAllAssets();
 }
 
 bool Scene::init()
 {
 	HRESULT hr = S_OK;
 
+	addTag(TAG_MAIN_CAMERA);
 	addTag(TAG_LIGHT);
 	addTag(TAG_GUI);
 
-	m_debugCamera = new Entity(*this, "DebugCamera", false);
-	Transform* debugCameraTransform = m_debugCamera->addComponent<Transform>(false);
+	m_debugCamera = new Entity(*this, 0, "DebugCamera", false);
+	Transform* debugCameraTransform = m_debugCamera->addComponent<Transform>();
 	debugCameraTransform->move(XMFLOAT3(0, 10, -10));
 	debugCameraTransform->rotateLocalX(30);
-	m_debugCamera->addComponent<CameraComponent>(false);
-	m_debugCamera->addComponent<FreeCamControls>(false);
+	m_debugCamera->addComponent<CameraComponent>();
+	m_debugCamera->addComponent<FreeCamControls>();
 
 	return true;
 }
@@ -115,22 +101,27 @@ void Scene::update(float deltaTime, float totalTime)
 	}
 }
 
-std::string Scene::getName() const
+bool Scene::isDirty() const
 {
-	return m_name;
+	return m_dirty;
 }
 
-bool Scene::loadFromJSON()
+bool Scene::hasFilePath() const
+{
+	return m_filepath != "";
+}
+
+bool Scene::loadFromJSON(std::string filepath)
 {
 	// Load the json file
-	std::ifstream ifs(m_filepath, std::ios::in | std::ios::binary);
+	std::ifstream ifs(filepath, std::ios::in | std::ios::binary);
 
 	if (!ifs.is_open())
 	{
 		char errorMessage[512];
 		strerror_s(errorMessage, 512, errno);
 		std::string errString = std::string(errorMessage);
-		Debug::warning("Failed to load scene at " + m_filepath + ": " + errString);
+		Debug::warning("Failed to load scene at " + filepath + ": " + errString);
 		return false;
 	}
 
@@ -190,11 +181,6 @@ bool Scene::loadFromJSON()
 			childrenNames.at(e).push_back(childName.GetString());
 		}
 
-		for (rapidjson::SizeType j = 0; j < tags.Size(); j++)
-		{
-			e->addTag(tags[j].GetString());
-		}
-
 		for (rapidjson::SizeType j = 0; j < components.Size(); j++)
 		{
 			rapidjson::Value& component = components[j];
@@ -208,6 +194,11 @@ bool Scene::loadFromJSON()
 			else
 				Debug::warning("Skipping component of type " + std::string(componentType.GetString()) + " - either an invalid type or the component was not registered.");
 		}
+
+		for (rapidjson::SizeType j = 0; j < tags.Size(); j++)
+		{
+			e->addTag(tags[j].GetString());
+		}
 	}
 
 	for(auto it = childrenNames.begin(); it != childrenNames.end(); it++)
@@ -218,17 +209,20 @@ bool Scene::loadFromJSON()
 		}
 	}
 
-	// Loads the scene's main camera
-	rapidjson::Value& mainCamera = dom["mainCamera"];
-
-	Entity* cameraEntity = getEntityByName(mainCamera.GetString());
-	if (cameraEntity)
-		setMainCamera(cameraEntity);
+	Entity* mainCamera = getEntityWithTag(TAG_MAIN_CAMERA);
+	if (mainCamera)
+	{
+		CameraComponent* mainCameraComponent = mainCamera->getComponent<CameraComponent>();
+		if (mainCameraComponent)
+			m_mainCamera = mainCameraComponent;
+		else
+			Debug::warning("Main camera doesn't have a camera component attached for entity " + mainCamera->getName() + ".");
+	}
 	else
-		Debug::warning("Could not set main camera because entity with name " + std::string(mainCamera.GetString()) + " does not exist.");
+		Debug::warning("No main camera found - tag a camera as the main camera.");
 	
+	m_filepath = filepath;
 	Debug::message("Loaded scene from " + m_filepath);
-	onLoad();
 
 	for (unsigned int i = 0; i < m_entities.size(); i++)
 	{
@@ -240,33 +234,25 @@ bool Scene::loadFromJSON()
 
 void Scene::saveToJSON()
 {
+	saveToJSON(m_filepath);
+}
+
+void Scene::saveToJSON(std::string filepath)
+{
 	rapidjson::StringBuffer s;
 	rapidjson::PrettyWriter<rapidjson::StringBuffer> writer(s);
 
 	writer.StartObject();
 
-	// Save 3 major components: The main camera, the dependent assets, and the entities.
+	// Save 2 major components: The dependent assets and the entities.
 
-	// 1. Camera
-	if (m_mainCamera)
-	{
-		std::string mainCameraName = m_mainCamera->getEntity().getName();
-		writer.Key("mainCamera");
-		writer.String(mainCameraName.c_str());
-	}
-	else
-	{
-		writer.Key("mainCamera");
-		writer.String("undefined");
-	}
-
-	// 2. Assets
+	// 1. Assets
 	writer.Key("assets");
 	writer.StartArray();
 	AssetManager::saveToJSON(writer);
 	writer.EndArray();
 
-	// 3. Entities
+	// 2. Entities
 	writer.Key("entities");
 	writer.StartArray();
 	for (unsigned int i = 0; i < m_entities.size(); i++)
@@ -278,7 +264,7 @@ void Scene::saveToJSON()
 	writer.EndObject();
 
 	// Now stringify the DOM and save it to a file
-	std::ofstream ofs(m_filepath, std::ios::out);
+	std::ofstream ofs(filepath, std::ios::out);
 
 	if (!ofs.is_open())
 	{
@@ -294,6 +280,9 @@ void Scene::saveToJSON()
 	ofs.write(s.GetString(), s.GetSize());
 	ofs.close();
 
+	m_filepath = filepath;
+	m_dirty = false;
+
 	Debug::message("Saved scene to " + m_filepath);
 }
 
@@ -306,6 +295,20 @@ void Scene::addTag(std::string tag)
 	}
 
 	m_taggedEntities[tag] = std::vector<Entity*>();
+}
+
+std::vector<std::string> Scene::getAllTags() const
+{
+	std::vector<std::string> tags = std::vector<std::string>(m_taggedEntities.size());
+
+	unsigned int i = 0;
+	for (auto it = m_taggedEntities.begin(); it != m_taggedEntities.end(); it++)
+	{
+		tags[i] = it->first;
+		i++;
+	}
+
+	return tags;
 }
 
 void Scene::addTagToEntity(Entity& entity, std::string tag)
@@ -323,6 +326,9 @@ void Scene::addTagToEntity(Entity& entity, std::string tag)
 
 	m_taggedEntities[tag].push_back(&entity);
 	entity.addTagNonResursive(tag);
+
+	if (tag == TAG_MAIN_CAMERA && !m_mainCamera)
+		setMainCamera(&entity);
 }
 
 void Scene::removeTagFromEntity(Entity& entity, std::string tag)
@@ -340,6 +346,10 @@ void Scene::removeTagFromEntity(Entity& entity, std::string tag)
 		{
 			entities[i]->removeTagNonRecursive(tag);
 			entities.erase(entities.begin() + i);
+
+			if (tag == TAG_MAIN_CAMERA && m_mainCamera)
+				setMainCamera((Entity*)nullptr);
+
 			return;
 		}
 	}
@@ -363,7 +373,7 @@ void Scene::setMainCamera(CameraComponent* camera)
 		return;
 	}
 
-	Debug::message("Set main camera for scene " + m_name + " to entity " + camera->getEntity().getName());
+	Debug::message("Set main camera to entity " + camera->getEntity().getName());
 	m_mainCamera = camera;
 }
 
@@ -378,7 +388,7 @@ void Scene::setMainCamera(Entity* entity)
 	CameraComponent* camera = entity->getComponent<CameraComponent>();
 	if (!camera)
 	{
-		Debug::warning("Failed to set main camera because entity" + entity->getName() + " does not have a camera component.");
+		Debug::warning("Failed to set main camera because entity " + entity->getName() + " does not have a camera component.");
 		return;
 	}
 
@@ -394,7 +404,7 @@ CameraComponent* Scene::getDebugCamera() const
 	return nullptr;
 }
 
-void Scene::renderGeometry(Renderer* renderer, ID3D11RenderTargetView* backBufferRTV, ID3D11DepthStencilView* backBufferDSV)
+void Scene::renderGeometry(Renderer* renderer, ID3D11RenderTargetView* backBufferRTV, ID3D11DepthStencilView* backBufferDSV, float width, float height)
 {
 	CameraComponent* camera = nullptr;
 
@@ -409,8 +419,6 @@ void Scene::renderGeometry(Renderer* renderer, ID3D11RenderTargetView* backBuffe
 	{
 		camera = m_debugCamera->getComponent<CameraComponent>();
 	}
-
-	renderer->begin();
 
 	std::vector<GPU_LIGHT_DATA> lightData = std::vector<GPU_LIGHT_DATA>(MAX_LIGHTS);
 
@@ -490,14 +498,10 @@ void Scene::renderGeometry(Renderer* renderer, ID3D11RenderTargetView* backBuffe
 		};
 	}
 
-	if (m_entities.size() > 0)
-	{
-		
-		renderer->prepareMainPass(backBufferRTV, backBufferDSV);
-		renderer->renderMainPass(*camera, Window::getProjectionMatrix(), &m_entities[0], m_entities.size(), &lightData[0], &shadowMatrices[0], &shadowMapSRVs[0]);
-	}
+	renderer->prepareMainPass(backBufferRTV, backBufferDSV, width, height);
 
-	renderer->end();
+	if(m_entities.size() > 0)
+		renderer->renderMainPass(*camera, Window::getProjectionMatrix(), &m_entities[0], m_entities.size(), &lightData[0], &shadowMatrices[0], &shadowMapSRVs[0]);
 }
 
 void Scene::renderGUI(GUIRenderer* guiRenderer)
@@ -556,19 +560,8 @@ unsigned int Scene::getEntityIndex(const Entity& entity) const
 
 Entity* Scene::createEntity(std::string name)
 {
-	for (unsigned int i = 0; i < m_entities.size(); i++)
-	{
-		if (m_entities[i]->getName() == name)
-		{
-			Debug::warning("Failed to create entity with name " + name + " because an entity with that name already exists.");
-			return nullptr;
-		}
-	}
-
-	Entity* entity = new Entity(*this, name, true);
+	Entity* entity = new Entity(*this, ++m_entityCount, name, true);
 	m_entities.push_back(entity);
-
-	Debug::entityDebugWindow->addEntity(entity);
 
 	return entity;
 }
@@ -618,26 +611,9 @@ void Scene::deleteEntity(Entity* entity)
 		removeTagFromEntity(*m_entities[index], *it);
 	}
 
-	Debug::entityDebugWindow->removeEntity(entity);
 	delete m_entities[index];
 	m_entities.erase(m_entities.begin() + index);
 	return;
-}
-
-void Scene::clear()
-{
-	while (m_entities.size() > 0)
-	{
-		deleteEntity(m_entities.back());
-	}
-
-	setMainCamera((CameraComponent*)nullptr);
-	
-	Debug::sceneDebugWindow->clear();
-	Debug::entityDebugWindow->clear();
-	Debug::assetDebugWindow->clear();
-
-	AssetManager::unloadAllAssets();
 }
 
 Entity* Scene::getEntityByName(std::string name)

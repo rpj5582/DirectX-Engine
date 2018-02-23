@@ -1,10 +1,25 @@
 TODO:
-Make material creator
+Change AssetManager to use assetIDs as ints to allow multiple assets with the same name
+Render texture assets to images in IMGUI
+Implement asset details
+Add Scene states to obtain an undo/redo stack?
+Selection state for editor and entities should be the same
+Rehaul GUI to use anchor points
+Functionality to add or remove custom tags
+
+Restructure entity list for better cache performance
+Compile for release should remove all editor features
+Break up shaders so that there isn't a "default shadow map"
+Make material(asset) creator
 Implement "first person" entity moving in debug mode
 Make a scene graph or some kind of proper ordering to entities
 Convert pointers to smart pointers
 Collision detection
 
 BUGS:
-Changing the color of a light doesn't work.
+Selecting default meshes makes the wireframe selection not work
+Some GUI elements can't be disabled?
+Soft shadows makes the light brighter
+Receive shadows doesn't work
+Shortcut keys in Edit mode don't always work the first time.
 Wireframe meshes aren't sorted, so they are filled with the clear color.

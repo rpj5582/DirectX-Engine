@@ -29,6 +29,6 @@ private:
 	Renderer* m_renderer;
 	GUIRenderer* m_guiRenderer;
 
-	Input* m_input;	
+	Input* m_input;
 };
 

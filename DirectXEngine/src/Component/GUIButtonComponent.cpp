@@ -10,7 +10,6 @@ GUIButtonComponent::GUIButtonComponent(Entity& entity) : GUISpriteComponent(enti
 	m_onClick = nullptr;
 
 	m_font = nullptr;
-	m_fontID = "";
 	m_text = "";
 	m_textColor = XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f);
 }
@@ -23,16 +22,16 @@ void GUIButtonComponent::init()
 {
 	GUISpriteComponent::init();
 
-	setFont(DEFAULT_FONT);
+	setFont(AssetManager::getAsset<Font>(DEFAULT_FONT));
 }
 
 void GUIButtonComponent::initDebugVariables()
 {
 	GUISpriteComponent::initDebugVariables();
 
-	Debug::entityDebugWindow->addVariableWithCallbacks(TW_TYPE_STDSTRING, "Font", this, &getGUIButtonComponentFontDebugEditor, &setGUIButtonComponentFontDebugEditor, this);
-	Debug::entityDebugWindow->addVariable(&m_text, TW_TYPE_STDSTRING, "Text", this);
-	Debug::entityDebugWindow->addVariable(&m_textColor, TW_TYPE_COLOR4F, "Text Color", this);
+	debugAddFont("Font", &m_font, nullptr, &debugGUIButtonComponentSetFont);
+	debugAddString("Text", &m_text);
+	debugAddColor("Text Color", &m_textColor);
 }
 
 void GUIButtonComponent::update(float deltaTime, float totalTime)
@@ -60,7 +59,7 @@ void GUIButtonComponent::loadFromJSON(rapidjson::Value& dataObject)
 	rapidjson::Value::MemberIterator font = dataObject.FindMember("font");
 	if (font != dataObject.MemberEnd())
 	{
-		setFont(font->value.GetString());
+		setFont(AssetManager::getAsset<Font>(font->value.GetString()));
 	}
 
 	rapidjson::Value::MemberIterator text = dataObject.FindMember("text");
@@ -81,7 +80,7 @@ void GUIButtonComponent::saveToJSON(rapidjson::PrettyWriter<rapidjson::StringBuf
 	Component::saveToJSON(writer);
 
 	writer.Key("font");
-	writer.String(m_fontID.c_str());
+	writer.String(m_font->getAssetID().c_str());
 
 	writer.Key("text");
 	writer.String(m_text.c_str());
@@ -132,23 +131,12 @@ Font* GUIButtonComponent::getFont() const
 	return m_font;
 }
 
-std::string GUIButtonComponent::getFontID() const
+void GUIButtonComponent::setFont(Font* font)
 {
-	return m_fontID;
-}
-
-void GUIButtonComponent::setFont(std::string fontID)
-{
-	m_font = AssetManager::getAsset<Font>(fontID);
-	if (m_font)
-	{
-		m_fontID = fontID;
-	}
+	if (font)
+		m_font = font;
 	else
-	{
-		m_fontID = "";
-		m_font = nullptr;
-	}
+		m_font = AssetManager::getAsset<Font>(DEFAULT_FONT);
 }
 
 std::string GUIButtonComponent::getText() const
@@ -171,14 +159,9 @@ void GUIButtonComponent::setTextColor(DirectX::XMFLOAT4 color)
 	m_textColor = color;
 }
 
-void TW_CALL getGUIButtonComponentFontDebugEditor(void* value, void* clientData)
-{
-	GUIButtonComponent* component = static_cast<GUIButtonComponent*>(clientData);
-	TwCopyStdStringToLibrary(*static_cast<std::string*>(value), component->getFontID());
-}
 
-void TW_CALL setGUIButtonComponentFontDebugEditor(const void* value, void* clientData)
+void debugGUIButtonComponentSetFont(Component* component, const void* value)
 {
-	GUIButtonComponent* component = static_cast<GUIButtonComponent*>(clientData);
-	component->setFont(*static_cast<const std::string*>(value));
+	Font* font = *static_cast<Font*const*>(value);
+	static_cast<GUIButtonComponent*>(component)->setFont(font);
 }

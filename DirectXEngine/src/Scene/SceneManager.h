@@ -5,28 +5,22 @@
 class SceneManager
 {
 public:
-	SceneManager();
+	SceneManager(HWND hWnd);
 	~SceneManager();
-
-	size_t getSceneCount() const;
 
 	static Scene* getActiveScene();
 
-	static bool addScene(Scene* scene);
-
-	static bool loadScene(Scene* scene);
-	static bool loadScene(std::string name);
-	static bool loadScene(unsigned int index);
-
-	static void saveActiveScene();
-	static void clearActiveScene();
-
-	static std::string d_sceneNameField;
+	static void newScene();
+	static bool loadScene();
+	static bool saveActiveScene();
+	static bool saveActiveSceneAs();
 
 private:
-	static SceneManager* m_instance;
+	void deleteActiveScene();
 
-	std::vector<Scene*> m_sceneList;
+	static SceneManager* m_instance;
+	HWND m_hWnd;
+
 	Scene* m_activeScene;
 };
 

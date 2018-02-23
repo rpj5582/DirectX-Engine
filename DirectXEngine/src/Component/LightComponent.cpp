@@ -8,32 +8,6 @@
 
 using namespace DirectX;
 
-TwStructMember LightComponent::d_lightStructMembers[5] = {
-	{ "color", TW_TYPE_COLOR4F, 0, " label='Color' " },
-	{ "brightness", TW_TYPE_FLOAT, sizeof(XMFLOAT4), " label='Brightness' min=0 step=0.1 " },
-	{ "specularity", TW_TYPE_FLOAT, sizeof(XMFLOAT4) + sizeof(float), " label='Specularity' min=0 step=0.1 " },
-	{ "radius", TW_TYPE_FLOAT, sizeof(XMFLOAT4) + sizeof(float) * 2, " label='Radius' min=0.001 step=0.1 " },
-	{ "spotAngle", TW_TYPE_FLOAT, sizeof(XMFLOAT4) + sizeof(float) * 3, " label='Spot Light Angle' min=0 max=90 step=0.1 " }
-};
-
-TwType LightComponent::TW_TYPE_LIGHT_SETTINGS = TW_TYPE_UNDEF;
-
-TwEnumVal LightComponent::d_lightTypeMembers[] = 
-{
-	{ DIRECTIONAL_LIGHT, "Directional Light" },
-	{ POINT_LIGHT, "Point Light" },
-	{ SPOT_LIGHT, "Spot Light" }
-};
-TwType LightComponent::TW_TYPE_LIGHT_TYPE = TW_TYPE_UNDEF;
-
-TwEnumVal LightComponent::d_shadowTypeMembers[] =
-{
-	{ SHADOWTYPE_HARD, "Hard Shadows" },
-	{ SHADOWTYPE_SOFT, "Soft Shadows" },
-	{ SHADOWTYPE_VERY_SOFT, "Very Soft Shadows" }
-};
-TwType LightComponent::TW_TYPE_SHADOW_TYPE = TW_TYPE_UNDEF;
-
 LightComponent::LightComponent(Entity& entity) : Component(entity)
 {
 	m_shadowMap = nullptr;
@@ -68,15 +42,12 @@ void LightComponent::init()
 	if (debugIcon)
 	{
 		GUIDebugSpriteComponent* debugIconSprite = debugIcon->getGUIDebugSpriteComponent();
-		if (debugIconSprite->getTextureID() == DEBUG_TEXTURE_DEFAULTICON)
+		if (debugIconSprite->getTexture()->getAssetID() == DEBUG_TEXTURE_DEFAULTICON)
 		{
-			debugIconSprite->setTexture(DEBUG_TEXTURE_LIGHTICON);
+			debugIconSprite->setTexture(AssetManager::getAsset<Texture>(DEBUG_TEXTURE_LIGHTICON));
 		}
 	}
 #endif
-
-	if (!entity.hasTag(TAG_LIGHT))
-		entity.addTag(TAG_LIGHT);
 
 	setLightType(DIRECTIONAL_LIGHT);
 	setShadowType(SHADOWTYPE_HARD);
@@ -87,23 +58,26 @@ void LightComponent::initDebugVariables()
 {
 	Component::initDebugVariables();
 
-	if (TW_TYPE_LIGHT_SETTINGS == TW_TYPE_UNDEF)
-		TW_TYPE_LIGHT_SETTINGS = TwDefineStruct("TW_TYPE_LIGHT_SETTINGS", d_lightStructMembers, 5, sizeof(LightSettings), nullptr, nullptr);
+	std::vector<DebugComponentData> lightSettingsStructMembers = 
+	{
+		{ "Color", D_COLOR, nullptr, nullptr, nullptr, 0, sizeof(XMFLOAT4) },
+		{ "Brightness", D_FLOAT, nullptr, nullptr, nullptr, 0, sizeof(float) },
+		{ "Specularity", D_FLOAT, nullptr, nullptr, nullptr, 0, sizeof(float) },
+		{ "Radius", D_FLOAT, nullptr, nullptr, nullptr, 0, sizeof(float) },
+		{ "Spotlight Angle", D_FLOAT, nullptr, nullptr, nullptr, 0, sizeof(float) }
+	};
 
-	if (TW_TYPE_LIGHT_TYPE == TW_TYPE_UNDEF)
-		TW_TYPE_LIGHT_TYPE = TwDefineEnum("TW_TYPE_LIGH_TYPE", d_lightTypeMembers, 3);
+	unsigned int lightSettingsHash = Debug::registerStruct<LightSettings>(lightSettingsStructMembers);
+	debugAddStruct("Light Settings", &m_light, lightSettingsHash, 0, nullptr, &debugLightComponentSetLightSettings);
 
-	if (TW_TYPE_SHADOW_TYPE == TW_TYPE_UNDEF)
-		TW_TYPE_SHADOW_TYPE = TwDefineEnum("TW_TYPE_SHADOW_TYPE", d_shadowTypeMembers, 3);
+	unsigned int lightTypeHash = Debug::registerEnum<LightType>("Point Light\0Directional Light\0Spotlight\0\0");
+	debugAddEnum("Light Type", &m_lightType, lightTypeHash, nullptr, &debugLightComponentSetLightType);
 
-	Debug::entityDebugWindow->addVariableWithCallbacks(TW_TYPE_LIGHT_TYPE, "Light Type", this, &getLightTypeDebugEditor, &setLightTypeDebugEditor, this);
+	debugAddUInt("Shadow Map Size", &m_shadowMapSize, nullptr, &debugLightComponentSetShadowMapSize);
+	debugAddBool("Cast Shadows", &m_castShadows, nullptr, &debugLightComponentSetCastShadows);
 
-	Debug::entityDebugWindow->addVariableWithCallbacks(TW_TYPE_LIGHT_SETTINGS, "Light Settings", this, &getLightSettingsDebugEditor, &setLightSettingsDebugEditor, this);
-
-	Debug::entityDebugWindow->addVariableWithCallbacks(TW_TYPE_BOOLCPP, "Cast Shadows", this, &getCastShadowsDebugEditor, &setCastShadowsDebugEditor, this, "Shadow Settings");
-	Debug::entityDebugWindow->addVariableWithCallbacks(TW_TYPE_SHADOW_TYPE, "Shadow Edges", this, &getShadowTypeDebugEditor, &setShadowTypeDebugEditor, this, "Shadow Settings");
-	Debug::entityDebugWindow->addVariableWithCallbacks(TW_TYPE_UINT32, "Shadow Map Resolution", this, &getShadowMapSizeDebugEditor, &setShadowMapSizeDebugEditor, this, "Shadow Settings");
-	Debug::entityDebugWindow->addGroup(this, "Shadow Settings");
+	unsigned int shadowTypeHash = Debug::registerEnum<ShadowType>("Hard Shadows\0Soft Shadows\0Very Soft Shadows\0\0");
+	debugAddEnum("Shadow Type", &m_shadowType, shadowTypeHash);
 }
 
 void LightComponent::lateUpdate(float deltaTime, float totalTime)
@@ -120,17 +94,17 @@ void LightComponent::loadFromJSON(rapidjson::Value& dataObject)
 	{
 		std::string lightTypeString = type->value.GetString();
 
-		switch (stringHash(lightTypeString.c_str()))
+		switch (Util::stringHash(lightTypeString.c_str()))
 		{
-		case stringHash("point"):
+		case Util::stringHash("point"):
 			setLightType(POINT_LIGHT);
 			break;
 
-		case stringHash("directional"):
+		case Util::stringHash("directional"):
 			setLightType(DIRECTIONAL_LIGHT);
 			break;
 
-		case stringHash("spot"):
+		case Util::stringHash("spot"):
 			setLightType(SPOT_LIGHT);
 			break;
 
@@ -265,7 +239,15 @@ LightType LightComponent::getLightType() const
 
 void LightComponent::setLightType(LightType lightType)
 {
+	if (lightType == POINT_LIGHT && m_castShadows)
+	{
+		Debug::warning("Point light shadow mapping is not yet implemented, disabling shadows for this light.");
+		canCastShadows(false);
+	}
+
 	m_lightType = lightType;
+
+	
 	updateProjectionMatrix(NEAR_Z, FAR_Z);
 }
 
@@ -278,6 +260,8 @@ void LightComponent::setLightSettings(const LightSettings& settings)
 {
 	m_light = settings;
 	m_light.radius = max(m_light.radius, 0.001f);
+	m_light.spotAngle = max(m_light.spotAngle, 0.001f);
+	m_light.spotAngle = min(m_light.spotAngle, 180.0f);
 
 	if(m_lightType != DIRECTIONAL_LIGHT)
 		updateProjectionMatrix(NEAR_Z, FAR_Z);
@@ -329,6 +313,12 @@ bool LightComponent::canCastShadows() const
 
 void LightComponent::canCastShadows(bool castShadows)
 {
+	if (castShadows && m_lightType == POINT_LIGHT)
+	{
+		Debug::warning("Point light shadow mapping is not yet implemented.");
+		return;
+	}
+
 	m_castShadows = castShadows;
 
 	if (m_castShadows)
@@ -373,7 +363,7 @@ bool LightComponent::createShadowMap()
 	parameters.textureFormat = DXGI_FORMAT_R32_TYPELESS;
 	parameters.shaderResourceViewFormat = DXGI_FORMAT_R32_FLOAT;
 	parameters.depthStencilViewFormat = DXGI_FORMAT_D32_FLOAT;
-	m_shadowMap = AssetManager::createAsset<Texture>(entity.getName() + "_shadowMap", m_shadowMapSize, m_shadowMapSize, parameters);
+	m_shadowMap = AssetManager::createAsset<Texture>(" tex_" + entity.getName() + "_shadowMap", m_shadowMapSize, m_shadowMapSize, parameters);
 
 	if (!m_shadowMap)
 	{
@@ -388,7 +378,7 @@ void LightComponent::deleteShadowMap()
 {
 	if (m_shadowMap)
 	{
-		AssetManager::unloadAsset<Texture>(m_shadowMap->getAssetID());
+		AssetManager::unloadAsset<Texture>(m_shadowMap);
 		m_shadowMap = nullptr;
 	}	
 }
@@ -402,7 +392,6 @@ void LightComponent::updateViewMatrix()
 	{
 	case POINT_LIGHT:
 	{
-		Debug::error("Point light view matrices are not yet implemented.");
 		XMStoreFloat4x4(&m_viewMatrix, XMMatrixIdentity());
 		break;
 	}
@@ -470,7 +459,6 @@ void LightComponent::updateProjectionMatrix(float nearZ, float farZ, float width
 	{
 	case POINT_LIGHT:
 	{
-		Debug::error("Point light projection matrices are not yet implemented.");
 		XMStoreFloat4x4(&m_projectionMatrix, XMMatrixIdentity());
 		break;
 	}
@@ -494,62 +482,26 @@ void LightComponent::updateProjectionMatrix(float nearZ, float farZ, float width
 	}
 }
 
-void TW_CALL getLightSettingsDebugEditor(void* value, void* clientData)
+void debugLightComponentSetLightSettings(Component* component, const void* value)
 {
-	LightComponent* lightComponent = static_cast<LightComponent*>(clientData);
-	*static_cast<LightSettings*>(value) = lightComponent->getLightSettings();
+	const LightSettings settings = *static_cast<const LightSettings*>(value);
+	static_cast<LightComponent*>(component)->setLightSettings(settings);
 }
 
-void TW_CALL getLightTypeDebugEditor(void* value, void* clientData)
+void debugLightComponentSetLightType(Component* component, const void* value)
 {
-	LightComponent* lightComponent = static_cast<LightComponent*>(clientData);
-	*static_cast<LightType*>(value) = lightComponent->getLightType();
+	const LightType type = *static_cast<const LightType*>(value);
+	static_cast<LightComponent*>(component)->setLightType(type);
 }
 
-void TW_CALL getCastShadowsDebugEditor(void* value, void* clientData)
+void debugLightComponentSetShadowMapSize(Component* component, const void* value)
 {
-	LightComponent* lightComponent = static_cast<LightComponent*>(clientData);
-	*static_cast<bool*>(value) = lightComponent->canCastShadows();
+	const unsigned int shadowMapSize = *static_cast<const unsigned int*>(value);
+	static_cast<LightComponent*>(component)->setShadowMapSize(shadowMapSize);
 }
 
-void TW_CALL getShadowTypeDebugEditor(void* value, void* clientData)
+void debugLightComponentSetCastShadows(Component* component, const void* value)
 {
-	LightComponent* lightComponent = static_cast<LightComponent*>(clientData);
-	*static_cast<ShadowType*>(value) = lightComponent->getShadowType();
-}
-
-void TW_CALL getShadowMapSizeDebugEditor(void* value, void* clientData)
-{
-	LightComponent* lightComponent = static_cast<LightComponent*>(clientData);
-	*static_cast<unsigned int*>(value) = lightComponent->getShadowMapSize();
-}
-
-void TW_CALL setLightSettingsDebugEditor(const void* value, void* clientData)
-{
-	LightComponent* lightComponent = static_cast<LightComponent*>(clientData);
-	lightComponent->setLightSettings(*static_cast<const LightSettings*>(value));
-}
-
-void TW_CALL setLightTypeDebugEditor(const void* value, void* clientData)
-{
-	LightComponent* lightComponent = static_cast<LightComponent*>(clientData);
-	lightComponent->setLightType(*static_cast<const LightType*>(value));
-}
-
-void TW_CALL setCastShadowsDebugEditor(const void* value, void* clientData)
-{
-	LightComponent* lightComponent = static_cast<LightComponent*>(clientData);
-	lightComponent->canCastShadows(*static_cast<const bool*>(value));
-}
-
-void TW_CALL setShadowTypeDebugEditor(const void* value, void* clientData)
-{
-	LightComponent* lightComponent = static_cast<LightComponent*>(clientData);
-	lightComponent->setShadowType(*static_cast<const ShadowType*>(value));
-}
-
-void TW_CALL setShadowMapSizeDebugEditor(const void* value, void* clientData)
-{
-	LightComponent* lightComponent = static_cast<LightComponent*>(clientData);
-	lightComponent->setShadowMapSize(*static_cast<const unsigned int*>(value));
+	const bool castShadows = *static_cast<const bool*>(value);
+	static_cast<LightComponent*>(component)->canCastShadows(castShadows);
 }

@@ -133,19 +133,21 @@
   <ItemGroup>
     <ClCompile Include="src\DebugEntity.cpp" />
     <ClCompile Include="src\Component\GUIDebugSpriteComponent.cpp" />
-    <ClCompile Include="src\Debug\DebugGlobals.cpp" />
+    <ClCompile Include="src\Debug\Debug.cpp" />
+    <ClCompile Include="src\Debug\DebugAssetList.cpp" />
+    <ClCompile Include="src\Debug\DebugComponentList.cpp" />
+    <ClCompile Include="src\Debug\DebugConsoleWindow.cpp" />
+    <ClCompile Include="src\Debug\DebugEntityList.cpp" />
+    <ClCompile Include="src\Debug\DebugMainMenuBar.cpp" />
+    <ClCompile Include="src\Debug\IDebugEditor.cpp" />
     <ClCompile Include="src\Scene\SceneManager.cpp" />
-    <ClCompile Include="src\Scene\Scene2.cpp" />
     <ClCompile Include="src\Input.cpp" />
     <ClCompile Include="src\Asset\Asset.cpp" />
-    <ClCompile Include="src\Debug\AssetDebugWindow.cpp" />
     <ClCompile Include="src\Asset\AssetManager.cpp" />
     <ClCompile Include="src\Component\CameraComponent.cpp" />
     <ClCompile Include="src\Component\ComponentRegistry.cpp" />
-    <ClCompile Include="src\Debug\DebugWindow.cpp" />
     <ClCompile Include="src\DXCore.cpp" />
     <ClCompile Include="src\Entity.cpp" />
-    <ClCompile Include="src\Debug\EntityDebugWindow.cpp" />
     <ClCompile Include="src\Asset\Font.cpp" />
     <ClCompile Include="src\Component\FreeCamControls.cpp" />
     <ClCompile Include="src\Game.cpp" />
@@ -161,39 +163,43 @@
     <ClCompile Include="src\Asset\Material.cpp" />
     <ClCompile Include="src\Asset\Mesh.cpp" />
     <ClCompile Include="src\Component\MeshRenderComponent.cpp" />
-    <ClCompile Include="src\Debug\Debug.cpp" />
     <ClCompile Include="src\Asset\PixelShader.cpp" />
     <ClCompile Include="src\Component\RenderComponent.cpp" />
     <ClCompile Include="src\Render\Renderer.cpp" />
     <ClCompile Include="src\Asset\Sampler.cpp" />
     <ClCompile Include="src\Scene\Scene.cpp" />
-    <ClCompile Include="src\Scene\Scene1.cpp" />
-    <ClCompile Include="src\Debug\SceneDebugWindow.cpp" />
     <ClCompile Include="src\Asset\SimpleShader.cpp" />
     <ClCompile Include="src\Asset\Texture.cpp" />
     <ClCompile Include="src\Component\Transform.cpp" />
     <ClCompile Include="src\Asset\VertexShader.cpp" />
+    <ClCompile Include="src\Third Party\imgui\imgui.cpp" />
+    <ClCompile Include="src\Third Party\imgui\imgui_demo.cpp" />
+    <ClCompile Include="src\Third Party\imgui\imgui_draw.cpp" />
+    <ClCompile Include="src\Third Party\imgui\imgui_imple_dx11.cpp" />
+    <ClCompile Include="src\Util.cpp" />
     <ClCompile Include="src\Window.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Asset\AssetFactory.h" />
     <ClInclude Include="src\DebugEntity.h" />
     <ClInclude Include="src\Component\GUIDebugSpriteComponent.h" />
-    <ClInclude Include="src\Debug\DebugGlobals.h" />
+    <ClInclude Include="src\Debug\Debug.h" />
+    <ClInclude Include="src\Debug\DebugAssetList.h" />
+    <ClInclude Include="src\Debug\DebugComponentList.h" />
+    <ClInclude Include="src\Debug\DebugConsoleWindow.h" />
+    <ClInclude Include="src\Debug\DebugEntityList.h" />
+    <ClInclude Include="src\Debug\DebugMainMenuBar.h" />
+    <ClInclude Include="src\Debug\IDebugEditor.h" />
     <ClInclude Include="src\Render\IRenderer.h" />
     <ClInclude Include="src\Scene\SceneManager.h" />
-    <ClInclude Include="src\Scene\Scene2.h" />
     <ClInclude Include="src\Input.h" />
     <ClInclude Include="src\Asset\Asset.h" />
-    <ClInclude Include="src\Debug\AssetDebugWindow.h" />
     <ClInclude Include="src\Asset\AssetManager.h" />
     <ClInclude Include="src\Component\CameraComponent.h" />
     <ClInclude Include="src\Component\Component.h" />
     <ClInclude Include="src\Component\ComponentRegistry.h" />
-    <ClInclude Include="src\Debug\DebugWindow.h" />
     <ClInclude Include="src\DXCore.h" />
     <ClInclude Include="src\Entity.h" />
-    <ClInclude Include="src\Debug\EntityDebugWindow.h" />
     <ClInclude Include="src\Asset\Font.h" />
     <ClInclude Include="src\Component\FreeCamControls.h" />
     <ClInclude Include="src\Game.h" />
@@ -207,17 +213,21 @@
     <ClInclude Include="src\Asset\Material.h" />
     <ClInclude Include="src\Asset\Mesh.h" />
     <ClInclude Include="src\Component\MeshRenderComponent.h" />
-    <ClInclude Include="src\Debug\Debug.h" />
     <ClInclude Include="src\Asset\PixelShader.h" />
     <ClInclude Include="src\Component\RenderComponent.h" />
     <ClInclude Include="src\Render\Renderer.h" />
     <ClInclude Include="src\Asset\Sampler.h" />
     <ClInclude Include="src\Scene\Scene.h" />
-    <ClInclude Include="src\Scene\Scene1.h" />
-    <ClInclude Include="src\Debug\SceneDebugWindow.h" />
     <ClInclude Include="src\Asset\SimpleShader.h" />
     <ClInclude Include="src\Asset\Texture.h" />
     <ClInclude Include="src\Component\Transform.h" />
+    <ClInclude Include="src\Third Party\imgui\imconfig.h" />
+    <ClInclude Include="src\Third Party\imgui\imgui.h" />
+    <ClInclude Include="src\Third Party\imgui\imgui_impl_dx11.h" />
+    <ClInclude Include="src\Third Party\imgui\imgui_internal.h" />
+    <ClInclude Include="src\Third Party\imgui\stb_rect_pack.h" />
+    <ClInclude Include="src\Third Party\imgui\stb_textedit.h" />
+    <ClInclude Include="src\Third Party\imgui\stb_truetype.h" />
     <ClInclude Include="src\Util.h" />
     <ClInclude Include="src\Asset\VertexShader.h" />
     <ClInclude Include="src\Window.h" />
@@ -271,6 +281,9 @@
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">4.1</ShaderModel>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">4.1</ShaderModel>
     </FxCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Natvis Include="src\Third Party\imgui\imgui.natvis" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

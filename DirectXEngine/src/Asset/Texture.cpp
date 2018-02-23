@@ -112,10 +112,10 @@ bool Texture::loadFromFile()
 			std::string errorString = std::string(errorMsg);
 			errorString.pop_back();
 			errorString.pop_back();
-			Debug::warning("Failed to load texture with ID " + m_assetID + " at Assets/Textures/" + m_filepath + ": " + errorString);
+			Debug::warning("Failed to load texture with ID " + m_assetID + " at " + m_filepath + ": " + errorString);
 		}
 		else
-			Debug::warning("Failed to load texture with ID " + m_assetID + " at Assets/Textures/" + m_filepath + ": Unable to find error description.");
+			Debug::warning("Failed to load texture with ID " + m_assetID + " at " + m_filepath + ": Unable to find error description.");
 
 		return false;
 	}
@@ -258,7 +258,7 @@ ID3D11DepthStencilView* Texture::getDSV() const
 
 ID3D11RenderTargetView* Texture::getRTV() const
 {
-	return m_textureRTV;;
+	return m_textureRTV;
 }
 
 unsigned int Texture::getWidth() const

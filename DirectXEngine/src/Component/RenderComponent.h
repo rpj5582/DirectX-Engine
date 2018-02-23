@@ -20,8 +20,7 @@ public:
 	virtual void saveToJSON(rapidjson::PrettyWriter<rapidjson::StringBuffer>& writer) override;
 
 	Material* getMaterial() const;
-	std::string getMaterialID() const;
-	void setMaterial(std::string materialID);
+	void setMaterial(Material* material);
 
 	RenderStyle getRenderStyle() const;
 	void setRenderStyle(RenderStyle renderStyle);
@@ -30,15 +29,12 @@ public:
 	void setWireframeColor(DirectX::XMFLOAT4 color);
 
 private:
-	std::string m_materialID;
 	Material* m_material;
 
 	RenderStyle m_renderStyle;
 	DirectX::XMFLOAT4 m_wireColor;
 
-	static TwEnumVal d_renderStyleMembers[3];
-	static TwType TW_TYPE_RENDER_STLYE;
+	static std::vector<std::pair<RenderStyle, std::string>> d_renderStyleEnumStrings;
 };
 
-void TW_CALL getRenderComponentMaterialDebugEditor(void* value, void* clientData);
-void TW_CALL setRenderComponentMaterialDebugEditor(const void* value, void* clientData);
+void debugRenderComponentSetMaterial(Component* component, const void* value);

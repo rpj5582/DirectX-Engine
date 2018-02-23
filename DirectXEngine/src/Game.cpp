@@ -1,8 +1,5 @@
 #include "Game.h"
 
-#include "Scene/Scene1.h"
-#include "Scene/Scene2.h"
-
 // For the DirectX Math library
 using namespace DirectX;
 
@@ -40,7 +37,7 @@ Game::Game(HINSTANCE hInstance)
 // --------------------------------------------------------
 Game::~Game()
 {
-	Debug::cleanDebugWindows();
+	Debug::destroy();
 
 	delete m_sceneManager;
 	delete m_assetManager;
@@ -57,13 +54,15 @@ Game::~Game()
 // --------------------------------------------------------
 HRESULT Game::Init()
 {
+	Debug::init();
+
 	HRESULT hr = DXCore::Init();
 	if (FAILED(hr))
 	{
 		return hr;
 	}
 
-	Debug::initDebugWindows(device, m_window->getWidth(), m_window->getHeight());
+	Debug::lateInit(m_window->getWindowHandle(), device, context);
 
 	m_assetManager = new AssetManager(device, context);
 	if (!m_assetManager->init()) return E_ABORT;
@@ -79,19 +78,11 @@ HRESULT Game::Init()
 
 	m_input = new Input(m_window->getWindowHandle());
 
-	m_sceneManager = new SceneManager();
-	m_sceneManager->addScene(new Scene1("testscene", "Scenes/testscene.json"));
-	m_sceneManager->addScene(new Scene2("testscene2", "Scenes/testscene2.json"));
+	m_sceneManager = new SceneManager(m_window->getWindowHandle());
 
-	if (m_sceneManager->getSceneCount() == 0)
-	{
-		Debug::error("No scenes added to the scene list!");
-		return E_ABORT;
-	}
-	else
-	{
-		m_sceneManager->loadScene(0U);
-	}
+	TextureParameters editorSceneTextureParameters = {};
+	editorSceneTextureParameters.usage = D3D11_USAGE_DEFAULT;
+	editorSceneTextureParameters.bindFlags = D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET;
 
 	return S_OK;
 }
@@ -102,6 +93,8 @@ HRESULT Game::Init()
 void Game::Update(float deltaTime, float totalTime)
 {
 	m_input->update();
+
+	Debug::update();
 
 	// Quit if the escape key is pressed
 	if (Input::isKeyPressed(Keyboard::Escape))
@@ -122,15 +115,16 @@ void Game::Update(float deltaTime, float totalTime)
 // --------------------------------------------------------
 void Game::Draw(float deltaTime, float totalTime)
 {
-	Scene* activeScene = m_sceneManager->getActiveScene();
-	if (activeScene)
-	{
-		activeScene->renderGeometry(m_renderer, backBufferRTV, depthStencilView);
-		activeScene->renderGUI(m_guiRenderer);
-	}
+	m_renderer->begin();
 
-	if(!Debug::inPlayMode)
-		TwDraw();
+	Scene* activeScene = m_sceneManager->getActiveScene();
+
+	activeScene->renderGeometry(m_renderer, backBufferRTV, depthStencilView, (float)Window::getWidth(), (float)Window::getHeight());
+	activeScene->renderGUI(m_guiRenderer);
+
+	m_renderer->end();
+
+	Debug::drawGUI();
 
 	// Present the back buffer to the user
 	//  - Puts the final frame we're drawing into the window so the user can see it
@@ -138,13 +132,12 @@ void Game::Draw(float deltaTime, float totalTime)
 	swapChain->Present(0, 0);
 }
 
+
 LRESULT Game::ProcessMessage(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
-	// Pass the message over to AntTweakBar so the UI can react to user input
-	if (!Debug::inPlayMode && TwEventWin(m_window->getWindowHandle(), msg, wParam, lParam))
-	{
-		return 0;
-	}
+	DebugWinMsgReturn result;
+	bool shouldProcess = Debug::ProcessMessage(hwnd, msg, wParam, lParam, result);
+	if (!shouldProcess) return 0;
 
 	switch (msg)
 	{
@@ -170,6 +163,7 @@ LRESULT Game::ProcessMessage(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 	case WM_XBUTTONDOWN:
 	case WM_XBUTTONUP:
 	case WM_MOUSEHOVER:
+		if (result.wantMouse) return 0;
 		Input::ProcessMouseMessage(msg, wParam, lParam);
 		break;
 
@@ -177,6 +171,7 @@ LRESULT Game::ProcessMessage(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 	case WM_SYSKEYDOWN:
 	case WM_KEYUP:
 	case WM_SYSKEYUP:
+		if (result.wantKeyboard) return 0;
 		Input::ProcessKeyboardMessage(msg, wParam, lParam);
 		break;
 	}

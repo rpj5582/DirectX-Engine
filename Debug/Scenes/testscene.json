@@ -1,5 +1,4 @@
 {
-    "mainCamera": "Main Camera",
     "assets": [
         {
             "id": "cracks_spec",
@@ -26,11 +25,6 @@
             "textureFormat": 28,
             "srvFormat": 28,
             "dsvFormat": 0
-        },
-        {
-            "id": "cube",
-            "path": "Assets/Models/cube.obj",
-            "type": "model"
         },
         {
             "id": "cracks",
@@ -66,7 +60,9 @@
             "name": "Main Camera",
             "enabled": true,
             "children": [],
-            "tags": [],
+            "tags": [
+                "main camera"
+            ],
             "components": [
                 {
                     "type": "Transform",
@@ -147,7 +143,7 @@
                             "b": 1.0,
                             "a": 1.0
                         },
-                        "mesh": "cube",
+                        "mesh": "defaultCube",
                         "castShadows": true,
                         "receiveShadows": true
                     }
@@ -316,7 +312,7 @@
                         },
                         "rotation": {
                             "x": 34.19999313354492,
-                            "y": 220.99981689453126,
+                            "y": 220.99974060058595,
                             "z": 0.0
                         },
                         "scale": {
@@ -465,7 +461,7 @@
                             "b": 1.0,
                             "a": 1.0
                         },
-                        "mesh": "cube",
+                        "mesh": "defaultCube",
                         "castShadows": true,
                         "receiveShadows": true
                     }

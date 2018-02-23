@@ -6,7 +6,6 @@ MeshRenderComponent::MeshRenderComponent(Entity& entity) : RenderComponent(entit
 	receiveShadows = true;
 
 	m_mesh = nullptr;
-	m_meshID = "";
 }
 
 MeshRenderComponent::~MeshRenderComponent()
@@ -16,10 +15,12 @@ MeshRenderComponent::~MeshRenderComponent()
 void MeshRenderComponent::initDebugVariables()
 {
 	RenderComponent::initDebugVariables();
+	
+	Mesh** mesh = &m_mesh;
+	debugAddModel("Model", &m_mesh);
 
-	Debug::entityDebugWindow->addVariableWithCallbacks(TW_TYPE_STDSTRING, "Mesh", this, &getMeshRenderComponentMeshDebugEditor, &setMeshRenderComponentMeshDebugEditor, this);
-	Debug::entityDebugWindow->addVariable(&castShadows, TW_TYPE_BOOLCPP, "Cast Shadows", this);
-	Debug::entityDebugWindow->addVariable(&receiveShadows, TW_TYPE_BOOLCPP, "Receive Shadows", this);
+	debugAddBool("Cast Shadows", &castShadows);
+	debugAddBool("Receive Shadows", &receiveShadows);
 }
 
 void MeshRenderComponent::loadFromJSON(rapidjson::Value& dataObject)
@@ -29,7 +30,7 @@ void MeshRenderComponent::loadFromJSON(rapidjson::Value& dataObject)
 	rapidjson::Value::MemberIterator mesh = dataObject.FindMember("mesh");
 	if (mesh != dataObject.MemberEnd())
 	{
-		setMesh(mesh->value.GetString());
+		setMesh(AssetManager::getAsset<Mesh>(mesh->value.GetString()));
 	}
 
 	rapidjson::Value::MemberIterator castShadowsIter = dataObject.FindMember("castShadows");
@@ -49,8 +50,11 @@ void MeshRenderComponent::saveToJSON(rapidjson::PrettyWriter<rapidjson::StringBu
 {
 	RenderComponent::saveToJSON(writer);
 
-	writer.Key("mesh");
-	writer.String(m_meshID.c_str());
+	if (m_mesh)
+	{
+		writer.Key("mesh");
+		writer.String(m_mesh->getAssetID().c_str());
+	}
 
 	writer.Key("castShadows");
 	writer.Bool(castShadows);
@@ -64,42 +68,7 @@ Mesh* MeshRenderComponent::getMesh() const
 	return m_mesh;
 }
 
-std::string MeshRenderComponent::getMeshID() const
+void MeshRenderComponent::setMesh(Mesh* mesh)
 {
-	return m_meshID;
-}
-
-void MeshRenderComponent::setMesh(std::string meshID)
-{
-	if (meshID == "")
-	{
-		m_meshID = "";
-		m_mesh = nullptr;
-		return;
-	}
-
-	Mesh* mesh = AssetManager::getAsset<Mesh>(meshID);
-	if (mesh)
-	{
-		m_mesh = mesh;
-		m_meshID = meshID;
-	}
-}
-
-void TW_CALL getMeshRenderComponentMeshDebugEditor(void* value, void* clientData)
-{
-	MeshRenderComponent* component = static_cast<MeshRenderComponent*>(clientData);
-	std::string* meshInputField = static_cast<std::string*>(value);
-
-	std::string meshID = component->getMeshID();
-	if (meshID == "")
-		meshID = "none";
-
-	TwCopyStdStringToLibrary(*meshInputField, meshID);
-}
-
-void TW_CALL setMeshRenderComponentMeshDebugEditor(const void* value, void* clientData)
-{
-	MeshRenderComponent* component = static_cast<MeshRenderComponent*>(clientData);
-	component->setMesh(*static_cast<const std::string*>(value));
+	m_mesh = mesh;
 }

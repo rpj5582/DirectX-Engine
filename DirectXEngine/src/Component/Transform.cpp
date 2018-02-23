@@ -33,9 +33,9 @@ void Transform::initDebugVariables()
 {
 	Component::initDebugVariables();
 
-	Debug::entityDebugWindow->addVariableWithCallbacks(Debug::TW_TYPE_VEC3F, "Position", this, &getTransformPositionDebugEditor, &setTransformPositionDebugEditor, this);
-	Debug::entityDebugWindow->addVariableWithCallbacks(Debug::TW_TYPE_VEC3F, "Rotation", this, &getTransformRotationDebugEditor, &setTransformRotationDebugEditor, this);
-	Debug::entityDebugWindow->addVariableWithCallbacks(Debug::TW_TYPE_VEC3F, "Scale", this, &getTransformScaleDebugEditor, &setTransformScaleDebugEditor, this);
+	debugAddVec3("Position", &m_localPosition, nullptr, &debugTransformSetLocalPosition);
+	debugAddVec3("Rotation", &m_localRotation, &debugTransformGetLocalRotation, &debugTransformSetLocalRotation);
+	debugAddVec3("Scale", &m_localScale, nullptr, &debugTransformSetLocalScale);
 }
 
 void Transform::loadFromJSON(rapidjson::Value& dataObject)
@@ -109,7 +109,7 @@ void Transform::saveToJSON(rapidjson::PrettyWriter<rapidjson::StringBuffer>& wri
 	writer.EndObject();
 }
 
-const DirectX::XMFLOAT3 Transform::getPosition()
+DirectX::XMFLOAT3 Transform::getPosition()
 {
 	XMMATRIX worldMatrix = XMLoadFloat4x4(&m_worldMatrix);
 
@@ -127,17 +127,17 @@ const DirectX::XMFLOAT3 Transform::getPosition()
 	return worldPosition;
 }
 
-const XMFLOAT3 Transform::getLocalPosition() const
+XMFLOAT3 Transform::getLocalPosition() const
 {
 	return m_localPosition;
 }
 
-const XMFLOAT3 Transform::getLocalRotation() const
+XMFLOAT3 Transform::getLocalRotation() const
 {
 	return m_localRotation;
 }
 
-const XMFLOAT3 Transform::getLocalScale() const
+XMFLOAT3 Transform::getLocalScale() const
 {
 	return m_localScale;
 }
@@ -537,40 +537,26 @@ void Transform::setDirty()
 	}
 }
 
-void TW_CALL getTransformPositionDebugEditor(void* value, void* clientData)
+void debugTransformSetLocalPosition(Component* component, const void* value)
 {
-	Transform* transform = static_cast<Transform*>(clientData);
-	*static_cast<XMFLOAT3*>(value) = transform->getLocalPosition();
+	XMFLOAT3 position = *static_cast<const XMFLOAT3*>(value);
+	static_cast<Transform*>(component)->setLocalPosition(position);
 }
 
-void TW_CALL getTransformRotationDebugEditor(void* value, void* clientData)
+void debugTransformGetLocalRotation(const Component* component, void* value)
 {
-	Transform* transform = static_cast<Transform*>(clientData);
-	XMFLOAT3 rotation = transform->getLocalRotation();
-	XMFLOAT3 rotationDegrees = XMFLOAT3(XMConvertToDegrees(rotation.x), XMConvertToDegrees(rotation.y), XMConvertToDegrees(rotation.z));
-	*static_cast<XMFLOAT3*>(value) = rotationDegrees;
+	XMFLOAT3 rotationRadians = static_cast<const Transform*>(component)->getLocalRotation();
+	*static_cast<XMFLOAT3*>(value) = XMFLOAT3(XMConvertToDegrees(rotationRadians.x), XMConvertToDegrees(rotationRadians.y), XMConvertToDegrees(rotationRadians.z));
 }
 
-void TW_CALL getTransformScaleDebugEditor(void* value, void* clientData)
+void debugTransformSetLocalRotation(Component* component, const void* value)
 {
-	Transform* transform = static_cast<Transform*>(clientData);
-	*static_cast<XMFLOAT3*>(value) = transform->getLocalScale();
+	XMFLOAT3 rotation = *static_cast<const XMFLOAT3*>(value);
+	static_cast<Transform*>(component)->setLocalRotation(rotation);
 }
 
-void TW_CALL setTransformPositionDebugEditor(const void* value, void* clientData)
+void debugTransformSetLocalScale(Component* component, const void* value)
 {
-	Transform* transform = static_cast<Transform*>(clientData);
-	transform->setLocalPosition(*static_cast<const XMFLOAT3*>(value));
-}
-
-void TW_CALL setTransformRotationDebugEditor(const void* value, void* clientData)
-{
-	Transform* transform = static_cast<Transform*>(clientData);
-	transform->setLocalRotation(*static_cast<const XMFLOAT3*>(value));
-}
-
-void TW_CALL setTransformScaleDebugEditor(const void* value, void* clientData)
-{
-	Transform* transform = static_cast<Transform*>(clientData);
-	transform->setLocalScale(*static_cast<const XMFLOAT3*>(value));
+	XMFLOAT3 scale = *static_cast<const XMFLOAT3*>(value);
+	static_cast<Transform*>(component)->setLocalScale(scale);
 }

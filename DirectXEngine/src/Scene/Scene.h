@@ -12,21 +12,17 @@ class Scene
 public:
 	friend class SceneManager;
 
-	Scene(std::string name, std::string filepath);
-	virtual ~Scene();
+	Scene();
+	~Scene();
 
-	virtual bool init();
-	virtual void update(float deltaTime, float totalTime);
+	bool init();
+	void update(float deltaTime, float totalTime);
 
-	void renderGeometry(Renderer* renderer, ID3D11RenderTargetView* backBufferRTV, ID3D11DepthStencilView* backBufferDSV);
+	void renderGeometry(Renderer* renderer, ID3D11RenderTargetView* backBufferRTV, ID3D11DepthStencilView* backBufferDSV, float width, float height);
 	void renderGUI(GUIRenderer* guiRenderer);
-
-	std::string getName() const;
 
 	Entity* createEntity(std::string name);
 	void deleteEntity(Entity* entity);
-
-	void clear();
 
 	Entity* getEntityByName(std::string name);
 	Entity* getEntityWithTag(std::string tag);
@@ -37,9 +33,12 @@ public:
 	std::vector<T*> getAllComponentsByType() const;
 
 	void addTag(std::string tag);
+	std::vector<std::string> getAllTags() const;
 
 	void addTagToEntity(Entity& entity, std::string tag);
 	void removeTagFromEntity(Entity& entity, std::string tag);
+
+	bool isDirty() const;
 
 	CameraComponent* getMainCamera() const;
 	void setMainCamera(CameraComponent* camera);
@@ -47,38 +46,21 @@ public:
 
 	CameraComponent* getDebugCamera() const;
 
-	std::string d_entityNameField;
-	std::string d_mainCameraField;
-
-	std::string d_textureNameField;
-	std::string d_materialNameField;
-	std::string d_meshNameField;
-	std::string d_fontNameField;
-	std::string d_samplerNameField;
-	std::string d_vertexShaderNameField;
-	std::string d_pixelShaderNameField;
-
-	std::string d_texturePathField;
-	std::string d_materialPathField;
-	std::string d_meshPathField;
-	std::string d_fontPathField;
-	std::string d_samplerPathField;
-	std::string d_vertexShaderPathField;
-	std::string d_pixelShaderPathField;
-
-protected:
-	virtual void onLoad() = 0;
-
 private:
-	bool loadFromJSON();
+	bool hasFilePath() const;
+
+	bool loadFromJSON(std::string filepath);
+
 	void saveToJSON();
+	void saveToJSON(std::string filepath);
 
 	unsigned int getEntityIndex(const Entity& entity) const;
 
-	std::string m_name;
 	std::string m_filepath;
+	bool m_dirty;
 
 	std::vector<Entity*> m_entities;
+	unsigned int m_entityCount;
 
 	std::unordered_map<std::string, std::vector<Entity*>> m_taggedEntities;
 

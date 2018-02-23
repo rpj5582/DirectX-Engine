@@ -105,7 +105,7 @@ HRESULT Window::init()
 
 	// The window exists but is not visible yet
 	// We need to tell Windows to show it, and how to show it
-	ShowWindow(m_hWnd, SW_SHOW);
+	ShowWindow(m_hWnd, SW_MAXIMIZE);
 
 
 	// Return an "everything is ok" HRESULT value

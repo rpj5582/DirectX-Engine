@@ -192,11 +192,8 @@ HRESULT DXCore::InitDirectX()
 // resolution won't match up.  This can result in odd
 // stretching/skewing.
 // --------------------------------------------------------
-void DXCore::OnResize()
+void DXCore::resizeBuffers(unsigned int width, unsigned int height)
 {
-	unsigned int windowWidth = Window::getWidth();
-	unsigned int windowHeight = Window::getHeight();
-
 	// Release existing DirectX views and buffers
 	if (depthStencilView) { depthStencilView->Release(); }
 	if (backBufferRTV) { backBufferRTV->Release(); }
@@ -204,8 +201,8 @@ void DXCore::OnResize()
 	// Resize the underlying swap chain buffers
 	swapChain->ResizeBuffers(
 		1,
-		windowWidth,
-		windowHeight,
+		width,
+		height,
 		DXGI_FORMAT_R8G8B8A8_UNORM,
 		0);
 
@@ -218,8 +215,8 @@ void DXCore::OnResize()
 
 	// Set up the description of the texture to use for the depth buffer
 	D3D11_TEXTURE2D_DESC depthStencilDesc;
-	depthStencilDesc.Width				= windowWidth;
-	depthStencilDesc.Height				= windowHeight;
+	depthStencilDesc.Width				= width;
+	depthStencilDesc.Height				= height;
 	depthStencilDesc.MipLevels			= 1;
 	depthStencilDesc.ArraySize			= 1;
 	depthStencilDesc.Format				= DXGI_FORMAT_D24_UNORM_S8_UINT;
@@ -246,8 +243,8 @@ void DXCore::OnResize()
 	D3D11_VIEWPORT viewport = {};
 	viewport.TopLeftX = 0;
 	viewport.TopLeftY = 0;
-	viewport.Width = (float)windowWidth;
-	viewport.Height = (float)windowHeight;
+	viewport.Width = (float)width;
+	viewport.Height = (float)height;
 	viewport.MinDepth = 0.0f;
 	viewport.MaxDepth = 1.0f;
 	context->RSSetViewports(1, &viewport);
@@ -445,7 +442,7 @@ LRESULT DXCore::ProcessMessage(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPara
 		// If DX is initialized, resize 
 		// our required buffers
 		if (device) 
-			OnResize();
+			resizeBuffers(Window::getWidth(), Window::getHeight());
 
 		return 0;
 	}

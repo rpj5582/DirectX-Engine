@@ -179,7 +179,7 @@ void Renderer::renderShadowMapPass(Entity** entities, size_t entityCount, const 
 	}
 }
 
-void Renderer::prepareMainPass(ID3D11RenderTargetView* backBufferRTV, ID3D11DepthStencilView* backBufferDSV)
+void Renderer::prepareMainPass(ID3D11RenderTargetView* backBufferRTV, ID3D11DepthStencilView* backBufferDSV, float width, float height)
 {
 	m_context->OMSetRenderTargets(1, &backBufferRTV, backBufferDSV);
 
@@ -192,8 +192,8 @@ void Renderer::prepareMainPass(ID3D11RenderTargetView* backBufferRTV, ID3D11Dept
 	viewport.TopLeftX = viewport.TopLeftY = 0;
 	viewport.MinDepth = 0;
 	viewport.MaxDepth = 1;
-	viewport.Width = (float)Window::getWidth();
-	viewport.Height = (float)Window::getHeight();
+	viewport.Width = width;
+	viewport.Height = height;
 	m_context->RSSetViewports(1, &viewport);
 }
 

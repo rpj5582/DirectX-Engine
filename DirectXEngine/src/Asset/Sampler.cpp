@@ -231,24 +231,24 @@ bool Sampler::loadFromFile()
 	D3D11_TEXTURE_ADDRESS_MODE addressW = D3D11_TEXTURE_ADDRESS_WRAP;
 	D3D11_FILTER filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
 
-	switch (stringHash(addressUString.c_str()))
+	switch (Util::stringHash(addressUString.c_str()))
 	{
-	case stringHash("wrap"):
+	case Util::stringHash("wrap"):
 		break;
 
-	case stringHash("border"):
+	case Util::stringHash("border"):
 		addressU = D3D11_TEXTURE_ADDRESS_BORDER;
 		break;
 
-	case stringHash("clamp"):
+	case Util::stringHash("clamp"):
 		addressU = D3D11_TEXTURE_ADDRESS_CLAMP;
 		break;
 
-	case stringHash("mirror"):
+	case Util::stringHash("mirror"):
 		addressU = D3D11_TEXTURE_ADDRESS_MIRROR;
 		break;
 
-	case stringHash("mirror_once"):
+	case Util::stringHash("mirror_once"):
 		addressU = D3D11_TEXTURE_ADDRESS_MIRROR_ONCE;
 		break;
 
@@ -257,24 +257,24 @@ bool Sampler::loadFromFile()
 		break;
 	}
 
-	switch (stringHash(addressVString.c_str()))
+	switch (Util::stringHash(addressVString.c_str()))
 	{
-	case stringHash("wrap"):
+	case Util::stringHash("wrap"):
 		break;
 
-	case stringHash("border"):
+	case Util::stringHash("border"):
 		addressV = D3D11_TEXTURE_ADDRESS_BORDER;
 		break;
 
-	case stringHash("clamp"):
+	case Util::stringHash("clamp"):
 		addressV = D3D11_TEXTURE_ADDRESS_CLAMP;
 		break;
 
-	case stringHash("mirror"):
+	case Util::stringHash("mirror"):
 		addressV = D3D11_TEXTURE_ADDRESS_MIRROR;
 		break;
 
-	case stringHash("mirror_once"):
+	case Util::stringHash("mirror_once"):
 		addressV = D3D11_TEXTURE_ADDRESS_MIRROR_ONCE;
 		break;
 
@@ -283,24 +283,24 @@ bool Sampler::loadFromFile()
 		break;
 	}
 
-	switch (stringHash(addressWString.c_str()))
+	switch (Util::stringHash(addressWString.c_str()))
 	{
-	case stringHash("wrap"):
+	case Util::stringHash("wrap"):
 		break;
 
-	case stringHash("border"):
+	case Util::stringHash("border"):
 		addressW = D3D11_TEXTURE_ADDRESS_BORDER;
 		break;
 
-	case stringHash("clamp"):
+	case Util::stringHash("clamp"):
 		addressW = D3D11_TEXTURE_ADDRESS_CLAMP;
 		break;
 
-	case stringHash("mirror"):
+	case Util::stringHash("mirror"):
 		addressW = D3D11_TEXTURE_ADDRESS_MIRROR;
 		break;
 
-	case stringHash("mirror_once"):
+	case Util::stringHash("mirror_once"):
 		addressW = D3D11_TEXTURE_ADDRESS_MIRROR_ONCE;
 		break;
 

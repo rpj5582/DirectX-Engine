@@ -14,13 +14,10 @@ public:
 	virtual void draw(DirectX::SpriteBatch& spriteBatch) const override;
 
 	Texture* getTexture() const;
-	std::string getTextureID() const;
-	void setTexture(std::string textureID);
+	void setTexture(Texture* texture);
 
 protected:
 	Texture* m_texture;
-	std::string m_textureID;
 };
 
-void TW_CALL getGUISpriteComponentTextureDebugEditor(void* value, void* clientData);
-void TW_CALL setGUISpriteComponentTextureDebugEditor(const void* value, void* clientData);
+void debugGUISpriteComponentSetTexture(Component* component, const void* value);

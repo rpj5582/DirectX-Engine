@@ -18,7 +18,7 @@ GUIDebugSpriteComponent::~GUIDebugSpriteComponent()
 
 void GUIDebugSpriteComponent::init()
 {
-	setTexture(DEBUG_TEXTURE_DEFAULTICON);
+	setTexture(AssetManager::getAsset<Texture>(DEBUG_TEXTURE_DEFAULTICON));
 }
 
 void GUIDebugSpriteComponent::initDebugVariables()
@@ -35,12 +35,10 @@ void GUIDebugSpriteComponent::update(float deltaTime, float totalTime)
 		if (debugIcon->getGUITransform()->containsPoint(mousePosition))
 		{
 			entity.selected = !entity.selected;
-			Debug::entityDebugWindow->showEntity(&entity);
 		}
 		else
 		{
 			entity.selected = false;
-			Debug::entityDebugWindow->hideEntity(&entity);
 		}
 	}
 }

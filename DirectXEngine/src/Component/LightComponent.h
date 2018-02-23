@@ -3,7 +3,9 @@
 
 enum LightType
 {
-	POINT_LIGHT, DIRECTIONAL_LIGHT, SPOT_LIGHT
+	POINT_LIGHT,
+	DIRECTIONAL_LIGHT,
+	SPOT_LIGHT
 };
 
 enum ShadowType
@@ -74,25 +76,9 @@ private:
 	DirectX::XMFLOAT4X4 m_projectionMatrix;
 	bool m_castShadows;
 	unsigned int m_shadowMapSize;
-	
-	static TwStructMember d_lightStructMembers[5];
-	static TwType TW_TYPE_LIGHT_SETTINGS;
-
-	static TwEnumVal d_lightTypeMembers[3];
-	static TwType TW_TYPE_LIGHT_TYPE;
-
-	static TwEnumVal d_shadowTypeMembers[3];
-	static TwType TW_TYPE_SHADOW_TYPE;
 };
 
-void TW_CALL getLightSettingsDebugEditor(void* value, void* clientData);
-void TW_CALL getLightTypeDebugEditor(void* value, void* clientData);
-void TW_CALL getCastShadowsDebugEditor(void* value, void* clientData);
-void TW_CALL getShadowTypeDebugEditor(void* value, void* clientData);
-void TW_CALL getShadowMapSizeDebugEditor(void* value, void* clientData);
-
-void TW_CALL setLightSettingsDebugEditor(const void* value, void* clientData);
-void TW_CALL setLightTypeDebugEditor(const void* value, void* clientData);
-void TW_CALL setCastShadowsDebugEditor(const void* value, void* clientData);
-void TW_CALL setShadowTypeDebugEditor(const void* value, void* clientData);
-void TW_CALL setShadowMapSizeDebugEditor(const void* value, void* clientData);
+void debugLightComponentSetLightSettings(Component* component, const void* value);
+void debugLightComponentSetLightType(Component* component, const void* value);
+void debugLightComponentSetShadowMapSize(Component* component, const void* value);
+void debugLightComponentSetCastShadows(Component* component, const void* value);

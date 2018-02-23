@@ -1,6 +1,7 @@
 #include "Mesh.h"
 
 #include "../Debug/Debug.h"
+#include <vector>
 #include <fstream>
 
 using namespace DirectX;

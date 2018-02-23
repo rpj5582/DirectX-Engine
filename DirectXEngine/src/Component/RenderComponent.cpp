@@ -2,19 +2,10 @@
 
 using namespace DirectX;
 
-TwEnumVal RenderComponent::d_renderStyleMembers[3] = 
-{
-	{ SOLID, "Solid" }, 
-	{ WIREFRAME, "Wireframe" }, 
-	{ SOLID_WIREFRAME, "Solid Wireframe" }
-};
-
-TwType RenderComponent::TW_TYPE_RENDER_STLYE = TW_TYPE_UNDEF;
-
 RenderComponent::RenderComponent(Entity& entity) : Component(entity)
 {
 	m_material = nullptr;
-	m_renderStyle = RenderStyle::SOLID;
+	m_renderStyle = SOLID;
 	m_wireColor = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
 }
 
@@ -26,19 +17,19 @@ void RenderComponent::init()
 {
 	Component::init();
 
-	setMaterial(DEFAULT_MATERIAL);
+	setMaterial(AssetManager::getAsset<Material>(DEFAULT_MATERIAL));
 }
 
 void RenderComponent::initDebugVariables()
 {
 	Component::initDebugVariables();
 
-	if (TW_TYPE_RENDER_STLYE == TW_TYPE_UNDEF)
-		TW_TYPE_RENDER_STLYE = TwDefineEnum("TW_TYPE_RENDER_STLYE", d_renderStyleMembers, 3);
+	debugAddMaterial("Material", &m_material, nullptr, &debugRenderComponentSetMaterial);
 
-	Debug::entityDebugWindow->addVariableWithCallbacks(TW_TYPE_STDSTRING, "Material", this, &getRenderComponentMaterialDebugEditor, &setRenderComponentMaterialDebugEditor, this);
-	Debug::entityDebugWindow->addVariable(&m_renderStyle, TW_TYPE_RENDER_STLYE, "Render Style", this);
-	Debug::entityDebugWindow->addVariable(&m_wireColor, TW_TYPE_COLOR4F, "Wireframe Color", this);
+	unsigned int renderStyleHash = Debug::registerEnum<RenderStyle>("Solid\0Wireframe\0Solid Wireframe\0\0");
+	debugAddEnum("Render Style", &m_renderStyle, renderStyleHash);
+
+	debugAddColor("Wireframe Color", &m_wireColor);
 }
 
 void RenderComponent::loadFromJSON(rapidjson::Value& dataObject)
@@ -48,28 +39,28 @@ void RenderComponent::loadFromJSON(rapidjson::Value& dataObject)
 	rapidjson::Value::MemberIterator material = dataObject.FindMember("material");
 	if (material != dataObject.MemberEnd())
 	{
-		setMaterial(material->value.GetString());
+		setMaterial(AssetManager::getAsset<Material>(material->value.GetString()));
 	}
 
 	rapidjson::Value::MemberIterator renderStyle = dataObject.FindMember("renderStyle");
 	if (renderStyle != dataObject.MemberEnd())
 	{
 		const char* renderStyleString = renderStyle->value.GetString();
-		switch (stringHash(renderStyleString))
+		switch (Util::stringHash(renderStyleString))
 		{
-		case stringHash("solid"):
+		case Util::stringHash("solid"):
 		{
 			m_renderStyle = SOLID;
 			break;
 		}
 
-		case stringHash("wireframe"):
+		case Util::stringHash("wireframe"):
 		{
 			m_renderStyle = WIREFRAME;
 			break;
 		}
 
-		case stringHash("solid-wireframe"):
+		case Util::stringHash("solid-wireframe"):
 		{
 			m_renderStyle = SOLID_WIREFRAME;
 			break;
@@ -93,7 +84,7 @@ void RenderComponent::saveToJSON(rapidjson::PrettyWriter<rapidjson::StringBuffer
 	Component::saveToJSON(writer);
 
 	writer.Key("material");
-	writer.String(m_materialID.c_str());
+	writer.String(m_material->getAssetID().c_str());
 
 	writer.Key("renderStyle");
 	switch (m_renderStyle)
@@ -139,26 +130,12 @@ Material* RenderComponent::getMaterial() const
 	return m_material;
 }
 
-std::string RenderComponent::getMaterialID() const
+void RenderComponent::setMaterial(Material* material)
 {
-	return m_materialID;
-}
-
-void RenderComponent::setMaterial(std::string materialID)
-{
-	if (materialID == "")
-	{
-		m_material = AssetManager::getAsset<Material>(DEFAULT_MATERIAL);
-		m_materialID = DEFAULT_MATERIAL;
-		return;
-	}
-
-	Material* material = AssetManager::getAsset<Material>(materialID);
 	if (material)
-	{
 		m_material = material;
-		m_materialID = materialID;
-	}	
+	else
+		m_material = AssetManager::getAsset<Material>(DEFAULT_MATERIAL);
 }
 
 RenderStyle RenderComponent::getRenderStyle() const
@@ -181,16 +158,8 @@ void RenderComponent::setWireframeColor(XMFLOAT4 color)
 	m_wireColor = color;
 }
 
-void TW_CALL getRenderComponentMaterialDebugEditor(void* value, void* clientData)
+void debugRenderComponentSetMaterial(Component* component, const void* value)
 {
-	RenderComponent* component = static_cast<RenderComponent*>(clientData);
-	std::string* materialInputField = static_cast<std::string*>(value);
-
-	TwCopyStdStringToLibrary(*materialInputField, component->getMaterialID());
-}
-
-void TW_CALL setRenderComponentMaterialDebugEditor(const void* value, void* clientData)
-{
-	RenderComponent* component = static_cast<RenderComponent*>(clientData);
-	component->setMaterial(*static_cast<const std::string*>(value));
+	Material* material = *static_cast<Material*const*>(value);
+	static_cast<RenderComponent*>(component)->setMaterial(material);
 }

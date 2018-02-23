@@ -7,7 +7,6 @@ using namespace DirectX;
 GUISpriteComponent::GUISpriteComponent(Entity& entity) : GUIComponent(entity)
 {
 	m_texture = nullptr;
-	m_textureID = "";
 }
 
 GUISpriteComponent::~GUISpriteComponent()
@@ -18,14 +17,14 @@ void GUISpriteComponent::init()
 {
 	GUIComponent::init();
 
-	setTexture(DEFAULT_TEXTURE_WHITE);
+	setTexture(AssetManager::getAsset<Texture>(DEFAULT_TEXTURE_WHITE));
 }
 
 void GUISpriteComponent::initDebugVariables()
 {
 	GUIComponent::initDebugVariables();
 
-	Debug::entityDebugWindow->addVariableWithCallbacks(TW_TYPE_STDSTRING, "Texture", this, &getGUISpriteComponentTextureDebugEditor, &setGUISpriteComponentTextureDebugEditor, this);
+	debugAddTexture("Texture", &m_texture, nullptr, &debugGUISpriteComponentSetTexture);
 }
 
 void GUISpriteComponent::loadFromJSON(rapidjson::Value& dataObject)
@@ -35,7 +34,7 @@ void GUISpriteComponent::loadFromJSON(rapidjson::Value& dataObject)
 	rapidjson::Value::MemberIterator texture = dataObject.FindMember("texture");
 	if (texture != dataObject.MemberEnd())
 	{
-		setTexture(texture->value.GetString());
+		setTexture(AssetManager::getAsset<Texture>(texture->value.GetString()));
 	}
 }
 
@@ -44,7 +43,7 @@ void GUISpriteComponent::saveToJSON(rapidjson::PrettyWriter<rapidjson::StringBuf
 	Component::saveToJSON(writer);
 
 	writer.Key("texture");
-	writer.String(m_textureID.c_str());
+	writer.String(m_texture->getAssetID().c_str());
 }
 
 void GUISpriteComponent::draw(DirectX::SpriteBatch& spriteBatch) const
@@ -88,37 +87,16 @@ Texture* GUISpriteComponent::getTexture() const
 	return m_texture;
 }
 
-std::string GUISpriteComponent::getTextureID() const
+void GUISpriteComponent::setTexture(Texture* texture)
 {
-	return m_textureID;
-}
-
-void GUISpriteComponent::setTexture(std::string textureID)
-{
-	if (textureID == "")
-	{
-		m_texture = AssetManager::getAsset<Texture>(DEFAULT_TEXTURE_WHITE);
-		m_textureID = DEFAULT_TEXTURE_WHITE;
-		return;
-	}
-
-	Texture* texture = AssetManager::getAsset<Texture>(textureID);
 	if (texture)
-	{
 		m_texture = texture;
-		m_textureID = textureID;
-	}
+	else
+		m_texture = AssetManager::getAsset<Texture>(DEFAULT_TEXTURE_WHITE);
 }
 
-void TW_CALL getGUISpriteComponentTextureDebugEditor(void* value, void* clientData)
+void debugGUISpriteComponentSetTexture(Component* component, const void* value)
 {
-	GUISpriteComponent* component = static_cast<GUISpriteComponent*>(clientData);
-	std::string* textureInputField = static_cast<std::string*>(value);
-	TwCopyStdStringToLibrary(*textureInputField, component->getTextureID());
-}
-
-void TW_CALL setGUISpriteComponentTextureDebugEditor(const void* value, void* clientData)
-{
-	GUISpriteComponent* component = static_cast<GUISpriteComponent*>(clientData);
-	component->setTexture(*static_cast<const std::string*>(value));
+	Texture* texture = *static_cast<Texture*const*>(value);
+	static_cast<GUISpriteComponent*>(component)->setTexture(texture);
 }

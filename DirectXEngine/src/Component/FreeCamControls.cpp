@@ -21,9 +21,9 @@ void FreeCamControls::initDebugVariables()
 {
 	Component::initDebugVariables();
 
-	Debug::entityDebugWindow->addVariable(&moveSpeedFast, TW_TYPE_FLOAT, "Fast Move Speed", this, "", " min=0 step=0.1 ");
-	Debug::entityDebugWindow->addVariable(&moveSpeedNormal, TW_TYPE_FLOAT, "Move Speed", this, "", " min=0 step=0.1 ");
-	Debug::entityDebugWindow->addVariable(&moveSpeedSlow, TW_TYPE_FLOAT, "Slow Move Speed", this, "", " min=0 step=0.1 ");
+	debugAddFloat("Normal Speed", &moveSpeedNormal);
+	debugAddFloat("Fast Speed", &moveSpeedFast);
+	debugAddFloat("Slow Speed", &moveSpeedSlow);
 }
 
 void FreeCamControls::update(float deltaTime, float totalTime)

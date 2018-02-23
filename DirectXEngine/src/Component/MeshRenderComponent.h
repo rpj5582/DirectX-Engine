@@ -12,16 +12,11 @@ public:
 	virtual void saveToJSON(rapidjson::PrettyWriter<rapidjson::StringBuffer>& writer) override;
 
 	Mesh* getMesh() const;
-	std::string getMeshID() const;
-	void setMesh(std::string meshID);
+	void setMesh(Mesh* mesh);
 
 	bool castShadows;
 	bool receiveShadows;
 
 private:
-	std::string m_meshID;
 	Mesh* m_mesh;
 };
-
-void TW_CALL getMeshRenderComponentMeshDebugEditor(void* value, void* clientData);
-void TW_CALL setMeshRenderComponentMeshDebugEditor(const void* value, void* clientData);

@@ -25,10 +25,10 @@ void GUITransform::initDebugVariables()
 {
 	Component::initDebugVariables();
 
-	Debug::entityDebugWindow->addVariable(&m_position, Debug::TW_TYPE_VEC2F, "Position", this);
-	Debug::entityDebugWindow->addVariable(&m_rotation, TW_TYPE_FLOAT, "Rotation", this);
-	Debug::entityDebugWindow->addVariable(&m_size, Debug::TW_TYPE_SIZE2, "Size", this);
-	Debug::entityDebugWindow->addVariable(&m_origin, Debug::TW_TYPE_VEC2F, "Origin", this);
+	debugAddVec2("Position", &m_position);
+	debugAddFloat("Rotation", &m_rotation);
+	debugAddVec2("Size", &m_size);
+	debugAddVec2("Origin", &m_origin);
 }
 
 void GUITransform::loadFromJSON(rapidjson::Value& dataObject)

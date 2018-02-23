@@ -1,25 +1,182 @@
 #include "Debug.h"
 
-SceneDebugWindow* Debug::sceneDebugWindow = nullptr;
-EntityDebugWindow* Debug::entityDebugWindow = nullptr;
-AssetDebugWindow* Debug::assetDebugWindow = nullptr;
+#include "../Third Party/imgui/imgui_impl_dx11.h"
+#include "../Input.h"
+#include "../Scene/SceneManager.h"
+
+#include <iostream>
+#include <d3d11.h>
+
+using namespace DirectX;
 
 bool Debug::inPlayMode = false;
 
-TwStructMember Debug::vec3Members[] =
+DebugEntityList Debug::m_entityList;
+DebugComponentList Debug::m_componentList;
+DebugAssetList Debug::m_assetList(nullptr);
+DebugConsoleWindow Debug::m_consoleWindow;
+DebugMainMenuBar Debug::m_mainMenuBar(m_entityList, m_componentList, m_assetList);
+
+std::unordered_map<unsigned int, const char*> Debug::m_debugEnumString;
+std::unordered_map<unsigned int, std::vector<DebugComponentData>> Debug::m_debugStructMembers;
+
+void Debug::init()
 {
-	{ "x", TW_TYPE_FLOAT, 0, " step=0.1 " },
-	{ "y", TW_TYPE_FLOAT, sizeof(float), " step=0.1 " },
-	{ "z", TW_TYPE_FLOAT, sizeof(float) * 2, " step=0.1 " }
-};
-TwStructMember Debug::sizeMembers[] =
+	ImGui::CreateContext();
+}
+
+void Debug::lateInit(HWND hWnd, ID3D11Device* device, ID3D11DeviceContext* context)
 {
-	{ "x", TW_TYPE_FLOAT, 0, " min=0 " },
-	{ "y", TW_TYPE_FLOAT, sizeof(float), " min=0 " }
-};
-TwType Debug::TW_TYPE_VEC3F = TW_TYPE_UNDEF;
-TwType Debug::TW_TYPE_VEC2F = TW_TYPE_UNDEF;
-TwType Debug::TW_TYPE_SIZE2 = TW_TYPE_UNDEF;
+	ImGui_ImplDX11_Init(hWnd, device, context);
+	ImGui::StyleColorsDark();
+
+	m_assetList = DebugAssetList(hWnd);
+}
+
+void Debug::destroy()
+{
+	ImGui_ImplDX11_Shutdown();
+	ImGui::DestroyContext();
+}
+
+extern LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
+bool Debug::ProcessMessage(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam, DebugWinMsgReturn& output)
+{
+	switch (uMsg)
+	{
+	case WM_CLOSE:
+	{
+		if (m_mainMenuBar.getAppClosedState() == ClosedState::NOT_CLOSED)
+		{
+			m_mainMenuBar.setAppClosedState(ClosedState::TRYING_TO_CLOSE);
+			return false;
+		}
+
+		break;
+	}
+	}
+
+	if (ImGui_ImplWin32_WndProcHandler(hWnd, uMsg, wParam, lParam)) return true;
+
+	ImGuiIO& io = ImGui::GetIO();
+	output.wantKeyboard = io.WantCaptureKeyboard;
+	output.wantMouse = io.WantCaptureMouse;
+	return true;
+}
+
+void Debug::update()
+{
+	if (!inPlayMode)
+	{
+		ImGui_ImplDX11_NewFrame();
+		ImGui::ShowDemoWindow();
+
+		// Check if we are trying to close the window, since there may be unsaved changes.
+		if (m_mainMenuBar.getAppClosedState() == ClosedState::TRYING_TO_CLOSE)
+		{
+			bool quitSuccessful = m_mainMenuBar.chooseQuit();
+			if (!quitSuccessful)
+			{
+				m_mainMenuBar.openQuitSaveChangesPopup();
+			}
+		}
+
+		// Check for shortcuts
+		if (Input::isKeyDown(Keyboard::LeftControl))
+		{
+			if (Input::isKeyDown(Keyboard::LeftShift))
+			{
+				// Shortcuts with shift
+
+				if (Input::isKeyPressed(Keyboard::S))
+				{
+					SceneManager::saveActiveSceneAs();
+				}
+			}
+			else
+			{
+				// Shortcuts without shift
+
+				if (Input::isKeyPressed(Keyboard::N))
+				{
+					bool successful = m_mainMenuBar.chooseNew();
+					if (!successful)
+					{
+						m_mainMenuBar.openNewSaveChangesPopup();
+					}
+				}
+
+				if (Input::isKeyPressed(Keyboard::O))
+				{
+					bool successful = m_mainMenuBar.chooseLoad();
+					if (!successful)
+					{
+						m_mainMenuBar.openLoadSaveChangesPopup();
+					}
+				}
+
+				if (Input::isKeyPressed(Keyboard::S))
+				{
+					SceneManager::saveActiveScene();
+				}
+			}
+		}
+	}
+}
+
+void Debug::drawGUI()
+{
+	if (!inPlayMode)
+	{
+		ImGuiIO& io = ImGui::GetIO();
+
+		m_mainMenuBar.draw();
+
+		float mainMenuBarHeight = m_mainMenuBar.getHeight();
+		ImGui::SetNextWindowPos(ImVec2(0, mainMenuBarHeight));
+		ImGui::SetNextWindowSize(ImVec2(300, io.DisplaySize.y - mainMenuBarHeight));
+
+		if (m_mainMenuBar.shouldDrawEntityList())
+			m_entityList.draw();
+
+		ImGui::SetNextWindowPos(ImVec2(io.DisplaySize.x - 300, mainMenuBarHeight));
+		ImGui::SetNextWindowSize(ImVec2(300, io.DisplaySize.y - mainMenuBarHeight));
+
+		m_componentList.setSelectedEntityID(m_entityList.getSelectedEntity());
+
+		if (m_mainMenuBar.shouldDrawComponentList())
+			m_componentList.draw();
+
+		ImGui::SetNextWindowPos(ImVec2(300, io.DisplaySize.y - 300));
+		ImGui::SetNextWindowSize(ImVec2(io.DisplaySize.x / 2.0f - 300, 300));
+
+		if (m_mainMenuBar.shouldDrawAssetList())
+			m_assetList.draw();
+
+		ImGui::SetNextWindowPos(ImVec2(io.DisplaySize.x / 2.0f, io.DisplaySize.y - 300));
+		ImGui::SetNextWindowSize(ImVec2(io.DisplaySize.x / 2.0f - 300, 300));
+
+		if (m_mainMenuBar.shouldDrawConsole())
+			m_consoleWindow.draw();
+
+		ImGui::Render();
+	}
+}
+
+const char* Debug::getEnumDisplayString(unsigned int hash)
+{
+	if (m_debugEnumString.find(hash) != m_debugEnumString.end())
+		return m_debugEnumString.at(hash);
+	else
+		Debug::error("Enum not registered! Make sure to register the enum in initDebugVariables() by calling Debug::registerEnum() and storing the returned hash value in the DebugComponentData.dataCountOrHash variable.");
+
+	return "";
+}
+
+std::vector<DebugComponentData>& Debug::getStructMembers(unsigned int hash)
+{
+	return m_debugStructMembers.at(hash);
+}
 
 void Debug::createConsoleWindow()
 {
@@ -29,72 +186,24 @@ void Debug::createConsoleWindow()
 #endif
 }
 
-void Debug::initDebugWindows(ID3D11Device* device, int width, int height)
-{
-	int success = TwInit(TW_DIRECT3D11, device);
-	if (!success)
-	{
-		const char* errorMessage = TwGetLastError();
-		warning("Failed to initialize AntTweakBar: " + std::string(errorMessage));
-		warning("No debug controls will be available.");
-	}
-
-	TwCopyStdStringToClientFunc(&copyStringToClient);
-	TwWindowSize(width, height);
-	TwDefine(" GLOBAL iconpos=topleft iconalign=horizontal contained=true ");
-
-	TW_TYPE_VEC3F = TwDefineStruct("TW_TYPE_VEC3F", vec3Members, 3, sizeof(float) * 3, nullptr, nullptr);
-	TW_TYPE_VEC2F = TwDefineStruct("TW_TYPE_VEC2F", vec3Members, 2, sizeof(float) * 2, nullptr, nullptr);
-	TW_TYPE_SIZE2 = TwDefineStruct("TW_TYPE_SIZE2", sizeMembers, 2, sizeof(float) * 2, nullptr, nullptr);
-	
-	sceneDebugWindow = new SceneDebugWindow("scene", "Scene");
-	entityDebugWindow = new EntityDebugWindow("entities", "Entity List");
-	assetDebugWindow = new AssetDebugWindow("assets", "Assets");
-}
-
-void Debug::cleanDebugWindows()
-{
-	delete sceneDebugWindow;
-	delete entityDebugWindow;
-	delete assetDebugWindow;
-
-	TwTerminate();
-}
-
 void Debug::message(std::string message)
 {
 #if defined(DEBUG) || defined(_DEBUG)
-	std::cout << message << std::endl;
+	m_consoleWindow.addText(message);
 #endif
 }
 
 void Debug::warning(std::string warning)
 {
 #if defined(DEBUG) || defined(_DEBUG)
-	CONSOLE_SCREEN_BUFFER_INFO csbi;
-	GetConsoleScreenBufferInfo(GetStdHandle(STD_OUTPUT_HANDLE), &csbi);
-	WORD oldColorAttrs = csbi.wAttributes;
-
-	// 14 = Yellow text
-	SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 14);
-	std::cout << warning << std::endl;
-	SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), oldColorAttrs);
+	m_consoleWindow.addText(warning, 255, 255, 0);
 #endif
 }
 
 void Debug::error(std::string error)
 {
 #if defined(DEBUG) || defined(_DEBUG)
-	CONSOLE_SCREEN_BUFFER_INFO csbi;
-	GetConsoleScreenBufferInfo(GetStdHandle(STD_OUTPUT_HANDLE), &csbi);
-	WORD oldColorAttrs = csbi.wAttributes;
-
-	// 12 = Red text
-	SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 12);
-	std::cout << error << std::endl;
-	SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), oldColorAttrs);
-
-	DebugBreak();
+	m_consoleWindow.addText(error, 255, 0, 0);
 #endif
 }
 

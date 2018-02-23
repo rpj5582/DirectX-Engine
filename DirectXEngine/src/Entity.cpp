@@ -5,8 +5,9 @@
 
 using namespace DirectX;
 
-Entity::Entity(Scene& scene, std::string name, bool hasDebugIcon) : m_scene(scene)
+Entity::Entity(Scene& scene, unsigned int id, std::string name, bool hasDebugIcon) : m_scene(scene)
 {
+	m_id = id;
 	m_name = name;
 	m_components = std::vector<Component*>();
 	m_enabled = true;
@@ -136,9 +137,19 @@ Scene& Entity::getScene() const
 	return m_scene;
 }
 
+unsigned int Entity::getID() const
+{
+	return m_id;
+}
+
 std::string Entity::getName() const
 {
 	return m_name;
+}
+
+void Entity::rename(std::string name)
+{
+	m_name = name;
 }
 
 Component* Entity::addComponentByStringType(std::string componentType)
@@ -163,7 +174,6 @@ void Entity::removeComponent(Component* component)
 	{
 		if (m_components[i] == component)
 		{
-			Debug::entityDebugWindow->removeComponent(component);
 			m_components.erase(m_components.begin() + i);
 			delete component;
 			return;
@@ -393,9 +403,7 @@ DebugEntity* Entity::getDebugIcon() const
 
 void Entity::setParentNonRecursive(Entity* parent)
 {
-	Debug::entityDebugWindow->removeEntity(this);
 	m_parent = parent;
-	Debug::entityDebugWindow->addEntity(this);
 
 	Transform* transform = getComponent<Transform>();
 	if (transform)

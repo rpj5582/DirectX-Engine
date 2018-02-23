@@ -1,5 +1,7 @@
 #pragma once
 
+#include "../Debug/Debug.h"
+
 #include "rapidjson/document.h"
 #include "rapidjson/prettywriter.h"
 

@@ -34,7 +34,7 @@ public:
 	HRESULT InitDirectX();
 	HRESULT Run();				
 	static void Quit();
-	virtual void OnResize();
+	virtual void resizeBuffers(unsigned int width, unsigned int height);
 	
 	// Pure virtual methods for setup and game functionality
 	virtual HRESULT Init();

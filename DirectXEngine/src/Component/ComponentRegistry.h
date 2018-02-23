@@ -27,9 +27,10 @@ public:
 	void registerComponents();
 
 	static std::string getTypeName(std::type_index type);
+	static const std::vector<std::string> getAllTypeNames();
 
 private:
-	typedef Component*(Entity::*CreateComponentFunc)(bool);
+	typedef Component*(Entity::*CreateComponentFunc)();
 
 	template<typename T>
 	bool registerComponent(std::string componentType);

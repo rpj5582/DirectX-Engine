@@ -12,7 +12,7 @@ Component* ComponentRegistry::addComponentToEntity(Entity& entity, std::string c
 	}
 
 	CreateComponentFunc func = m_componentRegistry.at(componentType);
-	return (entity.*func)(true);
+	return (entity.*func)();
 }
 
 void ComponentRegistry::registerComponents()
@@ -31,6 +31,20 @@ std::string ComponentRegistry::getTypeName(std::type_index type)
 
 	Debug::error("Failed to get component type because it wasn't registered. Make sure the component is registered and you're using a fully implemented class!");
 	return "";
+}
+
+const std::vector<std::string> ComponentRegistry::getAllTypeNames()
+{
+	std::vector<std::string> typeNames = std::vector<std::string>(m_componentRegistry.size());
+
+	unsigned int i = 0;
+	for (auto it = m_componentRegistry.begin(); it != m_componentRegistry.end(); it++)
+	{
+		typeNames[i] = it->first;
+		i++;
+	}
+
+	return typeNames;
 }
 
 void ComponentRegistry::registerEngineComponents()

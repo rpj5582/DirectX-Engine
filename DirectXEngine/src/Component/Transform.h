@@ -12,10 +12,10 @@ public:
 	virtual void loadFromJSON(rapidjson::Value& dataObject) override;
 	virtual void saveToJSON(rapidjson::PrettyWriter<rapidjson::StringBuffer>& writer) override;
 
-	const DirectX::XMFLOAT3 getPosition();
-	const DirectX::XMFLOAT3 getLocalPosition() const;
-	const DirectX::XMFLOAT3 getLocalRotation() const;
-	const DirectX::XMFLOAT3 getLocalScale() const;
+	DirectX::XMFLOAT3 getPosition();
+	DirectX::XMFLOAT3 getLocalPosition() const;
+	DirectX::XMFLOAT3 getLocalRotation() const;
+	DirectX::XMFLOAT3 getLocalScale() const;
 
 	void setLocalPosition(DirectX::XMFLOAT3 position);
 	void setLocalRotation(DirectX::XMFLOAT3 rotation);
@@ -62,10 +62,7 @@ private:
 	bool m_isDirty;
 };
 
-void TW_CALL getTransformPositionDebugEditor(void* value, void* clientData);
-void TW_CALL getTransformRotationDebugEditor(void* value, void* clientData);
-void TW_CALL getTransformScaleDebugEditor(void* value, void* clientData);
-
-void TW_CALL setTransformPositionDebugEditor(const void* value, void* clientData);
-void TW_CALL setTransformRotationDebugEditor(const void* value, void* clientData);
-void TW_CALL setTransformScaleDebugEditor(const void* value, void* clientData);
+void debugTransformSetLocalPosition(Component* component, const void* value);
+void debugTransformGetLocalRotation(const Component* component, void* value);
+void debugTransformSetLocalRotation(Component* component, const void* value);
+void debugTransformSetLocalScale(Component* component, const void* value);

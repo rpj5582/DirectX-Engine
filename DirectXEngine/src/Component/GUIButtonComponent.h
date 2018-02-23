@@ -20,8 +20,7 @@ public:
 	void setOnClickCallback(T& onClick);
 
 	Font* getFont() const;
-	std::string getFontID() const;
-	void setFont(std::string fontID);
+	void setFont(Font* font);
 
 	std::string getText() const;
 	void setText(std::string text);
@@ -33,7 +32,6 @@ private:
 	std::function<void()> m_onClick;
 
 	Font* m_font;
-	std::string m_fontID;
 
 	std::string m_text;
 	DirectX::XMFLOAT4 m_textColor;
@@ -45,5 +43,4 @@ inline void GUIButtonComponent::setOnClickCallback(T& onClick)
 	m_onClick = onClick;
 }
 
-void TW_CALL getGUIButtonComponentFontDebugEditor(void* value, void* clientData);
-void TW_CALL setGUIButtonComponentFontDebugEditor(const void* value, void* clientData);
+void debugGUIButtonComponentSetFont(Component* component, const void* value);

@@ -1,5 +1,4 @@
 {
-    "mainCamera": "Main Camera",
     "assets": [
         {
             "id": "cracks_spec",
@@ -51,7 +50,9 @@
             "name": "Main Camera",
             "enabled": true,
             "children": [],
-            "tags": [],
+            "tags": [
+                "main camera"
+            ],
             "components": [
                 {
                     "type": "Transform",

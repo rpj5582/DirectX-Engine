@@ -22,7 +22,7 @@ void CameraComponent::init()
 	DebugEntity* debugIcon = entity.getDebugIcon();
 	if (debugIcon)
 	{
-		debugIcon->getGUIDebugSpriteComponent()->setTexture(DEBUG_TEXTURE_CAMERAICON);
+		debugIcon->getGUIDebugSpriteComponent()->setTexture(AssetManager::getAsset<Texture>(DEBUG_TEXTURE_CAMERAICON));
 	}
 #endif
 }
