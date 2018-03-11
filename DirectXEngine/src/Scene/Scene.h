@@ -2,6 +2,7 @@
 
 #include "../Entity.h"
 
+#include "../Component/ICollider.h"
 #include "../Render/Renderer.h"
 #include "../Render/GUIRenderer.h"
 

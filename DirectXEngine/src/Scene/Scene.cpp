@@ -66,6 +66,30 @@ void Scene::update(float deltaTime, float totalTime)
 				m_entities[i]->update(deltaTime, totalTime);
 		}
 
+		// Collision detection
+		for (unsigned int i = 0; i < m_entities.size(); i++)
+		{
+			ICollider* firstCollider = m_entities[i]->getComponent<ICollider>();
+			if (firstCollider && firstCollider->enabled)
+			{
+				for (unsigned int j = 0; j < m_entities.size(); j++)
+				{
+					ICollider* secondCollider = m_entities[j]->getComponent<ICollider>();
+					if (secondCollider && secondCollider->enabled)
+					{
+						if (firstCollider != secondCollider)
+						{
+							XMFLOAT3 mtv = firstCollider->doSAT(*secondCollider);
+							if (mtv.x != 0 || mtv.y != 0 || mtv.z != 0)
+							{
+								Debug::message("MTV X: " + std::to_string(mtv.x) + ", Y: " + std::to_string(mtv.y) + ", Z: " + std::to_string(mtv.z));
+							}
+						}
+					}
+				}
+			}
+		}
+
 		// LateUpdate for all entities in the scene
 		for (unsigned int i = 0; i < m_entities.size(); i++)
 		{

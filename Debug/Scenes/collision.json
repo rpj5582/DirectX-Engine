@@ -1,0 +1,197 @@
+{
+    "assets": [],
+    "entities": [
+        {
+            "name": "camera",
+            "enabled": true,
+            "children": [],
+            "tags": [
+                "main camera"
+            ],
+            "components": [
+                {
+                    "type": "Transform",
+                    "data": {
+                        "enabled": true,
+                        "position": {
+                            "x": 0.0,
+                            "y": 0.0,
+                            "z": 0.0
+                        },
+                        "rotation": {
+                            "x": 0.0,
+                            "y": 0.0,
+                            "z": 0.0
+                        },
+                        "scale": {
+                            "x": 1.0,
+                            "y": 1.0,
+                            "z": 1.0
+                        }
+                    }
+                },
+                {
+                    "type": "Camera",
+                    "data": {
+                        "enabled": true
+                    }
+                }
+            ]
+        },
+        {
+            "name": "light",
+            "enabled": true,
+            "children": [],
+            "tags": [
+                "light"
+            ],
+            "components": [
+                {
+                    "type": "Transform",
+                    "data": {
+                        "enabled": true,
+                        "position": {
+                            "x": 0.0,
+                            "y": 0.0,
+                            "z": 0.0
+                        },
+                        "rotation": {
+                            "x": 45.0,
+                            "y": 0.0,
+                            "z": 0.0
+                        },
+                        "scale": {
+                            "x": 1.0,
+                            "y": 1.0,
+                            "z": 1.0
+                        }
+                    }
+                },
+                {
+                    "type": "LightComponent",
+                    "data": {
+                        "enabled": true,
+                        "type": "directional",
+                        "color": {
+                            "r": 1.0,
+                            "g": 1.0,
+                            "b": 1.0,
+                            "a": 1.0
+                        },
+                        "brightness": 1.0,
+                        "specularity": 32.0,
+                        "radius": 1.0,
+                        "spotAngle": 15.0,
+                        "castShadows": false,
+                        "shadowMapSize": 0,
+                        "shadowType": 0
+                    }
+                }
+            ]
+        },
+        {
+            "name": "cube",
+            "enabled": true,
+            "children": [],
+            "tags": [],
+            "components": [
+                {
+                    "type": "Transform",
+                    "data": {
+                        "enabled": true,
+                        "position": {
+                            "x": 0.0,
+                            "y": 0.0,
+                            "z": 0.0
+                        },
+                        "rotation": {
+                            "x": 0.0,
+                            "y": 0.0,
+                            "z": 0.0
+                        },
+                        "scale": {
+                            "x": 1.0,
+                            "y": 1.0,
+                            "z": 1.0
+                        }
+                    }
+                },
+                {
+                    "type": "MeshRenderComponent",
+                    "data": {
+                        "enabled": true,
+                        "material": "defaultMaterial",
+                        "renderStyle": "solid",
+                        "wireColor": {
+                            "r": 1.0,
+                            "g": 1.0,
+                            "b": 1.0,
+                            "a": 1.0
+                        },
+                        "mesh": "defaultCube",
+                        "castShadows": true,
+                        "receiveShadows": true
+                    }
+                },
+                {
+                    "type": "BoundingBox",
+                    "data": {
+                        "enabled": true
+                    }
+                }
+            ]
+        },
+        {
+            "name": "cube",
+            "enabled": true,
+            "children": [],
+            "tags": [],
+            "components": [
+                {
+                    "type": "Transform",
+                    "data": {
+                        "enabled": true,
+                        "position": {
+                            "x": 0.0,
+                            "y": 0.0,
+                            "z": 0.0
+                        },
+                        "rotation": {
+                            "x": 0.0,
+                            "y": 0.0,
+                            "z": 0.0
+                        },
+                        "scale": {
+                            "x": 1.0,
+                            "y": 1.0,
+                            "z": 1.0
+                        }
+                    }
+                },
+                {
+                    "type": "MeshRenderComponent",
+                    "data": {
+                        "enabled": true,
+                        "material": "defaultMaterial",
+                        "renderStyle": "solid",
+                        "wireColor": {
+                            "r": 1.0,
+                            "g": 1.0,
+                            "b": 1.0,
+                            "a": 1.0
+                        },
+                        "mesh": "defaultCube",
+                        "castShadows": true,
+                        "receiveShadows": true
+                    }
+                },
+                {
+                    "type": "BoundingBox",
+                    "data": {
+                        "enabled": true
+                    }
+                }
+            ]
+        }
+    ]
+}

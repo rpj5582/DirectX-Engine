@@ -156,6 +156,15 @@
     <ClCompile Include="src\Debug\DebugConsoleWindow.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\Component\ICollider.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Component\Rigidbody.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Component\BoundingBox.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Asset\Asset.h">
@@ -309,6 +318,15 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\Debug\DebugConsoleWindow.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Component\ICollider.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Component\Rigidbody.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Component\BoundingBox.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

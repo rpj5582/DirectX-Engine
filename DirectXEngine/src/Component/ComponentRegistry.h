@@ -4,7 +4,9 @@
 #include <unordered_map>
 #include <typeindex>
 
+#include "BoundingBox.h"
 #include "CameraComponent.h"
+#include "FreeCamControls.h"
 #include "GUIButtonComponent.h"
 #include "GUIComponent.h"
 #include "GUISpriteComponent.h"
@@ -14,8 +16,8 @@
 #include "LightComponent.h"
 #include "MeshRenderComponent.h"
 #include "RenderComponent.h"
+#include "Rigidbody.h"
 #include "Transform.h"
-#include "FreeCamControls.h"
 
 class Component;
 class Entity;

@@ -131,6 +131,9 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="src\Component\BoundingBox.cpp" />
+    <ClCompile Include="src\Component\ICollider.cpp" />
+    <ClCompile Include="src\Component\Rigidbody.cpp" />
     <ClCompile Include="src\DebugEntity.cpp" />
     <ClCompile Include="src\Component\GUIDebugSpriteComponent.cpp" />
     <ClCompile Include="src\Debug\Debug.cpp" />
@@ -181,6 +184,9 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Asset\AssetFactory.h" />
+    <ClInclude Include="src\Component\BoundingBox.h" />
+    <ClInclude Include="src\Component\ICollider.h" />
+    <ClInclude Include="src\Component\Rigidbody.h" />
     <ClInclude Include="src\DebugEntity.h" />
     <ClInclude Include="src\Component\GUIDebugSpriteComponent.h" />
     <ClInclude Include="src\Debug\Debug.h" />

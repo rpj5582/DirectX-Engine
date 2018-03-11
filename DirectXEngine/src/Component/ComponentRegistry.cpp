@@ -50,7 +50,9 @@ const std::vector<std::string> ComponentRegistry::getAllTypeNames()
 void ComponentRegistry::registerEngineComponents()
 {
 	// Engine components
+	registerComponent<BoundingBox>("BoundingBox");
 	registerComponent<CameraComponent>("Camera");
+	registerComponent<FreeCamControls>("FreeCamControls");
 	registerComponent<GUIButtonComponent>("GUIButtonComponent");
 	registerComponent<GUISpriteComponent>("GUISpriteComponent");
 	registerComponent<GUIDebugSpriteComponent>("GUIDebugSpriteComponent");
@@ -59,8 +61,8 @@ void ComponentRegistry::registerEngineComponents()
 	registerComponent<LightComponent>("LightComponent");
 	registerComponent<MeshRenderComponent>("MeshRenderComponent");
 	registerComponent<RenderComponent>("RenderComponent");
+	registerComponent<Rigidbody>("Rigidbody");
 	registerComponent<Transform>("Transform");
-	registerComponent<FreeCamControls>("FreeCamControls");
 }
 
 void ComponentRegistry::registerCustomComponents()

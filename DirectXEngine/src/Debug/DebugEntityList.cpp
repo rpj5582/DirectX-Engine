@@ -68,15 +68,15 @@ void DebugEntityList::handleEntity(Entity& entity)
 		ImGui::OpenPopup(("Entity Context Menu##" + std::to_string(entity.getID())).c_str());
 	}
 
+	bool shouldRename = false;
 	if (ImGui::BeginPopup(("Entity Context Menu##" + std::to_string(entity.getID())).c_str()))
 	{
-		bool shouldRename = false;
-		if (ImGui::MenuItem("Rename"))
+		if (ImGui::MenuItem(("Rename##" + std::to_string(entity.getID())).c_str()))
 		{
 			shouldRename = true;
 		}
 
-		if (ImGui::BeginMenu("Tag"))
+		if (ImGui::BeginMenu(("Tag##" + std::to_string(entity.getID())).c_str()))
 		{
 			std::vector<std::string> tags = SceneManager::getActiveScene()->getAllTags();
 			for (unsigned int i = 0; i < tags.size(); i++)
@@ -100,17 +100,15 @@ void DebugEntityList::handleEntity(Entity& entity)
 
 		ImGui::Separator();
 
-		if (ImGui::MenuItem("Delete"))
+		if (ImGui::MenuItem(("Delete##" + std::to_string(entity.getID())).c_str()))
 		{
 			SceneManager::getActiveScene()->deleteEntity(&entity);
 			ImGui::EndPopup();
+			if (opened) ImGui::TreePop();
 			return;
 		}
 
 		ImGui::EndPopup();
-
-		if(shouldRename)
-			ImGui::OpenPopup("Rename Entity");
 	}
 
 	if (opened)
@@ -124,8 +122,11 @@ void DebugEntityList::handleEntity(Entity& entity)
 		ImGui::TreePop();
 	}
 
+	if (shouldRename)
+		ImGui::OpenPopup(("Rename Entity##" + std::to_string(entity.getID())).c_str());
+
 	std::string name;
-	Choice choice = showTextInputPopup("Rename Entity", "Enter a new entity name.", name);
+	Choice choice = showTextInputPopup("Rename Entity##" + std::to_string(entity.getID()), "Enter a new entity name.", name);
 	switch (choice)
 	{
 	case OK:

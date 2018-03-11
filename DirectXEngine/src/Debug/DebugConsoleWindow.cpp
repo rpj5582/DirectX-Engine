@@ -60,6 +60,16 @@ void DebugConsoleWindow::draw()
 		addText(m_inputText);
 		memset(m_inputText, 0, TEXT_SIZE);
 	}
+
+	ImGui::SameLine();
+
+	if (ImGui::Button("Clear"))
+	{
+		while (m_history.size() > 0)
+		{
+			m_history.pop();
+		}
+	}
 	
 	ImGui::End();
 
