@@ -143,6 +143,7 @@
     <ClCompile Include="src\Debug\DebugEntityList.cpp" />
     <ClCompile Include="src\Debug\DebugMainMenuBar.cpp" />
     <ClCompile Include="src\Debug\IDebugEditor.cpp" />
+    <ClCompile Include="src\Physics\PhysicsHandler.cpp" />
     <ClCompile Include="src\Scene\SceneManager.cpp" />
     <ClCompile Include="src\Input.cpp" />
     <ClCompile Include="src\Asset\Asset.cpp" />
@@ -196,6 +197,7 @@
     <ClInclude Include="src\Debug\DebugEntityList.h" />
     <ClInclude Include="src\Debug\DebugMainMenuBar.h" />
     <ClInclude Include="src\Debug\IDebugEditor.h" />
+    <ClInclude Include="src\Physics\PhysicsHandler.h" />
     <ClInclude Include="src\Render\IRenderer.h" />
     <ClInclude Include="src\Scene\SceneManager.h" />
     <ClInclude Include="src\Input.h" />

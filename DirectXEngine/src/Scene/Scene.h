@@ -2,7 +2,8 @@
 
 #include "../Entity.h"
 
-#include "../Component/ICollider.h"
+#include "../Physics/PhysicsHandler.h"
+
 #include "../Render/Renderer.h"
 #include "../Render/GUIRenderer.h"
 
@@ -18,6 +19,8 @@ public:
 
 	bool init();
 	void update(float deltaTime, float totalTime);
+
+	void handlePhysics(PhysicsHandler* physicsHandler);
 
 	void renderGeometry(Renderer* renderer, ID3D11RenderTargetView* backBufferRTV, ID3D11DepthStencilView* backBufferDSV, float width, float height);
 	void renderGUI(GUIRenderer* guiRenderer);
@@ -42,8 +45,6 @@ public:
 	bool isDirty() const;
 
 	CameraComponent* getMainCamera() const;
-	void setMainCamera(CameraComponent* camera);
-	void setMainCamera(Entity* entity);
 
 	CameraComponent* getDebugCamera() const;
 
@@ -56,6 +57,9 @@ private:
 	void saveToJSON(std::string filepath);
 
 	unsigned int getEntityIndex(const Entity& entity) const;
+
+	void setMainCamera(CameraComponent* camera);
+	void setMainCamera(Entity* entity);
 
 	std::string m_filepath;
 	bool m_dirty;

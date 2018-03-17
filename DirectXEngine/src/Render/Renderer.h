@@ -5,6 +5,7 @@
 #include "../Component/MeshRenderComponent.h"
 #include "../Component/LightComponent.h"
 #include "../Component/CameraComponent.h"
+#include "../Component/ICollider.h"
 
 #include <DirectXMath.h>
 
@@ -59,6 +60,7 @@ private:
 	VertexShader* m_basicVertexShader;
 	Sampler* m_shadowMapSampler;
 
+	ID3D11RasterizerState* m_wireframeRasterizerState;
 	ID3D11RasterizerState* m_shadowMapRasterizerState;
 
 	ID3D11DepthStencilState* m_depthStencilStateDefault;

@@ -26,6 +26,8 @@ private:
 	AssetManager* m_assetManager;
 	SceneManager* m_sceneManager;
 
+	PhysicsHandler* m_physicsHandler;
+
 	Renderer* m_renderer;
 	GUIRenderer* m_guiRenderer;
 

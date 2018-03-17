@@ -44,6 +44,7 @@ bool Scene::init()
 	addTag(TAG_MAIN_CAMERA);
 	addTag(TAG_LIGHT);
 	addTag(TAG_GUI);
+	addTag(TAG_COLLIDER);
 
 	m_debugCamera = new Entity(*this, 0, "DebugCamera", false);
 	Transform* debugCameraTransform = m_debugCamera->addComponent<Transform>();
@@ -64,30 +65,6 @@ void Scene::update(float deltaTime, float totalTime)
 		{
 			if (m_entities[i]->getEnabled())
 				m_entities[i]->update(deltaTime, totalTime);
-		}
-
-		// Collision detection
-		for (unsigned int i = 0; i < m_entities.size(); i++)
-		{
-			ICollider* firstCollider = m_entities[i]->getComponent<ICollider>();
-			if (firstCollider && firstCollider->enabled)
-			{
-				for (unsigned int j = 0; j < m_entities.size(); j++)
-				{
-					ICollider* secondCollider = m_entities[j]->getComponent<ICollider>();
-					if (secondCollider && secondCollider->enabled)
-					{
-						if (firstCollider != secondCollider)
-						{
-							XMFLOAT3 mtv = firstCollider->doSAT(*secondCollider);
-							if (mtv.x != 0 || mtv.y != 0 || mtv.z != 0)
-							{
-								Debug::message("MTV X: " + std::to_string(mtv.x) + ", Y: " + std::to_string(mtv.y) + ", Z: " + std::to_string(mtv.z));
-							}
-						}
-					}
-				}
-			}
 		}
 
 		// LateUpdate for all entities in the scene
@@ -122,6 +99,46 @@ void Scene::update(float deltaTime, float totalTime)
 			}
 		}
 #endif
+	}
+}
+
+void Scene::handlePhysics(PhysicsHandler* physicsHandler)
+{
+	if (Debug::inPlayMode)
+	{
+		// Integrate rigidbodies
+		std::vector<Entity*> rigidbodyEntities = m_taggedEntities.at(TAG_RIGIDBODY);
+		for (unsigned int i = 0; i < rigidbodyEntities.size(); i++)
+		{
+			if (!rigidbodyEntities[i]->getEnabled()) continue;
+
+			Rigidbody* rigidbody = rigidbodyEntities[i]->getComponent<Rigidbody>();
+			if (rigidbody && rigidbody->enabled)
+			{
+				rigidbody->integrateForces();
+				rigidbody->integrateVelocity();
+			}
+		}
+
+		// Check for and resolve collisions
+		std::vector<ICollider*> colliders = std::vector<ICollider*>();
+
+		std::vector<Entity*> colliderEntities = m_taggedEntities.at(TAG_COLLIDER);
+		for (unsigned int i = 0; i < colliderEntities.size(); i++)
+		{
+			if (!colliderEntities[i]->getEnabled()) continue;
+
+			ICollider* collider = colliderEntities[i]->getComponent<ICollider>();
+			if (collider && collider->enabled)
+				colliders.push_back(collider);
+
+		}
+
+		if (colliders.size() > 0)
+		{
+			physicsHandler->checkForCollisions(&colliders[0], colliders.size());
+			physicsHandler->resolveCollisions();
+		}
 	}
 }
 
@@ -221,7 +238,8 @@ bool Scene::loadFromJSON(std::string filepath)
 
 		for (rapidjson::SizeType j = 0; j < tags.Size(); j++)
 		{
-			e->addTag(tags[j].GetString());
+			if (!e->hasTag(tags[j].GetString()))
+				e->addTag(tags[j].GetString());
 		}
 	}
 
@@ -348,11 +366,20 @@ void Scene::addTagToEntity(Entity& entity, std::string tag)
 		return;
 	}
 
+	if (tag == TAG_MAIN_CAMERA)
+	{
+		if (m_mainCamera)
+		{
+			Debug::warning("Main camera changed from entity " + m_mainCamera->getEntity().getName() + " to entity " + entity.getName());
+			m_mainCamera->getEntity().removeTag(TAG_MAIN_CAMERA);
+			setMainCamera(&entity);
+		}
+		else
+			setMainCamera(&entity);
+	}
+
 	m_taggedEntities[tag].push_back(&entity);
 	entity.addTagNonResursive(tag);
-
-	if (tag == TAG_MAIN_CAMERA && !m_mainCamera)
-		setMainCamera(&entity);
 }
 
 void Scene::removeTagFromEntity(Entity& entity, std::string tag)

@@ -37,6 +37,9 @@ void LightComponent::init()
 {
 	Component::init();
 
+	if (!entity.hasTag(TAG_LIGHT))
+		entity.addTag(TAG_LIGHT);
+
 #if defined(DEBUG) || defined(_DEBUG)
 	DebugEntity* debugIcon = entity.getDebugIcon();
 	if (debugIcon)

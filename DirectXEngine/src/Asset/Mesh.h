@@ -27,7 +27,10 @@ public:
 	ID3D11Buffer* getVertexBuffer() const;
 	ID3D11Buffer* getIndexBuffer() const;
 
-	size_t getIndexCount() const;
+	const Vertex* const getVertices() const;
+	const unsigned int* const getIndices() const;
+	unsigned int getVertexCount() const;
+	unsigned int getIndexCount() const;
 
 private:
 	bool createBuffers();

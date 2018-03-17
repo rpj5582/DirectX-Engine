@@ -170,7 +170,6 @@ void DebugMainMenuBar::draw()
 				Entity* entity = SceneManager::getActiveScene()->createEntity("camera");
 				entity->addComponent<Transform>();
 				entity->addComponent<CameraComponent>();
-				entity->addTag(TAG_MAIN_CAMERA);
 			}
 
 			if (ImGui::MenuItem("Create Light"))
@@ -178,7 +177,6 @@ void DebugMainMenuBar::draw()
 				Entity* entity = SceneManager::getActiveScene()->createEntity("light");
 				entity->addComponent<Transform>();
 				entity->addComponent<LightComponent>();
-				entity->addTag(TAG_LIGHT);
 			}
 
 			if (ImGui::BeginMenu("Create GUI"))
@@ -187,7 +185,6 @@ void DebugMainMenuBar::draw()
 				{
 					Entity* entity = SceneManager::getActiveScene()->createEntity("gui");
 					entity->addComponent<GUITransform>();
-					entity->addTag(TAG_GUI);
 				}
 
 				if (ImGui::MenuItem("Text"))
@@ -195,7 +192,6 @@ void DebugMainMenuBar::draw()
 					Entity* entity = SceneManager::getActiveScene()->createEntity("text");
 					entity->addComponent<GUITransform>();
 					entity->addComponent<GUITextComponent>();
-					entity->addTag(TAG_GUI);
 				}
 
 				if (ImGui::MenuItem("Sprite"))
@@ -203,7 +199,6 @@ void DebugMainMenuBar::draw()
 					Entity* entity = SceneManager::getActiveScene()->createEntity("sprite");
 					entity->addComponent<GUITransform>();
 					entity->addComponent<GUISpriteComponent>();
-					entity->addTag(TAG_GUI);
 				}
 
 				if (ImGui::MenuItem("Button"))
@@ -211,7 +206,6 @@ void DebugMainMenuBar::draw()
 					Entity* entity = SceneManager::getActiveScene()->createEntity("button");
 					entity->addComponent<GUITransform>();
 					entity->addComponent<GUIButtonComponent>();
-					entity->addTag(TAG_GUI);
 				}
 
 				ImGui::EndMenu();

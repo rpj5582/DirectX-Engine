@@ -22,6 +22,8 @@ Game::Game(HINSTANCE hInstance)
 	m_assetManager = nullptr;
 	m_sceneManager = nullptr;
 
+	m_physicsHandler = nullptr;
+
 	m_renderer = nullptr;
 	m_guiRenderer = nullptr;
 
@@ -41,6 +43,8 @@ Game::~Game()
 
 	delete m_sceneManager;
 	delete m_assetManager;
+
+	delete m_physicsHandler;
 
 	delete m_guiRenderer;
 	delete m_renderer;
@@ -66,6 +70,8 @@ HRESULT Game::Init()
 
 	m_assetManager = new AssetManager(device, context);
 	if (!m_assetManager->init()) return E_ABORT;
+
+	m_physicsHandler = new PhysicsHandler();
 
 	m_renderer = new Renderer(device, context);
 	if (!m_renderer->init()) return E_ABORT;
@@ -107,6 +113,7 @@ void Game::Update(float deltaTime, float totalTime)
 	if (activeScene)
 	{
 		activeScene->update(deltaTime, totalTime);
+		activeScene->handlePhysics(m_physicsHandler);
 	}
 }
 

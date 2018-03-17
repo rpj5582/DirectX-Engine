@@ -153,6 +153,7 @@ bool AssetManager::loadDefaultAssets()
 	// Creates the default textures
 	if (!createAsset<Texture>(DEFAULT_TEXTURE_DIFFUSE, 0xff808080)) return false;
 	if (!createAsset<Texture>(DEFAULT_TEXTURE_WHITE, 0xffffffff)) return false;
+	if (!createAsset<Texture>(DEFAULT_TEXTURE_RED, 0xff0000ff)) return false;
 	if (!createAsset<Texture>(DEFAULT_TEXTURE_NORMAL, 0xffff8080)) return false;
 	
 	TextureParameters shadowMapParameters = {};
@@ -193,13 +194,21 @@ bool AssetManager::loadDefaultAssets()
 	defaultMaterialSettings.samplerID = DEFAULT_SAMPLER;
 	if (!createAsset<Material>(DEFAULT_MATERIAL, defaultVertexShader, defaultPixelShader, defaultMaterialSettings)) return false;
 
+	// Creeates the default red material
+	MaterialSettings redMaterialSettings;
+	redMaterialSettings.diffuseTextureID = DEFAULT_TEXTURE_RED;
+	redMaterialSettings.specularTextureID = DEFAULT_TEXTURE_WHITE;
+	redMaterialSettings.normalTextureID = DEFAULT_TEXTURE_NORMAL;
+	redMaterialSettings.samplerID = DEFAULT_SAMPLER;
+	if (!createAsset<Material>(DEFAULT_RED_MATERIAL, defaultVertexShader, defaultPixelShader, redMaterialSettings)) return false;
+
 	// Load Arial font
 	if (!loadAsset<Font>(DEFAULT_FONT, "Assets/Fonts/Arial_16pt.spritefont")) return false;
 
 	// Create some basic meshes
 
 	// Cube
-	const unsigned int cubeVertexCount = 36;
+	const unsigned int cubeVertexCount = 24;
 	Vertex cubeVertices[cubeVertexCount] =
 	{
 		{ XMFLOAT3(-0.5f, -0.5f, 0.5f), XMFLOAT2(0.0f, 0.0f), XMFLOAT3(0.0f, 0.0f, 1.0f) },
@@ -8543,8 +8552,8 @@ bool AssetManager::loadDefaultAssets()
 bool AssetManager::isDefaultAsset(std::string assetName)
 {
 	if (assetName == DEFAULT_SHADER_VERTEX || assetName == DEFAULT_SHADER_PIXEL || assetName == BASIC_SHADER_VERTEX
-		|| assetName == DEFAULT_TEXTURE_DIFFUSE || assetName == DEFAULT_TEXTURE_WHITE || assetName == DEFAULT_TEXTURE_NORMAL || assetName == DEFAULT_TEXTURE_SHADOWMAP
-		|| assetName == DEFAULT_MATERIAL
+		|| assetName == DEFAULT_TEXTURE_DIFFUSE || assetName == DEFAULT_TEXTURE_WHITE || assetName == DEFAULT_TEXTURE_RED || assetName == DEFAULT_TEXTURE_NORMAL || assetName == DEFAULT_TEXTURE_SHADOWMAP
+		|| assetName == DEFAULT_MATERIAL || assetName == DEFAULT_RED_MATERIAL
 		|| assetName == DEFAULT_MODEL_CUBE || assetName == DEFAULT_MODEL_SPHERE || assetName == DEFAULT_MODEL_CAPSULE
 		|| assetName == DEFAULT_SAMPLER || assetName == SHADOWMAP_SAMPLER
 		|| assetName == DEFAULT_FONT

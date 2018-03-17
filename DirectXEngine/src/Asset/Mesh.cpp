@@ -26,14 +26,21 @@ Mesh::~Mesh()
 {
 	if (m_vertexBuffer) { m_vertexBuffer->Release(); }
 	if (m_indexBuffer) { m_indexBuffer->Release(); }
+
+	if (m_vertices) delete[] m_vertices;
+	if (m_indices) delete[] m_indices;
 }
 
 bool Mesh::create(Vertex* vertices, unsigned int vertexCount, unsigned int* indices, unsigned int indexCount)
 {
-	m_vertices = vertices;
 	m_vertexCount = vertexCount;
-	m_indices = indices;
 	m_indexCount = indexCount;
+
+	m_vertices = new Vertex[m_vertexCount];
+	m_indices = new unsigned int[m_indexCount];
+
+	memcpy_s(m_vertices, sizeof(Vertex) * m_vertexCount, vertices, sizeof(Vertex) * m_vertexCount);
+	memcpy_s(m_indices, sizeof(unsigned int) * m_indexCount, indices, sizeof(unsigned int) * m_indexCount);
 
 	return createBuffers();
 }
@@ -216,9 +223,17 @@ bool Mesh::loadFromFile()
 	if (vertices.size() > 0 && indices.size() > 0)
 	{
 		m_vertices = &vertices[0];
-		m_vertexCount = vertices.size();
 		m_indices = &indices[0];
+
+		m_vertexCount = vertices.size();
 		m_indexCount = indices.size();
+
+		m_vertices = new Vertex[m_vertexCount];
+		m_indices = new unsigned int[m_indexCount];
+
+		memcpy_s(m_vertices, sizeof(Vertex) * m_vertexCount, &vertices[0], sizeof(Vertex) * m_vertexCount);
+		memcpy_s(m_indices, sizeof(unsigned int) * m_indexCount, &indices[0], sizeof(unsigned int) * m_indexCount);
+
 		return createBuffers();
 	}
 
@@ -265,8 +280,6 @@ bool Mesh::createBuffers()
 		return false;
 	}
 
-	m_vertices = nullptr;
-
 	// Create the INDEX BUFFER description ------------------------------------
 	// - The description is created on the stack because we only need
 	//    it to create the buffer.  The description is then useless.
@@ -293,8 +306,6 @@ bool Mesh::createBuffers()
 		return false;
 	}
 
-	m_indices = nullptr;
-
 	return true;
 }
 
@@ -306,6 +317,21 @@ ID3D11Buffer* Mesh::getVertexBuffer() const
 ID3D11Buffer* Mesh::getIndexBuffer() const
 {
 	return m_indexBuffer;
+}
+
+const Vertex* const Mesh::getVertices() const
+{
+	return m_vertices;
+}
+
+const unsigned int* const Mesh::getIndices() const
+{
+	return m_indices;
+}
+
+unsigned int Mesh::getVertexCount() const
+{
+	return m_vertexCount;
 }
 
 size_t Mesh::getIndexCount() const

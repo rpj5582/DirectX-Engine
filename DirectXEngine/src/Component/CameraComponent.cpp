@@ -1,5 +1,7 @@
 #include "CameraComponent.h"
 
+#include "../Scene/Scene.h"
+
 #include "Transform.h"
 #include "GUIDebugSpriteComponent.h"
 
@@ -12,11 +14,25 @@ CameraComponent::CameraComponent(Entity& entity) : Component(entity)
 
 CameraComponent::~CameraComponent()
 {
+	if (!entity.getComponent<CameraComponent>())
+	{
+		if (entity.hasTag(TAG_MAIN_CAMERA))
+			entity.removeTag(TAG_MAIN_CAMERA);
+	}
 }
 
 void CameraComponent::init()
 {
 	Component::init();
+
+	if (!entity.hasTag(TAG_MAIN_CAMERA) && !entity.getScene().getMainCamera())
+	{
+#if defined(DEBUG) || defined(_DEBUG)
+		if(this != entity.getScene().getDebugCamera())
+#endif
+			entity.addTag(TAG_MAIN_CAMERA);
+	}
+		
 
 #if defined(DEBUG) || defined(_DEBUG)
 	DebugEntity* debugIcon = entity.getDebugIcon();

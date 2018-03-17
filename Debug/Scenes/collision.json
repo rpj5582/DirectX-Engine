@@ -6,7 +6,7 @@
             "enabled": true,
             "children": [],
             "tags": [
-                "main camera"
+                "Main Camera"
             ],
             "components": [
                 {
@@ -15,11 +15,11 @@
                         "enabled": true,
                         "position": {
                             "x": 0.0,
-                            "y": 0.0,
-                            "z": 0.0
+                            "y": 7.0,
+                            "z": -10.0
                         },
                         "rotation": {
-                            "x": 0.0,
+                            "x": 30.0,
                             "y": 0.0,
                             "z": 0.0
                         },
@@ -43,7 +43,7 @@
             "enabled": true,
             "children": [],
             "tags": [
-                "light"
+                "Light"
             ],
             "components": [
                 {
@@ -93,7 +93,10 @@
             "name": "cube",
             "enabled": true,
             "children": [],
-            "tags": [],
+            "tags": [
+                "Collider",
+                "Rigidbody"
+            ],
             "components": [
                 {
                     "type": "Transform",
@@ -101,7 +104,7 @@
                         "enabled": true,
                         "position": {
                             "x": 0.0,
-                            "y": 0.0,
+                            "y": 5.0,
                             "z": 0.0
                         },
                         "rotation": {
@@ -136,16 +139,37 @@
                 {
                     "type": "BoundingBox",
                     "data": {
-                        "enabled": true
+                        "enabled": true,
+                        "offset": {
+                            "x": 0.0,
+                            "y": 0.0,
+                            "z": 0.0
+                        },
+                        "scale": {
+                            "x": 1.0,
+                            "y": 1.0,
+                            "z": 1.0
+                        }
+                    }
+                },
+                {
+                    "type": "Rigidbody",
+                    "data": {
+                        "enabled": true,
+                        "mass": 1.0,
+                        "restitution": 0.0
                     }
                 }
             ]
         },
         {
-            "name": "cube",
+            "name": "floor",
             "enabled": true,
             "children": [],
-            "tags": [],
+            "tags": [
+                "Collider",
+                "Rigidbody"
+            ],
             "components": [
                 {
                     "type": "Transform",
@@ -162,9 +186,9 @@
                             "z": 0.0
                         },
                         "scale": {
-                            "x": 1.0,
+                            "x": 10.0,
                             "y": 1.0,
-                            "z": 1.0
+                            "z": 10.0
                         }
                     }
                 },
@@ -172,7 +196,7 @@
                     "type": "MeshRenderComponent",
                     "data": {
                         "enabled": true,
-                        "material": "defaultMaterial",
+                        "material": "defaultRedMaterial",
                         "renderStyle": "solid",
                         "wireColor": {
                             "r": 1.0,
@@ -186,9 +210,27 @@
                     }
                 },
                 {
+                    "type": "Rigidbody",
+                    "data": {
+                        "enabled": true,
+                        "mass": 0.0,
+                        "restitution": 0.0
+                    }
+                },
+                {
                     "type": "BoundingBox",
                     "data": {
-                        "enabled": true
+                        "enabled": true,
+                        "offset": {
+                            "x": 0.0,
+                            "y": 0.0,
+                            "z": 0.0
+                        },
+                        "scale": {
+                            "x": 1.0,
+                            "y": 1.0,
+                            "z": 1.0
+                        }
                     }
                 }
             ]

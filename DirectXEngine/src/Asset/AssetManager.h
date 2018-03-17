@@ -17,10 +17,12 @@
 
 #define DEFAULT_TEXTURE_DIFFUSE "defaultDiffuse"
 #define DEFAULT_TEXTURE_WHITE "defaultWhite"
+#define DEFAULT_TEXTURE_RED "defaultRed"
 #define DEFAULT_TEXTURE_NORMAL "defaultNormal"
 #define DEFAULT_TEXTURE_SHADOWMAP "defaultShadowMap"
 
 #define DEFAULT_MATERIAL "defaultMaterial"
+#define DEFAULT_RED_MATERIAL "defaultRedMaterial"
 
 #define DEFAULT_MODEL_CUBE "defaultCube"
 #define DEFAULT_MODEL_SPHERE "defaultSphere"

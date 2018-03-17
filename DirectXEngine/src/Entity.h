@@ -15,9 +15,11 @@
 #include <unordered_set>
 #include <Windows.h>
 
-#define TAG_MAIN_CAMERA "main camera"
-#define TAG_LIGHT "light"
-#define TAG_GUI "gui"
+#define TAG_MAIN_CAMERA "Main Camera"
+#define TAG_LIGHT "Light"
+#define TAG_GUI "GUI"
+#define TAG_COLLIDER "Collider"
+#define TAG_RIGIDBODY "Rigidbody"
 
 class Component;
 

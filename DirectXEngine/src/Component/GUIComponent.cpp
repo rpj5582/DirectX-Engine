@@ -16,6 +16,14 @@ GUIComponent::~GUIComponent()
 	}
 }
 
+void GUIComponent::init()
+{
+	Component::init();
+
+	if (!entity.hasTag(TAG_GUI))
+		entity.addTag(TAG_GUI);
+}
+
 void GUIComponent::initDebugVariables()
 {
 	Component::initDebugVariables();
