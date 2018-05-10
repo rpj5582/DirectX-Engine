@@ -17,6 +17,10 @@ LightComponent::LightComponent(Entity& entity) : Component(entity)
 	XMStoreFloat4x4(&m_projectionMatrix, XMMatrixIdentity());
 
 	m_castShadows = false;
+
+	setLightType(DIRECTIONAL_LIGHT);
+	setShadowType(SHADOWTYPE_HARD);
+	setSettingsDefault();
 }
 
 LightComponent::~LightComponent()
@@ -51,10 +55,6 @@ void LightComponent::init()
 		}
 	}
 #endif
-
-	setLightType(DIRECTIONAL_LIGHT);
-	setShadowType(SHADOWTYPE_HARD);
-	setSettingsDefault();
 }
 
 void LightComponent::initDebugVariables()

@@ -17,7 +17,8 @@ void GUISpriteComponent::init()
 {
 	GUIComponent::init();
 
-	setTexture(AssetManager::getAsset<Texture>(DEFAULT_TEXTURE_WHITE));
+	if(!m_texture)
+		setTexture(AssetManager::getAsset<Texture>(DEFAULT_TEXTURE_WHITE));
 }
 
 void GUISpriteComponent::initDebugVariables()

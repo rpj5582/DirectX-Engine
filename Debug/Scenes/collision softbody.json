@@ -99,7 +99,7 @@
             ]
         },
         {
-            "name": "cube1",
+            "name": "rigidbody cube",
             "enabled": true,
             "children": [],
             "tags": [
@@ -113,7 +113,7 @@
                         "enabled": true,
                         "position": {
                             "x": 0.0,
-                            "y": 2.0,
+                            "y": 0.0,
                             "z": 0.0
                         },
                         "rotation": {
@@ -168,89 +168,13 @@
                         "enabled": true,
                         "mass": 1.0,
                         "restitution": 0.0,
-                        "gravityScale": 1.0
+                        "gravityScale": 0.0
                     }
                 }
             ]
         },
         {
-            "name": "floor",
-            "enabled": true,
-            "children": [],
-            "tags": [
-                "Physics Body",
-                "Collider",
-                "Rigidbody"
-            ],
-            "components": [
-                {
-                    "type": "Transform",
-                    "data": {
-                        "enabled": true,
-                        "position": {
-                            "x": 0.0,
-                            "y": 0.0,
-                            "z": 0.0
-                        },
-                        "rotation": {
-                            "x": 0.0,
-                            "y": 0.0,
-                            "z": 0.0
-                        },
-                        "scale": {
-                            "x": 10.0,
-                            "y": 1.0,
-                            "z": 10.0
-                        }
-                    }
-                },
-                {
-                    "type": "MeshRenderComponent",
-                    "data": {
-                        "enabled": true,
-                        "material": "defaultRedMaterial",
-                        "renderStyle": "solid",
-                        "wireColor": {
-                            "r": 1.0,
-                            "g": 1.0,
-                            "b": 1.0,
-                            "a": 1.0
-                        },
-                        "mesh": "defaultCube",
-                        "castShadows": true,
-                        "receiveShadows": true
-                    }
-                },
-                {
-                    "type": "Rigidbody",
-                    "data": {
-                        "enabled": true,
-                        "mass": 0.0,
-                        "restitution": 0.0,
-                        "gravityScale": 1.0
-                    }
-                },
-                {
-                    "type": "Collider",
-                    "data": {
-                        "enabled": true,
-                        "mesh": "defaultCube",
-                        "offset": {
-                            "x": 0.0,
-                            "y": 0.0,
-                            "z": 0.0
-                        },
-                        "scale": {
-                            "x": 1.0,
-                            "y": 1.0,
-                            "z": 1.0
-                        }
-                    }
-                }
-            ]
-        },
-        {
-            "name": "cube2",
+            "name": "softbody cube",
             "enabled": true,
             "children": [],
             "tags": [
@@ -263,8 +187,8 @@
                     "data": {
                         "enabled": true,
                         "position": {
-                            "x": -0.6000000238418579,
-                            "y": 5.0,
+                            "x": -0.8999999761581421,
+                            "y": 2.0,
                             "z": 0.0
                         },
                         "rotation": {
@@ -291,7 +215,7 @@
                             "b": 1.0,
                             "a": 1.0
                         },
-                        "mesh": "defaultCube",
+                        "mesh": "softCube",
                         "castShadows": true,
                         "receiveShadows": true
                     }
@@ -322,76 +246,87 @@
             ]
         },
         {
-            "name": "cube3",
+            "name": "text",
             "enabled": true,
             "children": [],
             "tags": [
-                "Collider",
-                "Physics Body"
+                "GUI"
             ],
             "components": [
                 {
-                    "type": "Transform",
+                    "type": "GUITransform",
                     "data": {
                         "enabled": true,
                         "position": {
-                            "x": 0.6000000238418579,
-                            "y": 5.0,
-                            "z": 0.0
-                        },
-                        "rotation": {
                             "x": 0.0,
-                            "y": 0.0,
-                            "z": 0.0
+                            "y": 0.0
                         },
-                        "scale": {
+                        "rotation": 0.0,
+                        "size": {
                             "x": 1.0,
-                            "y": 1.0,
-                            "z": 1.0
+                            "y": 1.0
+                        },
+                        "origin": {
+                            "x": 0.0,
+                            "y": 0.0
                         }
                     }
                 },
                 {
-                    "type": "MeshRenderComponent",
+                    "type": "GUITextComponent",
                     "data": {
                         "enabled": true,
-                        "material": "defaultMaterial",
-                        "renderStyle": "solid",
-                        "wireColor": {
+                        "color": {
                             "r": 1.0,
                             "g": 1.0,
                             "b": 1.0,
                             "a": 1.0
                         },
-                        "mesh": "defaultCube",
-                        "castShadows": true,
-                        "receiveShadows": true
+                        "font": "arial_16pt",
+                        "text": "Use the arrow keys to move the cube laterally"
                     }
-                },
+                }
+            ]
+        },
+        {
+            "name": "text",
+            "enabled": true,
+            "children": [],
+            "tags": [
+                "GUI"
+            ],
+            "components": [
                 {
-                    "type": "Collider",
+                    "type": "GUITransform",
                     "data": {
                         "enabled": true,
-                        "mesh": "defaultCube",
-                        "offset": {
+                        "position": {
                             "x": 0.0,
-                            "y": 0.0,
-                            "z": 0.0
+                            "y": 40.0
                         },
-                        "scale": {
+                        "rotation": 0.0,
+                        "size": {
                             "x": 1.0,
-                            "y": 1.0,
-                            "z": 1.0
+                            "y": 1.0
+                        },
+                        "origin": {
+                            "x": 0.0,
+                            "y": 0.0
                         }
                     }
                 },
                 {
-                    "type": "Rigidbody",
+                    "type": "GUITextComponent",
                     "data": {
                         "enabled": true,
-                        "mass": 1.0,
-                        "restitution": 0.0,
-                        "gravityScale": 1.0
+                        "color": {
+                            "r": 1.0,
+                            "g": 1.0,
+                            "b": 1.0,
+                            "a": 1.0
+                        },
+                        "font": "arial_16pt",
+                        "text": "Press left shift to pull the cube down"
                     }
                 }
             ]

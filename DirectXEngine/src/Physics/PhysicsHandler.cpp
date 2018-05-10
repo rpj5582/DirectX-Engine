@@ -10,7 +10,7 @@ PhysicsHandler::~PhysicsHandler()
 {
 }
 
-void PhysicsHandler::checkForCollisions(ICollider** colliders, unsigned int colliderCount)
+void PhysicsHandler::checkForCollisions(Collider** colliders, unsigned int colliderCount)
 {
 	broadPhaseDetection(colliders, colliderCount);
 	narrowPhaseDetection(colliders, colliderCount);
@@ -19,69 +19,132 @@ void PhysicsHandler::checkForCollisions(ICollider** colliders, unsigned int coll
 void PhysicsHandler::resolveCollisions()
 {
 	// Adapted from https://gamedevelopment.tutsplus.com/tutorials/how-to-create-a-custom-2d-physics-engine-the-basics-and-impulse-resolution--gamedev-6331
-
+	// and the 3D Convex Hull Collision Resolution tutorial in ATLAS
 	while (m_manifolds.size() > 0)
 	{
 		const CollisionManifold& manifold = m_manifolds.front();
-		
-		if (manifold.body1 && manifold.body2)
+
+		BodyData* bodyData1 = manifold.body1->getClosestBodyData(manifold.contactPoint);
+		BodyData* bodyData2 = manifold.body2->getClosestBodyData(manifold.contactPoint);
+
+		if (bodyData1->invMass > 0 || bodyData2->invMass > 0)
 		{
-			float inverseMass1 = manifold.body1->getInverseMass();
-			float inverseMass2 = manifold.body2->getInverseMass();
+			XMVECTOR collisionNormal = XMLoadFloat3(&manifold.collisionNormal);
 
-			if (inverseMass1 > 0 || inverseMass2 > 0)
+			XMVECTOR vel1 = XMLoadFloat3(&bodyData1->velocity);
+			XMVECTOR vel2 = XMLoadFloat3(&bodyData2->velocity);
+
+			XMVECTOR contactPoint = XMLoadFloat3(&manifold.contactPoint);
+
+			XMVECTOR pos1 = XMLoadFloat3(&bodyData1->position);
+			XMVECTOR pos2 = XMLoadFloat3(&bodyData2->position);
+
+			XMVECTOR radius1 = XMVectorSubtract(contactPoint, pos1);
+			XMVECTOR radius2 = XMVectorSubtract(contactPoint, pos2);
+
+			XMVECTOR angVel1 = XMLoadFloat3(&bodyData1->angularVelocity);
+			XMVECTOR angVel2 = XMLoadFloat3(&bodyData2->angularVelocity);
+
+			XMVECTOR contactPointVelocity1 = XMVectorAdd(vel1, XMVector3Cross(angVel1, radius1));
+			XMVECTOR contactPointVelocity2 = XMVectorAdd(vel2, XMVector3Cross(angVel2, radius2));
+
+			XMVECTOR relativeVelocity = XMVectorSubtract(contactPointVelocity1, contactPointVelocity2);
+			float dotResult;
+			XMStoreFloat(&dotResult, XMVector3Dot(relativeVelocity, collisionNormal));
+
+			// Don't resolve collisions on bodies that are moving away from each other - they will resolve themselves
+			if (dotResult > 0.0f)
 			{
-				XMVECTOR collisionNormal = XMLoadFloat3(&manifold.collisionNormal);
+				float restitutionFactor = -1.0f - min(bodyData1->restitution, bodyData2->restitution);
 
-				XMFLOAT3 velocity1 = manifold.body1->getVelocity();
-				XMVECTOR vel1 = XMLoadFloat3(&velocity1);
+				XMMATRIX inertia1 = XMLoadFloat3x3(&bodyData1->inertia);
+				XMMATRIX inertia2 = XMLoadFloat3x3(&bodyData2->inertia);
 
-				XMFLOAT3 velocity2 = manifold.body2->getVelocity();
-				XMVECTOR vel2 = XMLoadFloat3(&velocity2);
+				XMMATRIX rotationMat1 = XMMatrixRotationRollPitchYawFromVector(XMLoadFloat3(&bodyData1->rotation));
+				XMMATRIX rotationMat1T = XMMatrixTranspose(rotationMat1);
 
-				XMVECTOR relativeVelocity = XMVectorSubtract(vel2, vel1);
-				float dotResult;
-				XMStoreFloat(&dotResult, XMVector3Dot(relativeVelocity, collisionNormal));
+				XMMATRIX rotationMat2 = XMMatrixRotationRollPitchYawFromVector(XMLoadFloat3(&bodyData2->rotation));
+				XMMATRIX rotationMat2T = XMMatrixTranspose(rotationMat2);
 
-				// Don't resolve collisions on bodies that are moving away from each other - they will resolve themselves
-				if (dotResult <= 0)
+				inertia1 = XMMatrixMultiply(XMMatrixMultiply(rotationMat1, inertia1), rotationMat1T);
+				inertia2 = XMMatrixMultiply(XMMatrixMultiply(rotationMat2, inertia2), rotationMat2T);
+
+				XMVECTOR determinant;
+
+				XMMATRIX invInertia1 = XMMatrixInverse(&determinant, inertia1);
+				XMVECTOR isInverseInvalid = XMVectorEqual(determinant, XMVectorSet(0.0f, 0.0f, 0.0f, 0.0f));
+				float inverseInvalid;
+				XMStoreFloat(&inverseInvalid, isInverseInvalid);
+
+				if (inverseInvalid)
 				{
-					float restitutionFactor = -1.0f - min(manifold.body1->getRestitution(), manifold.body2->getRestitution());
-					float impulseMagnitude = (restitutionFactor * dotResult) / (inverseMass1 + inverseMass2);
-
-					XMVECTOR impulseVec = XMVectorScale(collisionNormal, impulseMagnitude);
-					XMVECTOR negativeImpulseVec = XMVectorNegate(impulseVec);
-
-					XMFLOAT3 impulse;
-					XMStoreFloat3(&impulse, impulseVec);
-
-					XMFLOAT3 negativeImpulse;
-					XMStoreFloat3(&negativeImpulse, negativeImpulseVec);
-
-					manifold.body1->applyImpulse(negativeImpulse);
-					manifold.body2->applyImpulse(impulse);
-
-					manifold.body1->integrateVelocity();
-					manifold.body2->integrateVelocity();
-
-					// Positional correction
-					const float correctionPercent = 0.1f;
-					const float slop = 0.05f;
-					float correctionMag = (max(manifold.penetrationDepth - slop, 0.0f) / (inverseMass1 + inverseMass2)) * correctionPercent;
-					XMVECTOR correctionVec = XMVectorScale(collisionNormal, correctionMag);
-
-					XMFLOAT3 correction1;
-					XMStoreFloat3(&correction1, XMVectorScale(correctionVec, -inverseMass1));
-
-					XMFLOAT3 correction2;
-					XMStoreFloat3(&correction2, XMVectorScale(correctionVec, inverseMass2));
-
-					Transform* transform1 = manifold.body1->getEntity().getComponent<Transform>();
-					Transform* transform2 = manifold.body2->getEntity().getComponent<Transform>();
-
-					if (transform1) transform1->move(correction1);
-					if (transform2) transform2->move(correction2);
+					invInertia1 = XMMatrixSet(0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f);
 				}
+
+				XMMATRIX invInertia2 = XMMatrixInverse(&determinant, inertia2);
+				isInverseInvalid = XMVectorEqual(determinant, XMVectorSet(0.0f, 0.0f, 0.0f, 0.0f));
+				XMStoreFloat(&inverseInvalid, isInverseInvalid);
+
+				if (inverseInvalid)
+				{
+					invInertia2 = XMMatrixSet(0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f);
+				}
+
+				XMVECTOR denom =
+					XMVector3Dot(
+						XMVectorAdd(
+							XMVector3Cross(XMVector3Transform(XMVector3Cross(radius1, collisionNormal), invInertia1), radius1),
+							XMVector3Cross(XMVector3Transform(XMVector3Cross(radius2, collisionNormal), invInertia2), radius2)),
+						collisionNormal);
+
+				float denomComponent;
+				XMStoreFloat(&denomComponent, denom);
+
+				float impulseMagnitude = (restitutionFactor * dotResult) / (bodyData1->invMass + bodyData2->invMass + denomComponent);
+
+				XMVECTOR impulseVec = XMVectorScale(collisionNormal, impulseMagnitude);
+				XMVECTOR negativeImpulseVec = XMVectorNegate(impulseVec);
+
+				XMVECTOR v1 = XMVectorScale(impulseVec, bodyData1->invMass);
+				XMStoreFloat3(&bodyData1->velocity, XMVectorAdd(vel1, v1));
+
+				XMVECTOR v2 = XMVectorScale(negativeImpulseVec, bodyData2->invMass);
+				XMStoreFloat3(&bodyData2->velocity, XMVectorAdd(vel2, v2));
+
+				XMVECTOR angularMomentum1 = XMVectorScale(XMVector3Cross(radius1, collisionNormal), impulseMagnitude);
+				XMVECTOR angularMomentum2 = XMVectorScale(XMVector3Cross(radius2, collisionNormal), -impulseMagnitude);
+
+				angVel1 = XMVectorAdd(angVel1, XMVector3Transform(angularMomentum1, invInertia1));
+				XMStoreFloat3(&bodyData1->angularVelocity, angVel1);
+
+				bodyData1->angularVelocity.x = (fabs(bodyData1->angularVelocity.x) < FLT_EPSILON) ? 0.0f : bodyData1->angularVelocity.x;
+				bodyData1->angularVelocity.y = (fabs(bodyData1->angularVelocity.y) < FLT_EPSILON) ? 0.0f : bodyData1->angularVelocity.y;
+				bodyData1->angularVelocity.z = (fabs(bodyData1->angularVelocity.z) < FLT_EPSILON) ? 0.0f : bodyData1->angularVelocity.z;
+
+				angVel2 = XMVectorAdd(angVel2, XMVector3Transform(angularMomentum2, invInertia2));
+				XMStoreFloat3(&bodyData2->angularVelocity, angVel2);
+
+				bodyData2->angularVelocity.x = (fabs(bodyData2->angularVelocity.x) < FLT_EPSILON) ? 0.0f : bodyData2->angularVelocity.x;
+				bodyData2->angularVelocity.y = (fabs(bodyData2->angularVelocity.y) < FLT_EPSILON) ? 0.0f : bodyData2->angularVelocity.y;
+				bodyData2->angularVelocity.z = (fabs(bodyData2->angularVelocity.z) < FLT_EPSILON) ? 0.0f : bodyData2->angularVelocity.z;
+
+				bodyData1->integrateVelocity();
+				bodyData2->integrateVelocity();
+
+				// Positional correction
+				pos1 = XMLoadFloat3(&bodyData1->position);
+				pos2 = XMLoadFloat3(&bodyData2->position);
+
+				const float correctionPercent = 0.1f;
+				const float slop = 0.001f;
+				float correctionMag = (max(manifold.penetrationDepth - slop, 0.0f) / (bodyData1->invMass + bodyData2->invMass)) * correctionPercent;
+				XMVECTOR correctionVec = XMVectorScale(collisionNormal, correctionMag);
+
+				XMStoreFloat3(&bodyData1->position, XMVectorAdd(pos1, XMVectorScale(correctionVec, -bodyData1->invMass)));
+				XMStoreFloat3(&bodyData2->position, XMVectorAdd(pos2, XMVectorScale(correctionVec, bodyData2->invMass)));
+
+				manifold.body1->updateVisual();
+				manifold.body2->updateVisual();
 			}
 		}
 
@@ -89,22 +152,24 @@ void PhysicsHandler::resolveCollisions()
 	}
 }
 
-void PhysicsHandler::broadPhaseDetection(ICollider** colliders, unsigned int colliderCount)
+void PhysicsHandler::broadPhaseDetection(Collider** colliders, unsigned int colliderCount)
 {
 	for (unsigned int i = 0; i < colliderCount; i++)
 	{
-		ICollider* collider1 = colliders[i];
-		Rigidbody* body1 = collider1->getEntity().getComponent<Rigidbody>();
+		Collider* collider1 = colliders[i];
+		IPhysicsBody* body1 = collider1->getEntity().getComponent<IPhysicsBody>();
+		Transform* transform1 = collider1->getEntity().getComponent<Transform>();
 
 		for (unsigned int j = 0; j < colliderCount; j++)
 		{
-			ICollider* collider2 = colliders[j];
-			Rigidbody* body2 = collider2->getEntity().getComponent<Rigidbody>();
+			Collider* collider2 = colliders[j];
+			IPhysicsBody* body2 = collider2->getEntity().getComponent<IPhysicsBody>();
+			Transform* transform2 = collider2->getEntity().getComponent<Transform>();
 
-			if (collider1 != collider2)
+			if (collider1 != collider2 && transform1 && transform2)
 			{
-				XMFLOAT3 mtv = collider1->doSAT(*collider2);
-				if (mtv.x != 0 || mtv.y != 0 || mtv.z != 0)
+				XMFLOAT3 mtv;
+				if (collider1->calculateMTV(*collider2, mtv))
 				{
 					XMVECTOR mtvVec = XMLoadFloat3(&mtv);
 					XMVECTOR collisionNormalVec = XMVector3Normalize(mtvVec);
@@ -115,13 +180,17 @@ void PhysicsHandler::broadPhaseDetection(ICollider** colliders, unsigned int col
 					XMStoreFloat3(&collisionNormal, collisionNormalVec);
 					XMStoreFloat(&penetrationDepth, penetrationDepthVec);
 
-					m_manifolds.push({ body1, body2, collisionNormal, penetrationDepth });
+					XMFLOAT3 contactPoint = collider1->calculateContactPoint(*collider2, collisionNormal);
+
+					if(body1 && body2)
+						m_manifolds.push({ contactPoint, collisionNormal, penetrationDepth, body1, body2 });
 				}
 			}
 		}
 	}
 }
 
-void PhysicsHandler::narrowPhaseDetection(ICollider** colliders, unsigned int colliderCount)
+void PhysicsHandler::narrowPhaseDetection(Collider** colliders, unsigned int colliderCount)
 {
+	// Currently unimplemented, all collision detection code is under the broad phase function
 }

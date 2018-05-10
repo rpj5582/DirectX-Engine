@@ -148,9 +148,15 @@ void Transform::setLocalPosition(DirectX::XMFLOAT3 position)
 	setDirty();
 }
 
-void Transform::setLocalRotation(DirectX::XMFLOAT3 rotation)
+void Transform::setLocalRotation(DirectX::XMFLOAT3 rotationDegrees)
 {
-	m_localRotation = XMFLOAT3(XMConvertToRadians(rotation.x), XMConvertToRadians(rotation.y), XMConvertToRadians(rotation.z));
+	m_localRotation = XMFLOAT3(XMConvertToRadians(rotationDegrees.x), XMConvertToRadians(rotationDegrees.y), XMConvertToRadians(rotationDegrees.z));
+	setDirty();
+}
+
+void Transform::setLocalRotationRadians(DirectX::XMFLOAT3 rotationRadians)
+{
+	m_localRotation = rotationRadians;
 	setDirty();
 }
 
@@ -417,38 +423,61 @@ void Transform::moveLocalZ(float delta)
 void Transform::rotateLocal(DirectX::XMFLOAT3 rotDegrees)
 {
 	XMFLOAT3 rot = XMFLOAT3(XMConvertToRadians(rotDegrees.x), XMConvertToRadians(rotDegrees.y), XMConvertToRadians(rotDegrees.z));
+	rotateLocalRadians(rot);
+}
+
+void Transform::rotateLocalX(float degrees)
+{
+	float radians = XMConvertToRadians(degrees);
+	rotateLocalXRadians(radians);
+}
+
+void Transform::rotateLocalY(float degrees)
+{
+	float radians = XMConvertToRadians(degrees);
+	rotateLocalYRadians(radians);
+}
+
+void Transform::rotateLocalZ(float degrees)
+{
+	float radians = XMConvertToRadians(degrees);
+	rotateLocalZRadians(radians);
+}
+
+void Transform::rotateLocalRadians(DirectX::XMFLOAT3 rotRadians)
+{
 	XMVECTOR rotation = XMLoadFloat3(&m_localRotation);
-	XMVECTOR rotVector = XMLoadFloat3(&rot);
+	XMVECTOR rotVector = XMLoadFloat3(&rotRadians);
 	rotation = XMVectorAdd(rotation, rotVector);
 	XMStoreFloat3(&m_localRotation, rotation);
 
 	setDirty();
 }
 
-void Transform::rotateLocalX(float degrees)
+void Transform::rotateLocalXRadians(float radians)
 {
 	XMVECTOR rotation = XMLoadFloat3(&m_localRotation);
-	XMVECTOR angleVector = XMVectorSet(XMConvertToRadians(degrees), 0.0f, 0.0f, 0.0f);
+	XMVECTOR angleVector = XMVectorSet(radians, 0.0f, 0.0f, 0.0f);
 	rotation = XMVectorAdd(rotation, angleVector);
 	XMStoreFloat3(&m_localRotation, rotation);
 
 	setDirty();
 }
 
-void Transform::rotateLocalY(float degrees)
+void Transform::rotateLocalYRadians(float radians)
 {
 	XMVECTOR rotation = XMLoadFloat3(&m_localRotation);
-	XMVECTOR angleVector = XMVectorSet(0.0f, XMConvertToRadians(degrees), 0.0f, 0.0f);
+	XMVECTOR angleVector = XMVectorSet(0.0f, radians, 0.0f, 0.0f);
 	rotation = XMVectorAdd(rotation, angleVector);
 	XMStoreFloat3(&m_localRotation, rotation);
 
 	setDirty();
 }
 
-void Transform::rotateLocalZ(float degrees)
+void Transform::rotateLocalZRadians(float radians)
 {
 	XMVECTOR rotation = XMLoadFloat3(&m_localRotation);
-	XMVECTOR angleVector = XMVectorSet(0.0f, 0.0f, XMConvertToRadians(degrees), 0.0f);
+	XMVECTOR angleVector = XMVectorSet(0.0f, 0.0f, radians, 0.0f);
 	rotation = XMVectorAdd(rotation, angleVector);
 	XMStoreFloat3(&m_localRotation, rotation);
 

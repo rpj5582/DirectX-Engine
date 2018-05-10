@@ -3,7 +3,7 @@
 std::unordered_map<std::string, ComponentRegistry::CreateComponentFunc> ComponentRegistry::m_componentRegistry = std::unordered_map<std::string, CreateComponentFunc>();
 std::unordered_map<std::type_index, std::string> ComponentRegistry::m_componentRegistryReverse = std::unordered_map<std::type_index, std::string>();
 
-Component* ComponentRegistry::addComponentToEntity(Entity& entity, std::string componentType)
+Component* ComponentRegistry::addComponentToEntity(Entity& entity, std::string componentType, bool initialize)
 {
 	if (m_componentRegistry.find(componentType) == m_componentRegistry.end())
 	{
@@ -12,7 +12,7 @@ Component* ComponentRegistry::addComponentToEntity(Entity& entity, std::string c
 	}
 
 	CreateComponentFunc func = m_componentRegistry.at(componentType);
-	return (entity.*func)();
+	return (entity.*func)(initialize);
 }
 
 void ComponentRegistry::registerComponents()
@@ -50,8 +50,8 @@ const std::vector<std::string> ComponentRegistry::getAllTypeNames()
 void ComponentRegistry::registerEngineComponents()
 {
 	// Engine components
-	registerComponent<BoundingBox>("BoundingBox");
 	registerComponent<CameraComponent>("Camera");
+	registerComponent<Collider>("Collider");
 	registerComponent<FreeCamControls>("FreeCamControls");
 	registerComponent<GUIButtonComponent>("GUIButtonComponent");
 	registerComponent<GUISpriteComponent>("GUISpriteComponent");
@@ -62,6 +62,7 @@ void ComponentRegistry::registerEngineComponents()
 	registerComponent<MeshRenderComponent>("MeshRenderComponent");
 	registerComponent<RenderComponent>("RenderComponent");
 	registerComponent<Rigidbody>("Rigidbody");
+	registerComponent<Softbody>("Softbody");
 	registerComponent<Transform>("Transform");
 }
 

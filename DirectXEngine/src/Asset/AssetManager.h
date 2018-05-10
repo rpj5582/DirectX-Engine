@@ -27,6 +27,7 @@
 #define DEFAULT_MODEL_CUBE "defaultCube"
 #define DEFAULT_MODEL_SPHERE "defaultSphere"
 #define DEFAULT_MODEL_CAPSULE "defaultCapsule"
+#define DEFAULT_MODEL_TETRAHEDRON "defaultTetrahedron"
 
 #define DEFAULT_SAMPLER "defaultSampler"
 #define SHADOWMAP_SAMPLER "shadowMapSampler"

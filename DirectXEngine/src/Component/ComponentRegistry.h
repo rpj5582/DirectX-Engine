@@ -4,8 +4,8 @@
 #include <unordered_map>
 #include <typeindex>
 
-#include "BoundingBox.h"
 #include "CameraComponent.h"
+#include "Collider.h"
 #include "FreeCamControls.h"
 #include "GUIButtonComponent.h"
 #include "GUIComponent.h"
@@ -17,6 +17,7 @@
 #include "MeshRenderComponent.h"
 #include "RenderComponent.h"
 #include "Rigidbody.h"
+#include "Softbody.h"
 #include "Transform.h"
 
 class Component;
@@ -25,14 +26,14 @@ class Entity;
 class ComponentRegistry
 {
 public:
-	static Component* addComponentToEntity(Entity& entity, std::string componentType);
+	static Component* addComponentToEntity(Entity& entity, std::string componentType, bool initialize);
 	void registerComponents();
 
 	static std::string getTypeName(std::type_index type);
 	static const std::vector<std::string> getAllTypeNames();
 
 private:
-	typedef Component*(Entity::*CreateComponentFunc)();
+	typedef Component*(Entity::*CreateComponentFunc)(bool);
 
 	template<typename T>
 	bool registerComponent(std::string componentType);

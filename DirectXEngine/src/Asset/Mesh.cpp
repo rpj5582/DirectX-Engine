@@ -31,7 +31,7 @@ Mesh::~Mesh()
 	if (m_indices) delete[] m_indices;
 }
 
-bool Mesh::create(Vertex* vertices, unsigned int vertexCount, unsigned int* indices, unsigned int indexCount)
+bool Mesh::create(Vertex* vertices, unsigned int vertexCount, unsigned int* indices, unsigned int indexCount, bool immutable)
 {
 	m_vertexCount = vertexCount;
 	m_indexCount = indexCount;
@@ -42,7 +42,7 @@ bool Mesh::create(Vertex* vertices, unsigned int vertexCount, unsigned int* indi
 	memcpy_s(m_vertices, sizeof(Vertex) * m_vertexCount, vertices, sizeof(Vertex) * m_vertexCount);
 	memcpy_s(m_indices, sizeof(unsigned int) * m_indexCount, indices, sizeof(unsigned int) * m_indexCount);
 
-	return createBuffers();
+	return createBuffers(immutable);
 }
 
 void Mesh::saveToJSON(rapidjson::PrettyWriter<rapidjson::StringBuffer>& writer)
@@ -51,6 +51,14 @@ void Mesh::saveToJSON(rapidjson::PrettyWriter<rapidjson::StringBuffer>& writer)
 
 	writer.Key("type");
 	writer.String("model");
+}
+
+void Mesh::updateVertices() const
+{
+	D3D11_MAPPED_SUBRESOURCE resource;
+	m_context->Map(m_vertexBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &resource);
+	memcpy_s(resource.pData, sizeof(Vertex) * m_vertexCount, m_vertices, sizeof(Vertex) * m_vertexCount);
+	m_context->Unmap(m_vertexBuffer, 0);
 }
 
 bool Mesh::loadFromFile()
@@ -234,13 +242,13 @@ bool Mesh::loadFromFile()
 		memcpy_s(m_vertices, sizeof(Vertex) * m_vertexCount, &vertices[0], sizeof(Vertex) * m_vertexCount);
 		memcpy_s(m_indices, sizeof(unsigned int) * m_indexCount, &indices[0], sizeof(unsigned int) * m_indexCount);
 
-		return createBuffers();
+		return createBuffers(true);
 	}
 
 	return false;
 }
 
-bool Mesh::createBuffers()
+bool Mesh::createBuffers(bool immutable)
 {
 
 	if (m_vertexCount <= 0 || m_indexCount <= 0)
@@ -255,10 +263,10 @@ bool Mesh::createBuffers()
 	// - The description is created on the stack because we only need
 	//    it to create the buffer.  The description is then useless.
 	D3D11_BUFFER_DESC vbd;
-	vbd.Usage = D3D11_USAGE_IMMUTABLE;
+	vbd.Usage = immutable ? D3D11_USAGE_IMMUTABLE : D3D11_USAGE_DYNAMIC;
 	vbd.ByteWidth = (UINT)(sizeof(Vertex) * m_vertexCount); // number of vertices in the buffer
 	vbd.BindFlags = D3D11_BIND_VERTEX_BUFFER; // Tells DirectX this is a vertex buffer
-	vbd.CPUAccessFlags = 0;
+	vbd.CPUAccessFlags = immutable ? 0 : D3D11_CPU_ACCESS_WRITE;
 	vbd.MiscFlags = 0;
 	vbd.StructureByteStride = 0;
 
@@ -270,7 +278,6 @@ bool Mesh::createBuffers()
 	HRESULT hr = S_OK;
 
 	// Actually create the buffer with the initial data
-	// - Once we do this, we'll NEVER CHANGE THE BUFFER AGAIN
 	hr = m_device->CreateBuffer(&vbd, &initialVertexData, &m_vertexBuffer);
 	if (FAILED(hr))
 	{
@@ -319,12 +326,12 @@ ID3D11Buffer* Mesh::getIndexBuffer() const
 	return m_indexBuffer;
 }
 
-const Vertex* const Mesh::getVertices() const
+Vertex* const Mesh::getVertices()
 {
 	return m_vertices;
 }
 
-const unsigned int* const Mesh::getIndices() const
+unsigned int* const Mesh::getIndices() const
 {
 	return m_indices;
 }

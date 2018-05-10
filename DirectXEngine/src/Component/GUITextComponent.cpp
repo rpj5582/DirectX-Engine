@@ -18,7 +18,8 @@ void GUITextComponent::init()
 {
 	GUIComponent::init();
 
-	setFont(AssetManager::getAsset<Font>(DEFAULT_FONT));
+	if(!m_font)
+		setFont(AssetManager::getAsset<Font>(DEFAULT_FONT));
 }
 
 void GUITextComponent::initDebugVariables()

@@ -75,7 +75,7 @@ void DebugComponentList::draw()
 					{
 						if (ImGui::MenuItem(typeNames[k].c_str()))
 						{
-							ComponentRegistry::addComponentToEntity(*entities[i], typeNames[k]);
+							ComponentRegistry::addComponentToEntity(*entities[i], typeNames[k], true);
 						}
 					}
 

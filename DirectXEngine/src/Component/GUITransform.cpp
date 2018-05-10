@@ -18,7 +18,9 @@ void GUITransform::init()
 {
 	Component::init();
 
+#if defined(DEBUG) || defined(_DEBUG)
 	entity.deleteDebugIcon();
+#endif
 }
 
 void GUITransform::initDebugVariables()

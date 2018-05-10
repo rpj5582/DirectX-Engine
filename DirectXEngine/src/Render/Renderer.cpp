@@ -332,36 +332,38 @@ void Renderer::renderMainPass(const CameraComponent& mainCamera, DirectX::XMFLOA
 
 				if (!Debug::inPlayMode)
 				{
-					ICollider* collider = entities[i]->getComponent<ICollider>();
+					Collider* collider = entities[i]->getComponent<Collider>();
 					if (collider && collider->enabled)
 					{
-						red->useMaterial();
-						m_context->RSSetState(m_wireframeRasterizerState);
-
-						XMFLOAT4X4 colliderMatrixFloat4x4 = collider->getOffsetScaleMatrix();
-						XMMATRIX colliderMatrix = XMLoadFloat4x4(&colliderMatrixFloat4x4);
-
-						XMMATRIX colliderWorldMatrix = XMMatrixMultiply(colliderMatrix, worldMatrix);
-						XMFLOAT4X4 colliderWorldMatrixT;
-						XMStoreFloat4x4(&colliderWorldMatrixT, XMMatrixTranspose(colliderWorldMatrix));
-
-						redVertexShader->SetMatrix4x4("world", colliderWorldMatrixT);
-						redVertexShader->SetMatrix4x4("view", viewT);
-						redVertexShader->SetMatrix4x4("projection", projT);
-
-						redVertexShader->CopyBufferData("matrices");
-
 						const Mesh* collisionMesh = collider->getMesh();
+						if (collisionMesh)
+						{
+							red->useMaterial();
+							m_context->RSSetState(m_wireframeRasterizerState);
 
-						ID3D11Buffer* vertexBuffer = mesh->getVertexBuffer();
-						ID3D11Buffer* indexBuffer = mesh->getIndexBuffer();
+							XMFLOAT4X4 colliderMatrixFloat4x4 = collider->getOffsetScaleMatrix();
+							XMMATRIX colliderMatrix = XMLoadFloat4x4(&colliderMatrixFloat4x4);
 
-						m_context->IASetVertexBuffers(0, 1, &vertexBuffer, &stride, &offset);
-						m_context->IASetIndexBuffer(indexBuffer, DXGI_FORMAT_R32_UINT, 0);
+							XMMATRIX colliderWorldMatrix = XMMatrixMultiply(colliderMatrix, worldMatrix);
+							XMFLOAT4X4 colliderWorldMatrixT;
+							XMStoreFloat4x4(&colliderWorldMatrixT, XMMatrixTranspose(colliderWorldMatrix));
 
-						m_context->DrawIndexed(collisionMesh->getIndexCount(), 0, 0);
+							redVertexShader->SetMatrix4x4("world", colliderWorldMatrixT);
+							redVertexShader->SetMatrix4x4("view", viewT);
+							redVertexShader->SetMatrix4x4("projection", projT);
 
-						m_context->RSSetState(nullptr);
+							redVertexShader->CopyBufferData("matrices");
+
+							ID3D11Buffer* vertexBuffer = collisionMesh->getVertexBuffer();
+							ID3D11Buffer* indexBuffer = collisionMesh->getIndexBuffer();
+
+							m_context->IASetVertexBuffers(0, 1, &vertexBuffer, &stride, &offset);
+							m_context->IASetIndexBuffer(indexBuffer, DXGI_FORMAT_R32_UINT, 0);
+
+							m_context->DrawIndexed(collisionMesh->getIndexCount(), 0, 0);
+
+							m_context->RSSetState(nullptr);
+						}
 					}
 				}
 			}

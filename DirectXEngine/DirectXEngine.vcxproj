@@ -131,8 +131,9 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="src\Component\BoundingBox.cpp" />
-    <ClCompile Include="src\Component\ICollider.cpp" />
+    <ClCompile Include="src\Component\IPhysicsBody.cpp" />
+    <ClCompile Include="src\Component\Softbody.cpp" />
+    <ClCompile Include="src\Component\Collider.cpp" />
     <ClCompile Include="src\Component\Rigidbody.cpp" />
     <ClCompile Include="src\DebugEntity.cpp" />
     <ClCompile Include="src\Component\GUIDebugSpriteComponent.cpp" />
@@ -184,9 +185,10 @@
     <ClCompile Include="src\Window.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\Component\IPhysicsBody.h" />
+    <ClInclude Include="src\Component\Softbody.h" />
     <ClInclude Include="src\Asset\AssetFactory.h" />
-    <ClInclude Include="src\Component\BoundingBox.h" />
-    <ClInclude Include="src\Component\ICollider.h" />
+    <ClInclude Include="src\Component\Collider.h" />
     <ClInclude Include="src\Component\Rigidbody.h" />
     <ClInclude Include="src\DebugEntity.h" />
     <ClInclude Include="src\Component\GUIDebugSpriteComponent.h" />

@@ -69,7 +69,7 @@ void Debug::update()
 	if (!inPlayMode)
 	{
 		ImGui_ImplDX11_NewFrame();
-		ImGui::ShowDemoWindow();
+		//ImGui::ShowDemoWindow();
 
 		// Check if we are trying to close the window, since there may be unsaved changes.
 		if (m_mainMenuBar.getAppClosedState() == ClosedState::TRYING_TO_CLOSE)

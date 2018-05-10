@@ -18,7 +18,8 @@ public:
 	DirectX::XMFLOAT3 getLocalScale() const;
 
 	void setLocalPosition(DirectX::XMFLOAT3 position);
-	void setLocalRotation(DirectX::XMFLOAT3 rotation);
+	void setLocalRotation(DirectX::XMFLOAT3 rotationDegrees);
+	void setLocalRotationRadians(DirectX::XMFLOAT3 rotationRadians);
 	void setLocalScale(DirectX::XMFLOAT3 scale);
 
 	const DirectX::XMFLOAT3 getRight();
@@ -42,6 +43,11 @@ public:
 	void rotateLocalX(float degrees);
 	void rotateLocalY(float degrees);
 	void rotateLocalZ(float degrees);
+
+	void rotateLocalRadians(DirectX::XMFLOAT3 rotRadians);
+	void rotateLocalXRadians(float radians);
+	void rotateLocalYRadians(float radians);
+	void rotateLocalZRadians(float radians);
 
 	void scale(DirectX::XMFLOAT3 delta);
 	void scaleX(float delta);

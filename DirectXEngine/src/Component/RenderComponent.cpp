@@ -17,7 +17,8 @@ void RenderComponent::init()
 {
 	Component::init();
 
-	setMaterial(AssetManager::getAsset<Material>(DEFAULT_MATERIAL));
+	if(!m_material)
+		setMaterial(AssetManager::getAsset<Material>(DEFAULT_MATERIAL));
 }
 
 void RenderComponent::initDebugVariables()

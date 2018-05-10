@@ -19,7 +19,7 @@
 #define TAG_LIGHT "Light"
 #define TAG_GUI "GUI"
 #define TAG_COLLIDER "Collider"
-#define TAG_RIGIDBODY "Rigidbody"
+#define TAG_PHYSICSBODY "Physics Body"
 
 class Component;
 
@@ -42,8 +42,8 @@ public:
 	void rename(std::string name);
 
 	template<typename T>
-	T* addComponent();
-	Component* addComponentByStringType(std::string componentType);
+	T* addComponent(bool initialize = true);
+	Component* addComponentByStringType(std::string componentType, bool initialize = true);
 
 	template<typename T>
 	T* getComponent() const;
@@ -121,7 +121,7 @@ private:
 };
 
 template<typename T>
-inline T* Entity::addComponent()
+inline T* Entity::addComponent(bool initialize)
 {
 	static_assert(std::is_base_of<Component, T>::value, "Given type is not a Component.");
 
@@ -138,8 +138,10 @@ inline T* Entity::addComponent()
 
 	T* component = new T(*this);
 	m_components.push_back(component);
-	component->init();
 	component->initDebugVariables();
+
+	if (initialize)
+		component->init();
 
 	return component;
 }

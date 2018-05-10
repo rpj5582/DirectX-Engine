@@ -99,7 +99,7 @@
             ]
         },
         {
-            "name": "cube1",
+            "name": "cube",
             "enabled": true,
             "children": [],
             "tags": [
@@ -113,13 +113,13 @@
                         "enabled": true,
                         "position": {
                             "x": 0.0,
-                            "y": 2.0,
+                            "y": 3.0,
                             "z": 0.0
                         },
                         "rotation": {
                             "x": 0.0,
                             "y": 0.0,
-                            "z": 0.0
+                            "z": 30.0
                         },
                         "scale": {
                             "x": 1.0,
@@ -179,8 +179,7 @@
             "children": [],
             "tags": [
                 "Physics Body",
-                "Collider",
-                "Rigidbody"
+                "Collider"
             ],
             "components": [
                 {
@@ -250,7 +249,7 @@
             ]
         },
         {
-            "name": "cube2",
+            "name": "ceiling",
             "enabled": true,
             "children": [],
             "tags": [
@@ -263,7 +262,7 @@
                     "data": {
                         "enabled": true,
                         "position": {
-                            "x": -0.6000000238418579,
+                            "x": 0.0,
                             "y": 5.0,
                             "z": 0.0
                         },
@@ -273,9 +272,9 @@
                             "z": 0.0
                         },
                         "scale": {
-                            "x": 1.0,
+                            "x": 10.0,
                             "y": 1.0,
-                            "z": 1.0
+                            "z": 10.0
                         }
                     }
                 },
@@ -283,79 +282,7 @@
                     "type": "MeshRenderComponent",
                     "data": {
                         "enabled": true,
-                        "material": "defaultMaterial",
-                        "renderStyle": "solid",
-                        "wireColor": {
-                            "r": 1.0,
-                            "g": 1.0,
-                            "b": 1.0,
-                            "a": 1.0
-                        },
-                        "mesh": "defaultCube",
-                        "castShadows": true,
-                        "receiveShadows": true
-                    }
-                },
-                {
-                    "type": "Collider",
-                    "data": {
-                        "enabled": true,
-                        "mesh": "defaultCube",
-                        "offset": {
-                            "x": 0.0,
-                            "y": 0.0,
-                            "z": 0.0
-                        },
-                        "scale": {
-                            "x": 1.0,
-                            "y": 1.0,
-                            "z": 1.0
-                        }
-                    }
-                },
-                {
-                    "type": "Softbody",
-                    "data": {
-                        "enabled": true
-                    }
-                }
-            ]
-        },
-        {
-            "name": "cube3",
-            "enabled": true,
-            "children": [],
-            "tags": [
-                "Collider",
-                "Physics Body"
-            ],
-            "components": [
-                {
-                    "type": "Transform",
-                    "data": {
-                        "enabled": true,
-                        "position": {
-                            "x": 0.6000000238418579,
-                            "y": 5.0,
-                            "z": 0.0
-                        },
-                        "rotation": {
-                            "x": 0.0,
-                            "y": 0.0,
-                            "z": 0.0
-                        },
-                        "scale": {
-                            "x": 1.0,
-                            "y": 1.0,
-                            "z": 1.0
-                        }
-                    }
-                },
-                {
-                    "type": "MeshRenderComponent",
-                    "data": {
-                        "enabled": true,
-                        "material": "defaultMaterial",
+                        "material": "defaultRedMaterial",
                         "renderStyle": "solid",
                         "wireColor": {
                             "r": 1.0,
@@ -389,7 +316,7 @@
                     "type": "Rigidbody",
                     "data": {
                         "enabled": true,
-                        "mass": 1.0,
+                        "mass": 0.0,
                         "restitution": 0.0,
                         "gravityScale": 1.0
                     }

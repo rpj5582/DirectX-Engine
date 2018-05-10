@@ -152,7 +152,7 @@ void Entity::rename(std::string name)
 	m_name = name;
 }
 
-Component* Entity::addComponentByStringType(std::string componentType)
+Component* Entity::addComponentByStringType(std::string componentType, bool initialize)
 {
 	if (componentType == "")
 	{
@@ -160,7 +160,7 @@ Component* Entity::addComponentByStringType(std::string componentType)
 		return nullptr;
 	}
 
-	return ComponentRegistry::addComponentToEntity(*this, componentType);
+	return ComponentRegistry::addComponentToEntity(*this, componentType, initialize);
 }
 
 std::vector<Component*> Entity::getAllComponents() const

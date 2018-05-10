@@ -5,7 +5,7 @@
 #include "../Component/MeshRenderComponent.h"
 #include "../Component/LightComponent.h"
 #include "../Component/CameraComponent.h"
-#include "../Component/ICollider.h"
+#include "../Component/Collider.h"
 
 #include <DirectXMath.h>
 

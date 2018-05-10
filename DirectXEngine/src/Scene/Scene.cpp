@@ -45,6 +45,7 @@ bool Scene::init()
 	addTag(TAG_LIGHT);
 	addTag(TAG_GUI);
 	addTag(TAG_COLLIDER);
+	addTag(TAG_PHYSICSBODY);
 
 	m_debugCamera = new Entity(*this, 0, "DebugCamera", false);
 	Transform* debugCameraTransform = m_debugCamera->addComponent<Transform>();
@@ -106,29 +107,29 @@ void Scene::handlePhysics(PhysicsHandler* physicsHandler)
 {
 	if (Debug::inPlayMode)
 	{
-		// Integrate rigidbodies
-		std::vector<Entity*> rigidbodyEntities = m_taggedEntities.at(TAG_RIGIDBODY);
-		for (unsigned int i = 0; i < rigidbodyEntities.size(); i++)
+		// Integrate physics bodies (rigid and soft)
+		std::vector<Entity*> bodyEntities = m_taggedEntities.at(TAG_PHYSICSBODY);
+		for (unsigned int i = 0; i < bodyEntities.size(); i++)
 		{
-			if (!rigidbodyEntities[i]->getEnabled()) continue;
+			if (!bodyEntities[i]->getEnabled()) continue;
 
-			Rigidbody* rigidbody = rigidbodyEntities[i]->getComponent<Rigidbody>();
-			if (rigidbody && rigidbody->enabled)
+			IPhysicsBody* body = bodyEntities[i]->getComponent<IPhysicsBody>();
+			if (body && body->enabled)
 			{
-				rigidbody->integrateForces();
-				rigidbody->integrateVelocity();
+				body->integrateForces();
+				body->integrateVelocity();
 			}
 		}
 
 		// Check for and resolve collisions
-		std::vector<ICollider*> colliders = std::vector<ICollider*>();
+		std::vector<Collider*> colliders = std::vector<Collider*>();
 
 		std::vector<Entity*> colliderEntities = m_taggedEntities.at(TAG_COLLIDER);
 		for (unsigned int i = 0; i < colliderEntities.size(); i++)
 		{
 			if (!colliderEntities[i]->getEnabled()) continue;
 
-			ICollider* collider = colliderEntities[i]->getComponent<ICollider>();
+			Collider* collider = colliderEntities[i]->getComponent<Collider>();
 			if (collider && collider->enabled)
 				colliders.push_back(collider);
 
@@ -229,9 +230,12 @@ bool Scene::loadFromJSON(std::string filepath)
 			rapidjson::Value& componentType = component["type"];
 			rapidjson::Value& dataObject = component["data"];
 			
-			Component* c = e->addComponentByStringType(componentType.GetString());
+			Component* c = e->addComponentByStringType(componentType.GetString(), false);
 			if (c)
+			{
 				c->loadFromJSON(dataObject);
+				c->init();
+			}	
 			else
 				Debug::warning("Skipping component of type " + std::string(componentType.GetString()) + " - either an invalid type or the component was not registered.");
 		}
